@@ -51,7 +51,9 @@ export const useAmbientStore = create<AmbientStore>()((set, get) => ({
       timestamp: Date.now(),
     }
 
-    set({ flagState: state, previousFlagState: prev, toasts: [...get().toasts, toast] })
+    // Use updater form so flagState and toasts are read atomically from the
+    // same snapshot — avoids TOCTOU if two flag events arrive in the same tick.
+    set((s) => ({ flagState: state, previousFlagState: prev, toasts: [...s.toasts, toast] }))
 
     // Auto-dismiss fastest lap after 2.8s, then restore
     if (state === 'FASTEST_LAP') {

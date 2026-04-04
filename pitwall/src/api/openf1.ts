@@ -121,7 +121,7 @@ export interface OpenF1Meeting {
 // Low-level fetch with optional auth
 async function openf1Fetch<T>(
   path: string,
-  params: Record<string, string | number | undefined> = {},
+  params: Record<string, string | number | undefined | 'latest'> = {},
   apiKey?: string
 ): Promise<T[]> {
   const url = new URL(`${BASE_URL}${path}`)
@@ -147,7 +147,7 @@ export function fetchSessions(params?: { year?: number }, apiKey?: string) {
 }
 
 export function fetchLatestSession(apiKey?: string) {
-  return openf1Fetch<OpenF1Session>('/sessions', { session_key: 'latest' as any }, apiKey)
+  return openf1Fetch<OpenF1Session>('/sessions', { session_key: 'latest' }, apiKey)
 }
 
 // --- Drivers ---

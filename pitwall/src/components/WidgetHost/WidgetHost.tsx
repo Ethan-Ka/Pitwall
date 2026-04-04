@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useWorkspaceStore } from '../../store/workspaceStore'
 import { useWidgetDriver } from '../../hooks/useWidgetDriver'
 import { WidgetSettingsPanel } from '../WidgetSettings/WidgetSettingsPanel'
 import { useDriverStore } from '../../store/driverStore'
+import { WidgetErrorBoundary } from '../ErrorBoundary/WidgetErrorBoundary'
 
 // Maps driverContext type to a human-readable widget type label
 function widgetTypeLabel(type: string): string {
@@ -100,27 +102,37 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
         }}
         onContextMenu={handleContextMenu}
       >
-        {/* Chrome header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          paddingInline: 8,
-          height: 22,
-          borderBottom: '0.5px solid var(--border)',
-          background: 'var(--bg4)',
-          flexShrink: 0,
-          gap: 6,
-        }}>
-          {/* Driver badge */}
-          <div style={{
+        {/* Chrome header — full header is the drag handle */}
+        <div
+          className="widget-drag-handle"
+          style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
-            padding: '1px 6px',
-            borderRadius: 2,
-            border: `0.5px dashed ${badgeColor}55`,
-            background: `${badgeColor}11`,
-          }}>
+            paddingInline: 8,
+            height: 22,
+            borderBottom: '0.5px solid var(--border)',
+            background: 'var(--bg4)',
+            flexShrink: 0,
+            gap: 6,
+            cursor: 'grab',
+          }}
+        >
+
+          {/* Driver badge — clicking opens Driver tab in settings */}
+          <div
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); setSettingsOpen(true) }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '1px 6px',
+              borderRadius: 2,
+              border: `0.5px dashed ${badgeColor}55`,
+              background: `${badgeColor}11`,
+              cursor: 'pointer',
+            }}
+          >
             {teamColor && (
               <div style={{
                 width: 4,
@@ -142,20 +154,24 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
           </div>
 
           {/* Widget type label */}
-          <span style={{
-            fontFamily: 'var(--mono)',
-            fontSize: 7,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--muted2)',
-            flex: 1,
-          }}>
+          <span
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{
+              fontFamily: 'var(--mono)',
+              fontSize: 7,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--muted2)',
+              flex: 1,
+            }}
+          >
             {widgetTypeLabel(config.type)}
           </span>
 
           {/* Gear icon → settings */}
           <button
             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true) }}
+            onMouseDown={(e) => e.stopPropagation()}
             style={{
               background: 'none',
               border: 'none',
@@ -174,6 +190,7 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
           {/* Close button */}
           <button
             onClick={(e) => { e.stopPropagation(); handleRemove() }}
+            onMouseDown={(e) => e.stopPropagation()}
             style={{
               background: 'none',
               border: 'none',
@@ -192,12 +209,14 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
 
         {/* Widget content */}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-          {children}
+          <WidgetErrorBoundary widgetId={widgetId} widgetType={config.type}>
+            {children}
+          </WidgetErrorBoundary>
         </div>
       </div>
 
-      {/* Context menu */}
-      {contextMenuPos && (
+      {/* Context menu — portalled to body to escape transform stacking context */}
+      {contextMenuPos && createPortal(
         <div
           ref={menuRef}
           style={{
@@ -220,16 +239,19 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
           <ContextMenuItem onClick={handleRemove} danger>
             Remove widget
           </ContextMenuItem>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Settings panel */}
-      {settingsOpen && (
-        <WidgetSettingsPanel widgetId={widgetId} onClose={() => setSettingsOpen(false)} />
+      {/* Settings panel — portalled to body to escape transform stacking context */}
+      {settingsOpen && createPortal(
+        <WidgetSettingsPanel widgetId={widgetId} onClose={() => setSettingsOpen(false)} />,
+        document.body
       )}
     </>
   )
 }
+
 
 function ContextMenuItem({
   children,

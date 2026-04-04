@@ -17,14 +17,16 @@ function formatTime(seconds: number | null | undefined): string {
   return seconds.toFixed(3)
 }
 
-function formatGap(gap: number | null | undefined): string {
+function formatGap(gap: number | string | null | undefined): string {
   if (gap == null) return '—'
+  if (typeof gap === 'string') return gap // e.g. "+1 LAP" for lapped cars
   if (gap === 0) return 'LEADER'
   return `+${gap.toFixed(3)}`
 }
 
-function formatInterval(interval: number | null | undefined): string {
+function formatInterval(interval: number | string | null | undefined): string {
   if (interval == null) return '—'
+  if (typeof interval === 'string') return interval
   return `+${interval.toFixed(3)}`
 }
 

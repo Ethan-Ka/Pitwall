@@ -1,6 +1,7 @@
 // Compact layout export/import codec
 // Encodes a CanvasTab into a short base64 JSON string for sharing
 
+import type { LayoutItem } from 'react-grid-layout'
 import type { CanvasTab } from '../store/workspaceStore'
 
 export function encodeLayout(tab: Pick<CanvasTab, 'layout' | 'widgets' | 'name'>): string {
@@ -28,7 +29,7 @@ export function encodeLayout(tab: Pick<CanvasTab, 'layout' | 'widgets' | 'name'>
   return btoa(JSON.stringify(payload))
 }
 
-export function decodeLayout(code: string): Pick<CanvasTab, 'layout' | 'widgets' | 'name'> {
+export function decodeLayout(code: string): { name: string; layout: LayoutItem[]; widgets: CanvasTab['widgets'] } {
   const payload = JSON.parse(atob(code))
   return {
     name: payload.n ?? 'Imported',

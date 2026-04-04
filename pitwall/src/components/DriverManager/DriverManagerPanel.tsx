@@ -219,10 +219,11 @@ export function DriverManagerPanel({ onClose }: DriverManagerPanelProps) {
               All drivers — 2025 season
             </div>
 
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' }}>
             {Array.from(teamMap.entries()).map(([teamName, teamDrivers]) => {
               const teamColor = getTeamColor(teamDrivers[0].driver_number)
               return (
-                <div key={teamName} style={{ marginBottom: 16 }}>
+                <div key={teamName} style={{ minWidth: 160 }}>
                   {/* Team label */}
                   <div style={{
                     display: 'flex',
@@ -266,6 +267,7 @@ export function DriverManagerPanel({ onClose }: DriverManagerPanelProps) {
                 </div>
               )
             })}
+            </div>
 
             {drivers.length === 0 && (
               <div style={{

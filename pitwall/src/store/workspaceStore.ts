@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Layout } from 'react-grid-layout'
+import type { LayoutItem } from 'react-grid-layout'
 import { encodeLayout, decodeLayout } from '../lib/layoutCodec'
 
 export interface WidgetConfig {
@@ -16,7 +16,7 @@ export type DriverContext = 'FOCUS' | 'P1' | 'P2' | 'P3' | 'P4' | 'P5' | 'GAP+1'
 export interface CanvasTab {
   id: string
   name: string
-  layout: Layout[]
+  layout: LayoutItem[]
   widgets: Record<string, WidgetConfig>
 }
 
@@ -27,8 +27,8 @@ interface WorkspaceStore {
   removeTab: (id: string) => void
   renameTab: (id: string, name: string) => void
   setActiveTab: (id: string) => void
-  updateLayout: (tabId: string, layout: Layout[]) => void
-  addWidget: (tabId: string, widget: WidgetConfig, layoutItem: Layout) => void
+  updateLayout: (tabId: string, layout: LayoutItem[]) => void
+  addWidget: (tabId: string, widget: WidgetConfig, layoutItem: LayoutItem) => void
   removeWidget: (tabId: string, widgetId: string) => void
   updateWidgetConfig: (tabId: string, widgetId: string, config: Partial<WidgetConfig>) => void
   getActiveTab: () => CanvasTab | undefined

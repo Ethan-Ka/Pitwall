@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useMemo, useState } from 'react'
 import { usePositions } from '../../hooks/usePositions'
 import { useIntervals } from '../../hooks/useIntervals'
 import { useDriverStore } from '../../store/driverStore'
@@ -88,18 +88,25 @@ export function FullTrackMap({ widgetId: _ }: FullTrackMapProps) {
     }
   })
 
-  // Battle proximity: pairs within 1s of each other
-  const battlePairs = new Set<number>()
-  for (let i = 0; i < dots.length; i++) {
-    for (let j = i + 1; j < dots.length; j++) {
-      const gi = dots[i].gapToLeader ?? 0
-      const gj = dots[j].gapToLeader ?? 0
-      if (Math.abs(gi - gj) < 1) {
-        battlePairs.add(dots[i].driverNumber)
-        battlePairs.add(dots[j].driverNumber)
+  // Battle proximity: pairs within 1s of each other.
+  // Memoized so the O(n²) scan does not run on every render tick caused by
+  // the 2s intervals poll or 3s positions poll.
+  const battlePairs = useMemo(() => {
+    const pairs = new Set<number>()
+    for (let i = 0; i < dots.length; i++) {
+      for (let j = i + 1; j < dots.length; j++) {
+        const gi = dots[i].gapToLeader ?? 0
+        const gj = dots[j].gapToLeader ?? 0
+        if (Math.abs(gi - gj) < 1) {
+          pairs.add(dots[i].driverNumber)
+          pairs.add(dots[j].driverNumber)
+        }
       }
     }
-  }
+    return pairs
+  // dots is recomputed from positions+intervals so using it as the dep is correct
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positions, intervals])
 
   return (
     <div

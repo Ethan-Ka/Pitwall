@@ -55,7 +55,7 @@ export function WidgetSettingsPanel({ widgetId, onClose }: WidgetSettingsPanelPr
   const label = (widgetConfig.settings?.label as string) ?? widgetConfig.type
   const pollingRate = (widgetConfig.settings?.pollingRate as number) ?? 3000
 
-  function update(partial: Partial<typeof widgetConfig.settings>) {
+  function update(partial: Partial<Record<string, unknown>>) {
     updateWidgetConfig(tabId!, widgetId, {
       settings: { ...widgetConfig!.settings, ...partial },
     })

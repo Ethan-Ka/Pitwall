@@ -1,13 +1,15 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSessionStore } from './store/sessionStore'
 import { useWorkspaceStore } from './store/workspaceStore'
 import { useAmbientStore } from './store/ambientStore'
 import { useDriverStore } from './store/driverStore'
+import { useLogStore } from './store/logStore'
 import { ApiKeyOnboarding } from './screens/ApiKeyOnboarding'
 import { AmbientBar } from './components/AmbientBar/AmbientBar'
 import { FocusStrip } from './components/DriverManager/FocusStrip'
 import { CanvasTabs } from './components/Canvas/CanvasTabs'
 import { Canvas } from './components/Canvas/Canvas'
+import { DiagnosticLog } from './components/DiagnosticLog/DiagnosticLog'
 import { useDrivers } from './hooks/useDrivers'
 import { useLatestSession } from './hooks/useSession'
 import { useRaceControl } from './hooks/useRaceControl'
@@ -86,7 +88,6 @@ function BroadcastSync() {
 function SessionSelector() {
   const { activeSession } = useSessionStore()
   const { data: sessions } = useLatestSession()
-  const { setActiveSession } = useSessionStore()
 
   if (!activeSession && !sessions?.length) {
     return (
@@ -139,6 +140,9 @@ function SessionSelector() {
 function MainLayout() {
   const { tabs, activeTabId } = useWorkspaceStore()
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0]
+  const [logOpen, setLogOpen] = useState(false)
+  const logEntries = useLogStore((s) => s.entries)
+  const hasErrors = logEntries.some((e) => e.level === 'ERR')
 
   return (
     <div style={{
@@ -151,7 +155,7 @@ function MainLayout() {
       {/* Ambient bar */}
       <AmbientBar />
 
-      {/* Toolbar */}
+      {/* Toolbar — also serves as Electron drag region */}
       <div style={{
         height: 40,
         background: 'var(--bg2)',
@@ -161,6 +165,8 @@ function MainLayout() {
         paddingInline: 14,
         gap: 12,
         flexShrink: 0,
+        // @ts-ignore — Electron CSS property for window dragging
+        WebkitAppRegion: 'drag',
       }}>
         {/* Logo */}
         <div style={{
@@ -178,6 +184,51 @@ function MainLayout() {
           <SessionSelector />
         </div>
 
+        {/* New window button — only shown when running inside Electron */}
+        {window.electronAPI && (
+          <button
+            onClick={() => window.electronAPI!.openNewWindow()}
+            title="Open new window"
+            style={{
+              background: 'none',
+              border: '0.5px solid var(--border)',
+              borderRadius: 3,
+              padding: '4px 10px',
+              fontFamily: 'var(--mono)',
+              fontSize: 8,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--muted2)',
+              cursor: 'pointer',
+              // @ts-ignore
+              WebkitAppRegion: 'no-drag',
+            }}
+          >
+            + Window
+          </button>
+        )}
+
+        {/* LOG button */}
+        <button
+          onClick={() => setLogOpen((v) => !v)}
+          style={{
+            background: 'none',
+            border: '0.5px solid var(--border)',
+            borderRadius: 3,
+            padding: '4px 10px',
+            fontFamily: 'var(--mono)',
+            fontSize: 8,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: hasErrors ? 'var(--red)' : 'var(--muted2)',
+            cursor: 'pointer',
+            // @ts-ignore
+            WebkitAppRegion: 'no-drag',
+          }}
+        >
+          LOG
+        </button>
+
         {/* Settings button */}
         <button
           style={{
@@ -191,6 +242,8 @@ function MainLayout() {
             textTransform: 'uppercase',
             color: 'var(--muted)',
             cursor: 'pointer',
+            // @ts-ignore
+            WebkitAppRegion: 'no-drag',
           }}
         >
           Settings
@@ -205,6 +258,9 @@ function MainLayout() {
 
       {/* Main canvas */}
       {activeTab && <Canvas tabId={activeTab.id} />}
+
+      {/* Diagnostic log panel */}
+      <DiagnosticLog open={logOpen} onClose={() => setLogOpen(false)} />
     </div>
   )
 }

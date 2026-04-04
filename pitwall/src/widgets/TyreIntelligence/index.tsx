@@ -8,8 +8,6 @@ interface TyreIntelligenceProps {
   widgetId: string
 }
 
-type Compound = 'SOFT' | 'MEDIUM' | 'HARD' | 'INTERMEDIATE' | 'WET' | string
-
 const BASE_WINDOW: Record<string, number> = {
   SOFT: 18,
   MEDIUM: 28,

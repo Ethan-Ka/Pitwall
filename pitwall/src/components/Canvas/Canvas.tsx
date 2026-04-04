@@ -1,9 +1,11 @@
-import { useCallback, useRef, useState } from 'react'
-import GridLayout from 'react-grid-layout'
-import type { Layout } from 'react-grid-layout'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { GridLayout, noCompactor } from 'react-grid-layout'
+import type { Layout, LayoutItem } from 'react-grid-layout'
 import { useWorkspaceStore } from '../../store/workspaceStore'
 import type { WidgetConfig } from '../../store/workspaceStore'
+import { useDraggingStore } from '../../store/draggingStore'
 import { WidgetHost } from '../WidgetHost/WidgetHost'
+import { WidgetPicker } from '../WidgetPicker/WidgetPicker'
 
 // Lazy widget imports
 import { LapDeltaTower } from '../../widgets/LapDeltaTower'
@@ -15,20 +17,24 @@ import { FullTrackMap } from '../../widgets/FullTrackMap'
 import { WeatherRadar } from '../../widgets/WeatherRadar'
 
 // Widget type → component registry
+// These must be stable component references (not inline arrows) — React uses
+// referential identity to decide whether to unmount/remount. Inline arrows here
+// would create a new type on every Canvas render and remount every widget,
+// wiping local state and re-triggering all queries.
 const WIDGET_REGISTRY: Record<string, React.ComponentType<{ widgetId: string }>> = {
-  LapDeltaTower: ({ widgetId }) => <LapDeltaTower widgetId={widgetId} />,
-  RunningOrderStrip: ({ widgetId }) => <RunningOrderStrip widgetId={widgetId} />,
-  RaceControlFeed: ({ widgetId }) => <RaceControlFeed widgetId={widgetId} />,
-  WeatherDashboard: ({ widgetId }) => <WeatherDashboard widgetId={widgetId} />,
-  TyreIntelligence: ({ widgetId }) => <TyreIntelligence widgetId={widgetId} />,
-  FullTrackMap: ({ widgetId }) => <FullTrackMap widgetId={widgetId} />,
-  WeatherRadar: ({ widgetId }) => <WeatherRadar widgetId={widgetId} />,
+  LapDeltaTower,
+  RunningOrderStrip,
+  RaceControlFeed,
+  WeatherDashboard,
+  TyreIntelligence,
+  FullTrackMap,
+  WeatherRadar,
 }
 
 // Default layout dimensions per widget type
 const WIDGET_DEFAULTS: Record<string, { w: number; h: number }> = {
   LapDeltaTower: { w: 12, h: 10 },
-  RunningOrderStrip: { w: 24, h: 4 },
+  RunningOrderStrip: { w: 24, h: 2 },
   RaceControlFeed: { w: 8, h: 8 },
   WeatherDashboard: { w: 8, h: 5 },
   TyreIntelligence: { w: 6, h: 6 },
@@ -36,15 +42,10 @@ const WIDGET_DEFAULTS: Record<string, { w: number; h: number }> = {
   WeatherRadar: { w: 8, h: 8 },
 }
 
-const WIDGET_LABELS: Record<string, string> = {
-  LapDeltaTower: 'Lap Delta Tower',
-  RunningOrderStrip: 'Running Order Strip',
-  RaceControlFeed: 'Race Control Feed',
-  WeatherDashboard: 'Weather Dashboard',
-  TyreIntelligence: 'Tyre Intelligence',
-  FullTrackMap: 'Full Track Map',
-  WeatherRadar: 'Weather Radar',
+function getMinHeightForWidget(type: string): number {
+  return type === 'RunningOrderStrip' ? 1 : 3
 }
+
 
 interface CanvasProps {
   tabId: string
@@ -54,27 +55,65 @@ export function Canvas({ tabId }: CanvasProps) {
   const tabs = useWorkspaceStore((s) => s.tabs)
   const updateLayout = useWorkspaceStore((s) => s.updateLayout)
   const addWidget = useWorkspaceStore((s) => s.addWidget)
+  const draggingType = useDraggingStore((s) => s.draggingType)
+  const setDraggingType = useDraggingStore((s) => s.setDraggingType)
 
   const tab = tabs.find((t) => t.id === tabId)
-  const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Container width for GridLayout
   const [containerWidth, setContainerWidth] = useState(1200)
-  const containerRef = useCallback((node: HTMLDivElement | null) => {
+  const containerElRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const node = containerElRef.current
     if (!node) return
     const ro = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width
+      const [{ contentRect } = { contentRect: undefined as DOMRectReadOnly | undefined }] = entries
+      const width = contentRect?.width
       if (width) setContainerWidth(width)
     })
     ro.observe(node)
+    return () => ro.disconnect()
   }, [])
 
-  function handleLayoutChange(layout: Layout[]) {
+  const containerRef = useCallback((node: HTMLDivElement | null) => {
+    containerElRef.current = node
+  }, [])
+
+  // Keep a ref to tabId so the debounced callback always sees the current tab,
+  // even if the user switches tabs within the 3s debounce window.
+  const tabIdRef = useRef(tabId)
+  useEffect(() => { tabIdRef.current = tabId }, [tabId])
+
+  // Migrate old RunningOrderStrip widgets from legacy default size (h=4/minH=3)
+  // to compact defaults without overriding manual custom sizing.
+  useEffect(() => {
+    if (!tab) return
+    let changed = false
+    const nextLayout = tab.layout.map((item) => {
+      const widget = tab.widgets[item.i]
+      if (
+        widget?.type === 'RunningOrderStrip'
+        && item.h === 4
+        && item.minH === 3
+      ) {
+        changed = true
+        return { ...item, h: 2, minH: 1 }
+      }
+      return item
+    })
+    if (changed) {
+      updateLayout(tabId, nextLayout)
+    }
+  }, [tab, tabId, updateLayout])
+
+  function handleLayoutChange(layout: Layout) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      updateLayout(tabId, layout)
-    }, 3000)
+      updateLayout(tabIdRef.current, [...layout])
+    }, 300)
   }
 
   function handleAddWidget(type: string) {
@@ -85,17 +124,16 @@ export function Canvas({ tabId }: CanvasProps) {
       type,
       driverContext: 'FOCUS',
     }
-    const layoutItem: Layout = {
+    const layoutItem: LayoutItem = {
       i: id,
       x: 0,
       y: Infinity, // places at bottom
       w: defaults.w,
       h: defaults.h,
       minW: 3,
-      minH: 3,
+      minH: getMinHeightForWidget(type),
     }
     addWidget(tabId, widget, layoutItem)
-    setAddMenuOpen(false)
   }
 
   if (!tab) return null
@@ -110,6 +148,7 @@ export function Canvas({ tabId }: CanvasProps) {
         overflow: 'auto',
         position: 'relative',
         background: 'var(--bg)',
+        border: draggingType ? '1.5px dashed rgba(232,19,43,0.3)' : 'none',
       }}
     >
       {/* Empty state */}
@@ -146,18 +185,39 @@ export function Canvas({ tabId }: CanvasProps) {
       )}
 
       <GridLayout
-        layout={tab.layout}
-        cols={24}
-        rowHeight={40}
-        margin={[4, 4]}
+        layout={tab.layout as Layout}
+        gridConfig={{ cols: 24, rowHeight: 40, margin: [4, 4] as [number, number] }}
+        dragConfig={{ handle: '.widget-drag-handle' }}
+        resizeConfig={{ handles: ['se'] }}
+        dropConfig={{
+          enabled: true,
+          onDragOver: () => {
+            if (!draggingType) return false
+            const defaults = WIDGET_DEFAULTS[draggingType] ?? { w: 6, h: 6 }
+            return { w: defaults.w, h: defaults.h }
+          },
+        }}
+        compactor={noCompactor}
         width={containerWidth}
         onLayoutChange={handleLayoutChange}
-        draggableHandle=".widget-drag-handle"
-        resizeHandles={['se']}
-        isResizable
-        isDraggable
-        compactType={null}
-        preventCollision={false}
+        onDrop={(_layout, item, _e) => {
+          const type = draggingType
+          setDraggingType(null)
+          if (!type || !item) return
+          const defaults = WIDGET_DEFAULTS[type] ?? { w: 6, h: 6 }
+          const id = crypto.randomUUID()
+          const widget: WidgetConfig = { id, type, driverContext: 'FOCUS' }
+          const layoutItem: LayoutItem = {
+            i: id,
+            x: item.x,
+            y: item.y,
+            w: defaults.w,
+            h: defaults.h,
+            minW: 3,
+            minH: getMinHeightForWidget(type),
+          }
+          addWidget(tabIdRef.current, widget, layoutItem)
+        }}
       >
         {widgetEntries.map((widget) => {
           const WidgetComponent = WIDGET_REGISTRY[widget.type]
@@ -187,75 +247,39 @@ export function Canvas({ tabId }: CanvasProps) {
       </GridLayout>
 
       {/* Add widget button */}
-      <div style={{
-        position: 'fixed',
-        bottom: 20,
-        right: 20,
-        zIndex: 100,
-      }}>
-        {addMenuOpen && (
-          <div style={{
-            position: 'absolute',
-            bottom: '100%',
-            right: 0,
-            marginBottom: 8,
-            background: 'var(--bg4)',
-            border: '0.5px solid var(--border2)',
-            borderRadius: 4,
-            padding: '4px 0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-            minWidth: 200,
-          }}>
-            {Object.keys(WIDGET_LABELS).map((type) => (
-              <button
-                key={type}
-                onClick={() => handleAddWidget(type)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '7px 14px',
-                  background: 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  fontFamily: 'var(--mono)',
-                  fontSize: 9,
-                  letterSpacing: '0.1em',
-                  color: 'var(--white)',
-                  cursor: 'pointer',
-                  transition: 'background 0.1s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg3)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                {WIDGET_LABELS[type]}
-              </button>
-            ))}
-          </div>
-        )}
-        <button
-          onClick={() => setAddMenuOpen((v) => !v)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 16px',
-            background: addMenuOpen ? 'var(--bg4)' : 'var(--bg3)',
-            border: '0.5px solid var(--border2)',
-            borderRadius: 4,
-            fontFamily: 'var(--mono)',
-            fontSize: 9,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: 'var(--white)',
-            cursor: 'pointer',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
-            transition: 'background 0.12s',
-          }}
-        >
-          <span style={{ fontSize: 14, lineHeight: 1 }}>+</span>
-          Add widget
-        </button>
-      </div>
+      <button
+        onClick={() => setPickerOpen(true)}
+        aria-label="Add widget"
+        style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          zIndex: 100,
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          background: 'var(--red)',
+          border: 'none',
+          color: '#ffffff',
+          fontSize: 18,
+          lineHeight: 1,
+          cursor: 'pointer',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'opacity 0.12s',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+      >
+        +
+      </button>
+
+      {/* Widget picker panel */}
+      {pickerOpen && (
+        <WidgetPicker onClose={() => setPickerOpen(false)} onAdd={handleAddWidget} />
+      )}
     </div>
   )
 }
