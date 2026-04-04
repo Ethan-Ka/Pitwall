@@ -155,7 +155,6 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
 
           {/* Widget type label */}
           <span
-            onMouseDown={(e) => e.stopPropagation()}
             style={{
               fontFamily: 'var(--mono)',
               fontSize: 7,

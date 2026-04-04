@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Developer Menu</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f1115;
+        --panel: #171a21;
+        --panel-border: #292d37;
+        --text: #e8edf7;
+        --muted: #9ba6ba;
+        --accent: #5ed3a9;
+        --danger: #ff6f6f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: radial-gradient(circle at 20% -10%, #1c2330 0%, var(--bg) 45%), var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 14px;
+      }
+
+      h1 {
+        font-size: 15px;
+        letter-spacing: 0.02em;
+        margin: 0 0 4px;
+      }
+
+      p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .section {
+        background: linear-gradient(160deg, #1a1f2a 0%, var(--panel) 80%);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .section h2 {
+        margin: 0 0 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #b7c3d8;
+      }
+
+      .grid {
+        display: grid;
+        gap: 8px;
+      }
+
+      button {
+        width: 100%;
+        border: 1px solid #334054;
+        border-radius: 8px;
+        background: #1b2432;
+        color: var(--text);
+        padding: 9px 10px;
+        text-align: left;
+        cursor: pointer;
+        font-size: 12px;
+        transition: transform 120ms ease, background 120ms ease;
+      }
+
+      button:hover {
+        background: #253146;
+        transform: translateY(-1px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button[data-tone="accent"] {
+        border-color: #2e7d67;
+      }
+
+      button[data-tone="danger"] {
+        border-color: #7c2e3b;
+        background: #312029;
+      }
+
+      #status {
+        margin-top: 6px;
+        min-height: 16px;
+        font-size: 12px;
+        color: var(--accent);
+      }
+
+      #status.error {
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Developer Menu</h1>
+    <p>Run local debug actions against all open pitwall windows.</p>
+
+    <div class="section">
+      <h2>Toasts</h2>
+      <div class="grid">
+        <button data-action="toast-sample" data-tone="accent">Trigger sample toast popup</button>
+        <button data-action="simulate-rate-limit">Trigger OpenF1 rate-limit toast</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>API Key Cases</h2>
+      <div class="grid">
+        <button data-action="simulate-invalid-api-key" data-tone="danger">Simulate invalid API key (show onboarding)</button>
+        <button data-action="set-mode-live">Switch mode to live</button>
+        <button data-action="set-mode-historical">Switch mode to historical</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Diagnostics</h2>
+      <div class="grid">
+        <button data-action="clear-diagnostic-log">Clear diagnostic log entries</button>
+      </div>
+    </div>
+
+    <div id="status" role="status" aria-live="polite"></div>
+
+    <script>
+      const status = document.getElementById('status')
+
+      function setStatus(message, isError = false) {
+        status.textContent = message
+        status.className = isError ? 'error' : ''
+      }
+
+      function trigger(action) {
+        if (!window.devToolsAPI || typeof window.devToolsAPI.triggerAction !== 'function') {
+          setStatus('Developer bridge unavailable.', true)
+          return
+        }
+        window.devToolsAPI.triggerAction(action)
+        setStatus(`Action sent: ${action}`)
+      }
+
+      document.querySelectorAll('button[data-action]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const action = button.getAttribute('data-action')
+          if (action) trigger(action)
+        })
+      })
+    </script>
+  </body>
+</html>

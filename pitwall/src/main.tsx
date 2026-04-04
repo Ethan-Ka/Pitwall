@@ -6,8 +6,10 @@ import './index.css'
 import App from './App.tsx'
 import { AppErrorBoundary } from './components/ErrorBoundary/AppErrorBoundary'
 import { initLogBridge } from './store/logStore'
+import { initElectronDebugBridge } from './lib/electronDebugBridge'
 
 initLogBridge()
+initElectronDebugBridge()
 
 const queryClient = new QueryClient({
   defaultOptions: {
