@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pitwall — Car Visualization v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0B0B0C;font-family:'Barlow Condensed',sans-serif;color:#F2F0EB;padding:28px;display:flex;flex-direction:column;align-items:center;gap:24px}
+.switcher{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.sw-btn{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.1);cursor:pointer;transition:border-color 0.15s;font-family:'JetBrains Mono',monospace}
+.sw-btn:hover{border-color:rgba(255,255,255,0.25)}
+.sw-btn.active{border-color:rgba(255,255,255,0.45)}
+.sw-bar{width:4px;flex-shrink:0}
+.sw-body{padding:5px 10px;background:#111113;display:flex;flex-direction:column;gap:1px}
+.sw-abbr{font-size:12px;font-weight:700;letter-spacing:0.04em}
+.sw-team{font-size:8px;color:#6B6B70;letter-spacing:0.06em}
+.widget{width:1040px;background:#111113;border:0.5px solid rgba(255,255,255,0.08);border-radius:6px;overflow:hidden}
+.widget-header{background:#181819;border-bottom:0.5px solid rgba(255,255,255,0.07);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.wh-badge{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.12)}
+.wh-bar{width:4px}
+.wh-body{padding:4px 10px;background:#1E1E20;display:flex;align-items:center;gap:8px}
+.wh-num{font-family:'JetBrains Mono',monospace;font-size:9px;color:#6B6B70;letter-spacing:0.06em}
+.wh-name{font-size:18px;font-weight:800;letter-spacing:0.03em}
+.wh-team{font-family:'JetBrains Mono',monospace;font-size:9px;color:#6B6B70}
+.wh-stats{margin-left:auto;display:flex;gap:18px;align-items:center}
+.whs{display:flex;flex-direction:column;gap:1px;align-items:flex-end}
+.whs-l{font-family:'JetBrains Mono',monospace;font-size:8px;color:#4A4A4F;letter-spacing:0.1em;text-transform:uppercase}
+.whs-v{font-size:16px;font-weight:700;line-height:1}
+.car-area{background:#0D0D0F;padding:16px 24px 12px;position:relative}
+.stats-strip{display:flex;border-top:0.5px solid rgba(255,255,255,0.07)}
+.stat-cell{flex:1;padding:10px 14px;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:2px}
+.stat-cell:last-child{border-right:none}
+.sc-l{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#4A4A4F}
+.sc-v{font-size:20px;font-weight:800;line-height:1}
+.sc-u{font-family:'JetBrains Mono',monospace;font-size:8px;color:#4A4A4F}
+.sc-bar{height:2px;background:#1E1E20;border-radius:1px;margin-top:5px;overflow:hidden}
+.sc-f{height:100%;border-radius:1px}
+.damage-row{background:#181819;border-top:0.5px solid rgba(255,255,255,0.06);padding:8px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dmg-l{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#4A4A4F;flex-shrink:0;margin-right:4px}
+.dmg-chip{display:flex;align-items:center;gap:5px;padding:3px 8px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.04em;border:0.5px solid}
+.dmg-ok{background:rgba(29,184,106,0.06);border-color:rgba(29,184,106,0.2);color:#1DB86A}
+.dmg-warn{background:rgba(224,144,0,0.07);border-color:rgba(224,144,0,0.28);color:#E09000}
+.dmg-crit{background:rgba(232,19,43,0.07);border-color:rgba(232,19,43,0.28);color:#E8132B}
+.dmg-dot{width:5px;height:5px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<div class="switcher" id="switcher"></div>
+<div class="widget" id="widget">
+  <div class="widget-header" id="header"></div>
+  <div class="car-area" id="carArea">
+    <svg id="carSvg" viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block;overflow:visible"></svg>
+  </div>
+  <div class="stats-strip" id="statsStrip"></div>
+  <div class="damage-row" id="damageRow"></div>
+</div>
+
+<script>
+const DRIVERS=[
+  {abbr:'VER',name:'Verstappen',num:'1',team:'Red Bull Racing',pos:1,c1:'#3671C6',c2:'#FFD700',
+   tyres:{FL:{c:'M',age:18,wear:19},FR:{c:'M',age:18,wear:23},RL:{c:'M',age:18,wear:34},RR:{c:'M',age:18,wear:43}},
+   stats:{speed:312,throttle:99,ers:68,bat:74,fuel:58,gear:8,rpm:11141,drs:true,brake:0},
+   damage:{fw:'OK',rw:'OK',floor:'Minor',sus:'OK',rr:'High wear'}},
+  {abbr:'NOR',name:'Norris',num:'4',team:'McLaren',pos:2,c1:'#FF8000',c2:'#000000',
+   tyres:{FL:{c:'S',age:22,wear:35},FR:{c:'S',age:22,wear:39},RL:{c:'S',age:22,wear:57},RR:{c:'S',age:22,wear:64}},
+   stats:{speed:308,throttle:96,ers:71,bat:69,fuel:52,gear:8,rpm:10980,drs:true,brake:0},
+   damage:{fw:'OK',rw:'OK',floor:'OK',sus:'OK',rr:'Critical'}},
+  {abbr:'LEC',name:'Leclerc',num:'16',team:'Ferrari',pos:3,c1:'#E8002D',c2:'#FFCC00',
+   tyres:{FL:{c:'H',age:35,wear:28},FR:{c:'H',age:35,wear:31},RL:{c:'H',age:35,wear:45},RR:{c:'H',age:35,wear:50}},
+   stats:{speed:305,throttle:100,ers:55,bat:81,fuel:63,gear:7,rpm:11250,drs:false,brake:0},
+   damage:{fw:'Minor',rw:'OK',floor:'OK',sus:'OK',rr:'Moderate'}},
+  {abbr:'HAM',name:'Hamilton',num:'44',team:'Ferrari',pos:6,c1:'#E8002D',c2:'#FFCC00',
+   tyres:{FL:{c:'M',age:12,wear:10},FR:{c:'M',age:12,wear:12},RL:{c:'M',age:12,wear:18},RR:{c:'M',age:12,wear:21}},
+   stats:{speed:298,throttle:88,ers:82,bat:88,fuel:71,gear:6,rpm:10400,drs:false,brake:15},
+   damage:{fw:'OK',rw:'OK',floor:'OK',sus:'OK',rr:'Low'}},
+  {abbr:'RUS',name:'Russell',num:'63',team:'Mercedes',pos:5,c1:'#00D2BE',c2:'#FFFFFF',
+   tyres:{FL:{c:'M',age:9,wear:8},FR:{c:'M',age:9,wear:9},RL:{c:'M',age:9,wear:14},RR:{c:'M',age:9,wear:15}},
+   stats:{speed:310,throttle:97,ers:75,bat:78,fuel:66,gear:8,rpm:11050,drs:true,brake:0},
+   damage:{fw:'OK',rw:'OK',floor:'OK',sus:'OK',rr:'Low'}},
+];
+
+const CC={S:'#FF1E1E',M:'#FFD600',H:'#F5F5F5',I:'#39E55B',W:'#4AB8FF'};
+const CL={S:'SOFT',M:'MED',H:'HARD',I:'INTER',W:'WET'};
+
+function wearCol(p){return p>=50?'#E8132B':p>=28?'#E09000':'#1DB86A'}
+
+function buildSwitcher(){
+  document.getElementById('switcher').innerHTML=DRIVERS.map((d,i)=>`
+    <div class="sw-btn ${i===0?'active':''}" onclick="setDriver(${i})" id="sw${i}">
+      <div class="sw-bar" style="background:${d.c1}"></div>
+      <div class="sw-body">
+        <div class="sw-abbr" style="color:${d.c1}">${d.abbr}</div>
+        <div class="sw-team">${d.team.split(' ')[0].toUpperCase()}</div>
+      </div>
+    </div>`).join('');
+}
+
+function buildHeader(d){
+  const pc=d.pos===1?'#C9A84C':d.pos<=3?'#aaa':'#6B6B70';
+  document.getElementById('header').innerHTML=`
+    <div class="wh-badge">
+      <div class="wh-bar" style="background:${d.c1}"></div>
+      <div class="wh-body">
+        <div class="wh-num">#${d.num}</div>
+        <div class="wh-name" style="color:${d.c1}">${d.abbr}</div>
+        <div class="wh-team">${d.team.toUpperCase()}</div>
+      </div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:2px;background:rgba(255,255,255,0.05);color:${pc}">P${d.pos}</div>
+    <div style="width:0.5px;height:20px;background:rgba(255,255,255,0.08)"></div>
+    <div class="wh-stats">
+      <div class="whs"><div class="whs-l">Speed</div><div class="whs-v" style="color:${d.stats.speed>310?'#E8132B':'#F2F0EB'}">${d.stats.speed}<span style="font-size:10px;color:#6B6B70;margin-left:2px">km/h</span></div></div>
+      <div class="whs"><div class="whs-l">Gear</div><div class="whs-v">${d.stats.gear}</div></div>
+      <div class="whs"><div class="whs-l">RPM</div><div class="whs-v">${d.stats.rpm.toLocaleString()}</div></div>
+      <div class="whs"><div class="whs-l">DRS</div><div class="whs-v" style="color:${d.stats.drs?'#1DB86A':'#4A4A4F'};font-size:13px">${d.stats.drs?'ON':'OFF'}</div></div>
+    </div>`;
+}
+
+function buildStats(d){
+  const items=[
+    {l:'Speed',v:d.stats.speed,u:'km/h',f:d.stats.speed/360,col:d.stats.speed>310?'#E8132B':'#F2F0EB'},
+    {l:'Throttle',v:d.stats.throttle+'%',u:'',f:d.stats.throttle/100,col:'#E8132B'},
+    {l:'Brake',v:d.stats.brake+'%',u:'',f:d.stats.brake/100,col:'#4AB8FF'},
+    {l:'ERS',v:d.stats.ers+'%',u:'deploy',f:d.stats.ers/100,col:'#E8132B'},
+    {l:'Battery',v:d.stats.bat+'%',u:'SOC est.',f:d.stats.bat/100,col:'#1DB86A'},
+    {l:'Fuel est.',v:'~'+d.stats.fuel+'%',u:'inferred',f:d.stats.fuel/100,col:'#C9A84C'},
+    {l:'Gear',v:d.stats.gear,u:'rpm '+d.stats.rpm.toLocaleString(),f:d.stats.gear/8,col:'#F2F0EB'},
+  ];
+  document.getElementById('statsStrip').innerHTML=items.map(i=>`
+    <div class="stat-cell">
+      <div class="sc-l">${i.l}</div>
+      <div class="sc-v" style="color:${i.col}">${i.v}</div>
+      <div class="sc-u">${i.u}</div>
+      <div class="sc-bar"><div class="sc-f" style="width:${Math.round(i.f*100)}%;background:${i.col}"></div></div>
+    </div>`).join('');
+}
+
+function buildDamage(d){
+  function chip(label,status){
+    const cls=status==='OK'?'dmg-ok':status==='Minor'?'dmg-warn':'dmg-crit';
+    const dot=status==='OK'?'#1DB86A':status==='Minor'?'#E09000':'#E8132B';
+    return `<div class="dmg-chip ${cls}"><div class="dmg-dot" style="background:${dot}"></div>${label}: ${status}</div>`;
+  }
+  document.getElementById('damageRow').innerHTML=`
+    <div class="dmg-l">Health</div>
+    ${chip('Front wing',d.damage.fw)}
+    ${chip('Rear wing',d.damage.rw)}
+    ${chip('Floor',d.damage.floor)}
+    ${chip('Suspension',d.damage.sus)}
+    ${chip('RR tyre',d.damage.rr)}
+    <div style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:8px;color:#4A4A4F">~inferred where marked</div>`;
+}
+
+// ────────────────────────────────────────────────
+//  THE CAR SVG  — 2026-regulation profile
+//  Carefully traced from the FIA reference image:
+//  - Very long tapered nose, ground-skimming
+//  - Large rounded sidepods with aggressive undercut
+//  - Smooth engine cover humping up to roll hoop
+//  - Short, wide rear wing with clean end plates
+//  - 18" wheels with Pirelli-style sidewall markings
+//  - Halo integrated flush with cockpit surround
+//  - Tire data labels rendered ON TOP of tires
+// ────────────────────────────────────────────────
+function buildCarSVG(d){
+  const c=d.c1;          // primary team color
+  const c2=d.c2;         // secondary
+  const FL=d.tyres.FL, FR=d.tyres.FR, RL=d.tyres.RL, RR=d.tyres.RR;
+
+  // Tire label helper — renders compound + wear badge centered over a tire
+  // cx,cy = tire center, r = tire radius
+  function tireLabel(tire, cx, cy, r){
+    const compCol=CC[tire.c];
+    const wCol=wearCol(tire.wear);
+    return `
+      <!-- compound pill centered on tire -->
+      <rect x="${cx-22}" y="${cy-14}" width="44" height="14" rx="3" fill="rgba(0,0,0,0.82)" stroke="${compCol}" stroke-width="1"/>
+      <text x="${cx}" y="${cy-4}" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="10" font-weight="800" fill="${compCol}">${CL[tire.c]}</text>
+      <!-- wear bar centered on tire -->
+      <rect x="${cx-22}" y="${cy+2}" width="44" height="10" rx="3" fill="rgba(0,0,0,0.82)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+      <rect x="${cx-20}" y="${cy+4}" width="${Math.round(40*tire.wear/100)}" height="6" rx="2" fill="${wCol}"/>
+      <text x="${cx+24}" y="${cy+10}" text-anchor="start" font-family="'JetBrains Mono',monospace" font-size="7" fill="${wCol}">${tire.wear}%</text>
+      <!-- age -->
+      <text x="${cx}" y="${cy+20}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="rgba(255,255,255,0.35)">L${tire.age}</text>`;
+  }
+
+  // Front wheel center: x=215, y=218   radius=54 (overall), rim=28
+  // Rear  wheel center: x=790, y=218   radius=62 (overall), rim=33
+
+  return `
+<svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block;overflow:visible">
+<defs>
+  <!-- Body depth gradient -->
+  <linearGradient id="bodyTop" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="rgba(255,255,255,0.09)"/>
+    <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+  </linearGradient>
+  <!-- Underfloor shadow -->
+  <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#1a1a1e"/>
+    <stop offset="100%" stop-color="#080809"/>
+  </linearGradient>
+  <!-- Ground shadow -->
+  <radialGradient id="shadow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="rgba(0,0,0,0.45)"/>
+    <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+  </radialGradient>
+  <!-- Tire gradient -->
+  <radialGradient id="tireG" cx="42%" cy="38%" r="58%">
+    <stop offset="0%" stop-color="#3a3a3e"/>
+    <stop offset="55%" stop-color="#1e1e22"/>
+    <stop offset="100%" stop-color="#111114"/>
+  </radialGradient>
+  <!-- Team stripe gradient -->
+  <linearGradient id="stripeG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="${c}" stop-opacity="0"/>
+    <stop offset="8%" stop-color="${c}" stop-opacity="1"/>
+    <stop offset="88%" stop-color="${c}" stop-opacity="1"/>
+    <stop offset="100%" stop-color="${c}" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+
+<!-- ═══════ GROUND SHADOW ═══════ -->
+<ellipse cx="500" cy="275" rx="430" ry="14" fill="url(#shadow)"/>
+
+<!-- ═══════ REAR WING ═══════
+     2026: shorter, wider, cleaner than 2022 regs
+     Mounted higher, end plates more vertical      -->
+<!-- Lower element / beam wing -->
+<path d="M848 170 Q870 168 900 172 Q910 173 912 178 Q910 182 900 183 Q870 181 848 179 Z" fill="${c}" opacity="0.7"/>
+<!-- Main plane -->
+<path d="M844 148 Q872 144 912 149 Q922 151 924 158 Q922 164 912 165 Q872 163 844 160 Z" fill="${c}"/>
+<!-- Upper flap -->
+<path d="M840 135 Q872 131 916 136 Q928 138 928 145 Q926 150 916 151 Q872 149 840 146 Z" fill="${c}" opacity="0.85"/>
+<!-- DRS gap line -->
+<line x1="841" y1="147" x2="927" y2="147" stroke="${d.stats.drs?'#1DB86A':'rgba(0,0,0,0.6)'}" stroke-width="1.5"/>
+<!-- Left end plate -->
+<path d="M840 130 L840 185 Q842 187 846 187 L846 130 Z" fill="${c}" opacity="0.6"/>
+<!-- Right end plate -->
+<path d="M924 130 L924 185 Q926 187 930 185 L930 130 Z" fill="${c}" opacity="0.6"/>
+<!-- Swan neck supports -->
+<path d="M862 165 Q860 178 858 195" stroke="rgba(255,255,255,0.12)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M900 165 Q902 178 904 195" stroke="rgba(255,255,255,0.12)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+<!-- ═══════ MAIN BODY ═══════
+     2026 profile key points (left=front/nose, right=rear):
+     - Nose tip at x≈30, y≈218 (ground level)
+     - Nose rises sharply: x≈130, y≈150 where front wing attaches
+     - Cockpit opening: x≈370–510
+     - Engine cover peak: x≈620, y≈78
+     - Tail drops to rear: x≈900, y≈195              -->
+<!-- Floor / underfloor channel -->
+<path d="
+  M270 218
+  L270 228 Q400 232 600 230 Q720 229 820 225 L840 218 Z
+" fill="url(#floorG)" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+<!-- Diffuser (rear underfloor ramp) -->
+<path d="M790 218 Q820 220 845 215 Q856 210 858 200 L840 198 Q830 207 810 212 Q795 215 790 218Z" fill="#0a0a0c"/>
+<!-- Diffuser fins -->
+<line x1="800" y1="210" x2="845" y2="205" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+<line x1="810" y1="212" x2="850" y2="207" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+<line x1="820" y1="214" x2="853" y2="210" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+
+<!-- MAIN BODY LOWER SURFACE (floor edge / sidepod bottom) -->
+<path d="
+  M268 218
+  Q300 220 380 220 Q450 220 520 218 Q580 216 640 212 Q700 208 760 205 Q810 202 840 198
+  Q840 200 840 203 Q810 206 760 209 Q700 213 640 216 Q580 220 520 222 Q450 224 380 223 Q300 223 268 220 Z
+" fill="rgba(0,0,0,0.5)"/>
+
+<!-- MAIN BODY UPPER — the full silhouette -->
+<path d="
+  M35 218
+  Q55 218 75 212 Q95 205 110 192
+  Q118 185 125 175 Q130 165 132 155
+  Q134 148 136 145
+  L175 140
+  Q195 138 215 138
+  Q215 165 215 218
+  Q260 218 268 218
+
+  Q268 200 270 185 Q274 168 285 155 Q298 142 320 135
+  Q350 126 400 122 Q450 119 500 118 Q560 118 620 120
+  Q660 122 700 128 Q740 134 775 142 Q800 148 820 156
+  Q835 163 840 172 L840 198
+
+  Q810 202 760 205 Q700 208 640 212 Q580 216 520 218 Q450 220 380 220 Q300 220 268 218
+
+  Q268 218 215 218
+  Q215 218 215 165 Q200 165 185 167 Q162 170 145 175
+  Q135 179 130 185 Q118 197 100 208 Q75 217 50 218 Z
+" fill="#18181e" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+
+<!-- Body highlight / shine -->
+<path d="
+  M270 140 Q400 122 620 120 Q720 121 800 135 Q820 140 835 148
+  Q830 145 810 140 Q780 134 740 130 Q700 126 640 123 Q580 120 500 120 Q440 120 380 123 Q320 128 285 138 Q274 142 270 148 Z
+" fill="url(#bodyTop)"/>
+
+<!-- ═══════ SIDEPODS ═══════
+     2026: rounded top, aggressive underbody channel
+     The undercut is a large dark shadow underneath     -->
+<!-- Sidepod upper body (integrated into main body above) -->
+<!-- Sidepod intake — left side visible as dark oval -->
+<path d="M293 135 Q308 122 330 122 Q338 128 335 148 Q318 152 300 150 Q290 145 293 135Z" fill="#0a0a0c"/>
+<!-- Undercut channel — prominent dark shadow under sidepods -->
+<path d="
+  M290 175 Q310 185 400 190 Q480 193 560 192 Q620 190 660 186 Q700 182 730 176
+  Q730 178 730 182 Q700 186 660 190 Q620 194 560 196 Q480 198 400 196 Q310 192 290 182 Z
+" fill="rgba(0,0,0,0.7)"/>
+<!-- Sidepod undercut leading edge line -->
+<path d="M290 175 Q310 185 400 190 Q480 193 560 192 Q620 190 660 186 Q700 182 730 176"
+  stroke="rgba(0,0,0,0.9)" stroke-width="4" fill="none"/>
+
+<!-- ═══════ TEAM COLOR STRIPE ═══════ -->
+<path d="
+  M290 152 Q350 140 500 136 Q620 134 730 142 Q770 146 800 152
+  Q800 158 770 155 Q730 150 620 143 Q500 139 350 143 Q290 146 285 150 Z
+" fill="url(#stripeG)" opacity="0.8"/>
+<!-- Thin accent line above stripe -->
+<path d="M290 152 Q500 138 800 152" stroke="${c}" stroke-width="1" fill="none" opacity="0.4"/>
+
+<!-- ═══════ COCKPIT / HALO ═══════ -->
+<!-- Cockpit tub surround -->
+<path d="M370 122 Q390 110 430 105 Q470 101 510 104 Q535 107 548 118 Q540 122 510 122 Q470 122 430 122 Z" fill="#0c0c10" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<!-- Halo arc — flush with cockpit, 2026 style -->
+<path d="M385 118 Q410 95 460 88 Q495 83 530 88 Q548 92 555 105" stroke="${c}" stroke-width="6" fill="none" stroke-linecap="round"/>
+<path d="M385 118 Q410 95 460 88 Q495 83 530 88 Q548 92 555 105" stroke="rgba(255,255,255,0.12)" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- Halo center pillar -->
+<path d="M455 88 L462 118" stroke="${c}" stroke-width="5" stroke-linecap="round"/>
+<path d="M458 88 L463 118" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-linecap="round"/>
+<!-- Cockpit headrest fairing -->
+<path d="M420 105 Q460 100 500 104 Q510 108 510 115 Q470 115 430 115 Q420 112 420 105Z" fill="#14141a"/>
+
+<!-- ═══════ ENGINE COVER / FIN ═══════ -->
+<!-- Engine cover hump up to roll hoop -->
+<path d="M510 118 Q540 112 570 100 Q590 93 610 88 Q625 85 640 86 Q650 88 655 93 Q650 100 635 106 Q615 112 580 118 Q545 122 510 122 Z" fill="#16161c" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+<!-- Roll hoop / intake above cockpit -->
+<path d="M605 86 Q618 78 632 78 Q646 78 655 86 Q648 93 640 96 Q625 99 612 96 Q605 92 605 86Z" fill="#1a1a20" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+<!-- Antenna / camera mast -->
+<line x1="572" y1="118" x2="569" y2="88" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="569" cy="86" r="3" fill="rgba(255,255,255,0.15)"/>
+
+<!-- ═══════ NOSE CONE ═══════
+     2026: shorter, blunter snout, distinctive S-duct area -->
+<!-- Nose upper surface -->
+<path d="M136 145 Q150 143 170 142 Q200 141 215 140 Q215 155 200 158 Q175 160 155 158 Q138 155 136 145Z" fill="#1a1a20" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+<!-- Nose lower taper to tip -->
+<path d="M136 145 Q120 160 100 175 Q85 187 70 200 Q55 210 40 218 L35 218 Q50 210 68 200 Q83 190 96 178 Q110 165 125 152 Q130 148 136 145Z" fill="#1a1a20" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+<!-- S-duct opening on nose -->
+<path d="M155 145 Q163 142 172 142 Q172 150 163 152 Q155 151 155 145Z" fill="#0a0a0c"/>
+
+<!-- ═══════ FRONT WING ═══════
+     2026: single main plane + 2 elements, clean end plates,
+     shorter and simpler than current regs             -->
+<!-- Main element -->
+<path d="M62 196 Q100 190 175 188 Q200 188 215 188 L215 196 Q200 196 175 196 Q100 198 62 204 Z" fill="${c}"/>
+<!-- Second element -->
+<path d="M72 188 Q110 183 175 182 Q200 182 215 182 L215 188 Q200 188 175 188 Q110 188 72 188Z" fill="${c}" opacity="0.75"/>
+<!-- Third element / flap -->
+<path d="M85 183 Q120 178 175 177 Q200 177 215 177 L215 182 Q200 182 175 182 Q120 183 85 183Z" fill="${c}" opacity="0.55"/>
+<!-- End plate left -->
+<path d="M60 175 Q55 185 58 204 Q61 208 68 207 Q64 200 64 188 Q64 180 62 175 Z" fill="${c}" opacity="0.65"/>
+<!-- Cascade element on end plate -->
+<path d="M65 182 Q72 176 82 175 L80 180 Q72 181 66 186 Z" fill="${c}" opacity="0.5"/>
+
+<!-- ═══════ FRONT SUSPENSION ═══════ -->
+<line x1="215" y1="175" x2="262" y2="188" stroke="rgba(255,255,255,0.09)" stroke-width="1.5"/>
+<line x1="215" y1="185" x2="260" y2="196" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+<line x1="215" y1="168" x2="258" y2="180" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+
+<!-- ═══════ REAR SUSPENSION ═══════ -->
+<line x1="790" y1="185" x2="840" y2="178" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+<line x1="790" y1="195" x2="840" y2="188" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+<!-- ═══════ EXHAUST ═══════ -->
+<path d="M835 160 Q840 158 848 161 Q848 166 840 167 Q835 165 835 160Z" fill="#1a0800" stroke="rgba(255,80,0,0.3)" stroke-width="1"/>
+
+<!-- ═══════════════════════════════
+     FRONT TYRE (left in view)
+     Center: 215, 218  outer-r: 54  rim-r: 28
+════════════════════════════════ -->
+<!-- Tire outer -->
+<circle cx="215" cy="218" r="54" fill="url(#tireG)" stroke="#1a1a1e" stroke-width="1.5"/>
+<!-- Tire inner ring -->
+<circle cx="215" cy="218" r="49" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+<!-- Pirelli compound colored sidewall stripe -->
+<circle cx="215" cy="218" r="54" fill="none" stroke="${CC[FL.c]}" stroke-width="5"
+  stroke-dasharray="16 323" stroke-dashoffset="-20" opacity="0.9"/>
+<!-- Rim / wheel -->
+<circle cx="215" cy="218" r="28" fill="#16161c" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<!-- Rim spokes (5-spoke) -->
+<g stroke="rgba(255,255,255,0.09)" stroke-width="2" stroke-linecap="round">
+  <line x1="215" y1="193" x2="215" y2="203"/>
+  <line x1="215" y1="233" x2="215" y2="243"/>
+  <line x1="191" y1="218" x2="201" y2="218"/>
+  <line x1="229" y1="218" x2="239" y2="218"/>
+  <line x1="198" y1="201" x2="204" y2="207"/>
+  <line x1="226" y1="229" x2="232" y2="235"/>
+  <line x1="198" y1="235" x2="204" y2="229"/>
+  <line x1="226" y1="207" x2="232" y2="201"/>
+</g>
+<!-- Hub center -->
+<circle cx="215" cy="218" r="9" fill="${c}" opacity="0.55"/>
+<circle cx="215" cy="218" r="5" fill="#111"/>
+<!-- Center lock nut -->
+<circle cx="215" cy="218" r="5" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+<!-- Brake caliper glow -->
+${d.stats.brake>5?`<path d="M237 200 Q244 208 244 218 Q244 228 237 236" stroke="rgba(255,80,0,0.35)" stroke-width="5" fill="none" stroke-linecap="round"/>`:''}
+
+<!-- ── TIRE LABELS ON FRONT TYRE ── -->
+<!-- FL badge (top half of tire) -->
+<text x="215" y="176" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" letter-spacing="1">FL</text>
+<rect x="193" y="178" width="44" height="13" rx="2.5" fill="rgba(0,0,0,0.85)" stroke="${CC[FL.c]}" stroke-width="1"/>
+<text x="215" y="188" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="10" font-weight="800" fill="${CC[FL.c]}">${CL[FL.c]}  L${FL.age}</text>
+<!-- FL wear bar inside tyre -->
+<rect x="193" y="192" width="44" height="7" rx="2" fill="rgba(0,0,0,0.75)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+<rect x="195" y="193.5" width="${Math.round(40*FL.wear/100)}" height="4" rx="1.5" fill="${wearCol(FL.wear)}"/>
+<text x="240" y="199" font-family="'JetBrains Mono',monospace" font-size="7" fill="${wearCol(FL.wear)}">${FL.wear}%</text>
+
+<!-- FR badge (bottom half — same tyre, right-side view = FR) -->
+<text x="215" y="257" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" letter-spacing="1">FR</text>
+<rect x="193" y="259" width="44" height="13" rx="2.5" fill="rgba(0,0,0,0.85)" stroke="${CC[FR.c]}" stroke-width="1"/>
+<text x="215" y="269" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="10" font-weight="800" fill="${CC[FR.c]}">${CL[FR.c]}  L${FR.age}</text>
+<rect x="193" y="273" width="44" height="7" rx="2" fill="rgba(0,0,0,0.75)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+<rect x="195" y="274.5" width="${Math.round(40*FR.wear/100)}" height="4" rx="1.5" fill="${wearCol(FR.wear)}"/>
+<text x="240" y="280" font-family="'JetBrains Mono',monospace" font-size="7" fill="${wearCol(FR.wear)}">${FR.wear}%</text>
+
+<!-- ═══════════════════════════════
+     REAR TYRE (right in view)
+     Center: 790, 218  outer-r: 62  rim-r: 33
+     (rear tyres are wider in real F1)
+════════════════════════════════ -->
+<!-- Tire outer -->
+<circle cx="790" cy="218" r="62" fill="url(#tireG)" stroke="#1a1a1e" stroke-width="1.5"/>
+<circle cx="790" cy="218" r="56" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+<!-- Pirelli compound stripe (rear is always same compound) -->
+<circle cx="790" cy="218" r="62" fill="none" stroke="${CC[RL.c]}" stroke-width="6"
+  stroke-dasharray="18 372" stroke-dashoffset="-25" opacity="0.9"/>
+<!-- Rim -->
+<circle cx="790" cy="218" r="33" fill="#16161c" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<!-- Spokes -->
+<g stroke="rgba(255,255,255,0.09)" stroke-width="2.5" stroke-linecap="round">
+  <line x1="790" y1="187" x2="790" y2="200"/>
+  <line x1="790" y1="236" x2="790" y2="249"/>
+  <line x1="759" y1="218" x2="772" y2="218"/>
+  <line x1="808" y1="218" x2="821" y2="218"/>
+  <line x1="769" y1="197" x2="777" y2="205"/>
+  <line x1="803" y1="231" x2="811" y2="239"/>
+  <line x1="769" y1="239" x2="777" y2="231"/>
+  <line x1="803" y1="205" x2="811" y2="197"/>
+</g>
+<!-- Hub -->
+<circle cx="790" cy="218" r="11" fill="${c}" opacity="0.55"/>
+<circle cx="790" cy="218" r="6" fill="#111"/>
+<circle cx="790" cy="218" r="6" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+
+<!-- ── TIRE LABELS ON REAR TYRE ── -->
+<!-- RL badge (top) -->
+<text x="790" y="167" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" letter-spacing="1">RL</text>
+<rect x="768" y="169" width="44" height="13" rx="2.5" fill="rgba(0,0,0,0.85)" stroke="${CC[RL.c]}" stroke-width="1"/>
+<text x="790" y="179" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="10" font-weight="800" fill="${CC[RL.c]}">${CL[RL.c]}  L${RL.age}</text>
+<rect x="768" y="183" width="44" height="7" rx="2" fill="rgba(0,0,0,0.75)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+<rect x="770" y="184.5" width="${Math.round(40*RL.wear/100)}" height="4" rx="1.5" fill="${wearCol(RL.wear)}"/>
+<text x="815" y="190" font-family="'JetBrains Mono',monospace" font-size="7" fill="${wearCol(RL.wear)}">${RL.wear}%</text>
+
+<!-- RR badge (bottom) -->
+<text x="790" y="265" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" letter-spacing="1">RR</text>
+<rect x="768" y="267" width="44" height="13" rx="2.5" fill="rgba(0,0,0,0.85)" stroke="${CC[RR.c]}" stroke-width="1"/>
+<text x="790" y="277" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="10" font-weight="800" fill="${CC[RR.c]}">${CL[RR.c]}  L${RR.age}</text>
+<rect x="768" y="281" width="44" height="7" rx="2" fill="rgba(0,0,0,0.75)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+<rect x="770" y="282.5" width="${Math.round(40*RR.wear/100)}" height="4" rx="1.5" fill="${wearCol(RR.wear)}"/>
+<text x="815" y="288" font-family="'JetBrains Mono',monospace" font-size="7" fill="${wearCol(RR.wear)}">${RR.wear}%</text>
+
+<!-- ═══════ ERS / BATTERY on body ═══════ -->
+<!-- ERS indicator on front sidepod -->
+<rect x="340" y="158" width="56" height="5" rx="2" fill="rgba(0,0,0,0.5)"/>
+<rect x="340" y="158" width="${Math.round(56*d.stats.ers/100)}" height="5" rx="2" fill="#E8132B"/>
+<text x="340" y="156" font-family="'JetBrains Mono',monospace" font-size="7" fill="rgba(255,255,255,0.25)" letter-spacing="0.4">ERS ${d.stats.ers}%</text>
+<!-- Battery on rear sidepod -->
+<rect x="590" y="155" width="56" height="5" rx="2" fill="rgba(0,0,0,0.5)"/>
+<rect x="590" y="155" width="${Math.round(56*d.stats.bat/100)}" height="5" rx="2" fill="#1DB86A"/>
+<text x="590" y="153" font-family="'JetBrains Mono',monospace" font-size="7" fill="rgba(255,255,255,0.25)" letter-spacing="0.4">BAT ${d.stats.bat}%</text>
+
+<!-- Driver number ghost on engine cover -->
+<text x="510" y="115" font-family="'Barlow Condensed',sans-serif" font-size="32" font-weight="900" fill="${c}" opacity="0.12" text-anchor="middle" letter-spacing="3">${d.num}</text>
+
+<!-- DRS status label near rear wing -->
+<rect x="856" y="122" width="38" height="10" rx="2" fill="rgba(0,0,0,0.7)" stroke="${d.stats.drs?'rgba(29,184,106,0.5)':'rgba(255,255,255,0.06)'}" stroke-width="0.5"/>
+<text x="875" y="130" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" font-weight="700" fill="${d.stats.drs?'#1DB86A':'#4A4A4F'}" letter-spacing="0.5">DRS ${d.stats.drs?'ON':'OFF'}</text>
+</svg>`;
+}
+
+function setDriver(idx){
+  DRIVERS.forEach((_,i)=>document.getElementById('sw'+i).classList.toggle('active',i===idx));
+  const d=DRIVERS[idx];
+  buildHeader(d);
+  document.getElementById('carSvg').outerHTML=buildCarSVG(d);
+  // replace the svg element
+  document.getElementById('carArea').innerHTML=`<div id="carSvgWrap">${buildCarSVG(d)}</div>`;
+  buildStats(d);
+  buildDamage(d);
+}
+
+buildSwitcher();
+// Init
+const d=DRIVERS[0];
+buildHeader(d);
+document.getElementById('carArea').innerHTML=`<div id="carSvgWrap">${buildCarSVG(d)}</div>`;
+buildStats(d);
+buildDamage(d);
+// Wire switcher after init
+DRIVERS.forEach((_,i)=>{document.getElementById('sw'+i).onclick=()=>setDriver(i);});
+</script>
+</body>
+</html>

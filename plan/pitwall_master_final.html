@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pitwall — Master Product Specification</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0B0C;--bg2:#111113;--bg3:#181819;--bg4:#1E1E20;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.22);
+  --red:#E8132B;--red2:rgba(232,19,43,0.13);--red3:rgba(232,19,43,0.06);
+  --white:#F2F0EB;--muted:#6B6B70;--muted2:#4A4A4F;
+  --gold:#C9A84C;--purple:#9B59F5;--green:#1DB86A;--blue:#3671C6;
+  --amber:#E09000;--teal:#1AACB8;--pink:#E8648A;
+  --mono:'JetBrains Mono',monospace;
+  --cond:'Barlow Condensed',sans-serif;
+  --body:'Barlow',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{font-family:var(--body);color:var(--white);background:var(--bg);
+     width:1100px;margin:0 auto;line-height:1.6;
+     -webkit-font-smoothing:antialiased;padding-bottom:100px}
+
+/* ── typography ── */
+hr.rule{border:none;border-top:0.5px solid var(--border);margin:72px 0}
+hr.mid{border:none;border-top:0.5px solid var(--border);margin:36px 0}
+hr.sm{border:none;border-top:0.5px solid var(--border);margin:20px 0}
+
+.sect{display:flex;align-items:baseline;gap:16px;margin-bottom:36px}
+.sect-n{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:0.1em}
+.sect-t{font-family:var(--cond);font-size:44px;font-weight:700;letter-spacing:-0.01em;line-height:1}
+.sect-r{flex:1;height:0.5px;background:var(--border);margin-left:8px;align-self:center}
+
+.sub{font-family:var(--cond);font-size:22px;font-weight:700;margin-top:36px;margin-bottom:14px}
+.sub:first-child{margin-top:0}
+
+p{font-size:14px;font-weight:300;color:rgba(242,240,235,0.72);line-height:1.78;max-width:860px;margin-bottom:14px}
+p:last-child{margin-bottom:0}
+
+code{font-family:var(--mono);font-size:10px;color:var(--red);
+     background:var(--red3);padding:1px 5px;border-radius:2px}
+
+/* ── tables ── */
+.t{width:100%;border-collapse:collapse;margin-bottom:16px}
+.t th{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;
+       color:var(--muted2);text-align:left;padding:0 12px 10px 0;
+       border-bottom:0.5px solid var(--border);font-weight:400}
+.t td{padding:10px 12px 10px 0;border-bottom:0.5px solid var(--border);
+      font-size:12px;color:rgba(242,240,235,0.65);line-height:1.55;vertical-align:top}
+.t tr:last-child td{border-bottom:none}
+.tn{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--white)}
+
+/* ── callouts ── */
+.note{background:var(--bg3);border:0.5px solid var(--border);
+      border-left:2px solid var(--gold);border-radius:2px;
+      padding:14px 18px;font-size:13px;font-weight:300;
+      color:rgba(242,240,235,0.68);line-height:1.72;margin-bottom:16px}
+.note strong{color:var(--gold);font-weight:500}
+.note.red{border-left-color:var(--red)}.note.red strong{color:var(--red)}
+.note.green{border-left-color:var(--green)}.note.green strong{color:var(--green)}
+.note.purple{border-left-color:var(--purple)}.note.purple strong{color:var(--purple)}
+
+/* ── formula block ── */
+.formula{background:var(--bg4);border:0.5px solid var(--border);border-radius:3px;
+         padding:14px 18px;font-family:var(--mono);font-size:11px;
+         line-height:1.9;color:var(--muted);margin-bottom:16px}
+.fk{color:var(--red)}.fv{color:var(--green)}.fa{color:var(--gold)}.fc{color:var(--muted2);font-style:italic}
+
+/* ── widget entries ── */
+.cat-head{display:flex;align-items:center;gap:14px;margin-top:48px;margin-bottom:20px}
+.cat-name{font-family:var(--cond);font-size:26px;font-weight:700;letter-spacing:0.01em}
+.cat-rule{flex:1;height:0.5px;background:var(--border)}
+.cat-count{font-family:var(--mono);font-size:9px;color:var(--muted2);letter-spacing:0.08em}
+
+.w-entry{border:0.5px solid var(--border);border-radius:4px;
+          overflow:hidden;margin-bottom:10px}
+.w-head{background:var(--bg3);border-bottom:0.5px solid var(--border);
+         padding:11px 16px;display:flex;align-items:center;gap:10px}
+.w-id{font-family:var(--mono);font-size:9px;color:var(--muted2);
+       letter-spacing:0.08em;width:36px;flex-shrink:0}
+.w-name{font-family:var(--cond);font-size:18px;font-weight:700;
+         letter-spacing:0.02em;flex:1}
+.w-tags{display:flex;gap:5px}
+.w-size{font-family:var(--mono);font-size:9px;color:var(--muted2);margin-left:auto}
+.w-body{padding:14px 16px;display:flex;flex-direction:column;gap:0}
+.w-desc{font-size:13px;color:rgba(242,240,235,0.68);line-height:1.68;
+         font-weight:300;margin-bottom:12px}
+.row{display:flex;gap:0;border-bottom:0.5px solid var(--border);padding:7px 0}
+.row:last-child{border-bottom:none}
+.rl{font-family:var(--mono);font-size:9px;letter-spacing:0.09em;text-transform:uppercase;
+     color:var(--muted2);width:110px;flex-shrink:0;padding-top:1px}
+.rv{font-size:12px;color:rgba(242,240,235,0.65);flex:1;line-height:1.58}
+
+/* ── tags ── */
+.tag{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;
+     padding:2px 7px;border-radius:2px;font-weight:500;display:inline-block;flex-shrink:0}
+.t-red  {background:var(--red2);color:var(--red);border:0.5px solid rgba(232,19,43,0.28)}
+.t-gold {background:rgba(201,168,76,0.12);color:var(--gold);border:0.5px solid rgba(201,168,76,0.28)}
+.t-pur  {background:rgba(155,89,245,0.12);color:var(--purple);border:0.5px solid rgba(155,89,245,0.28)}
+.t-grn  {background:rgba(29,184,106,0.12);color:var(--green);border:0.5px solid rgba(29,184,106,0.28)}
+.t-blue {background:rgba(54,113,198,0.12);color:var(--blue);border:0.5px solid rgba(54,113,198,0.28)}
+.t-teal {background:rgba(26,172,184,0.12);color:var(--teal);border:0.5px solid rgba(26,172,184,0.28)}
+.t-ambe {background:rgba(224,144,0,0.12);color:var(--amber);border:0.5px solid rgba(224,144,0,0.28)}
+.t-pink {background:rgba(232,100,138,0.12);color:var(--pink);border:0.5px solid rgba(232,100,138,0.28)}
+.t-mute {background:rgba(74,74,79,0.2);color:var(--muted);border:0.5px solid var(--border2)}
+
+/* ── numbered steps ── */
+.steps{counter-reset:s;display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+.step{counter-increment:s;display:flex;gap:12px;padding:9px 12px;
+      background:var(--bg4);border-radius:3px;
+      font-size:12px;color:rgba(242,240,235,0.68);line-height:1.55}
+.step::before{content:counter(s);font-family:var(--mono);font-size:9px;
+               color:var(--muted2);min-width:18px;padding-top:2px;flex-shrink:0}
+
+/* ── grids ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:4px;padding:16px 18px}
+.card-label{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;
+             text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
+
+/* ── cover ── */
+.cover{height:420px;display:flex;flex-direction:column;justify-content:flex-end;
+       padding:0 0 56px;position:relative;overflow:hidden;
+       border-bottom:0.5px solid var(--border);margin-bottom:72px}
+.cover-grid{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:80px 80px;
+  mask-image:linear-gradient(to bottom,transparent,black 30%,black 65%,transparent)}
+.cover-line{position:absolute;top:0;left:0;width:3px;height:100%;
+             background:linear-gradient(to bottom,transparent,var(--red),transparent)}
+.cover-bg{font-family:var(--cond);font-size:240px;font-weight:900;
+           color:rgba(255,255,255,0.018);position:absolute;right:-12px;bottom:-40px;
+           line-height:1;user-select:none}
+.cover-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;
+                text-transform:uppercase;color:var(--red);margin-bottom:20px;
+                display:flex;align-items:center;gap:12px}
+.cover-eyebrow::before{content:'';display:block;width:32px;height:1px;background:var(--red)}
+.cover-title{font-family:var(--cond);font-size:90px;font-weight:800;
+              line-height:0.88;letter-spacing:-0.02em;margin-bottom:28px}
+.cover-title span{color:var(--red)}
+.cover-desc{font-size:14px;font-weight:300;color:var(--muted);max-width:560px;
+             line-height:1.68;margin-bottom:32px}
+.cover-meta{display:flex;gap:28px;align-items:center}
+.cm{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted2)}
+.cm strong{display:block;color:var(--white);font-weight:500;font-size:12px;margin-bottom:2px}
+.cms{width:1px;height:28px;background:var(--border2)}
+
+/* ── toc ── */
+.toc{display:flex;flex-direction:column;margin-bottom:20px}
+.toc-row{display:flex;align-items:baseline;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.toc-row:last-child{border-bottom:none}
+.toc-n{font-family:var(--mono);font-size:10px;color:var(--red);width:44px;flex-shrink:0}
+.toc-t{font-size:14px;font-weight:500;flex:1}
+.toc-sub{font-family:var(--mono);font-size:9px;color:var(--muted2);text-align:right}
+
+/* ── error screens ── */
+.es-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.es{border:0.5px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
+.es-chrome{background:var(--bg3);border-bottom:0.5px solid var(--border);
+           padding:6px 10px;display:flex;align-items:center;gap:4px}
+.esd{width:7px;height:7px;border-radius:50%}
+.es-chrome-title{font-family:var(--mono);font-size:7px;color:var(--muted2);margin-left:4px}
+.es-body{flex:1;background:#0E0E10;
+         display:flex;flex-direction:column;align-items:center;justify-content:center;
+         padding:24px 16px;text-align:center;gap:8px;min-height:180px}
+.es-icon{font-size:28px;line-height:1;margin-bottom:2px}
+.es-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;
+           text-transform:uppercase;padding:3px 8px;border-radius:2px}
+.es-title{font-family:var(--cond);font-size:19px;font-weight:700;line-height:1.2}
+.es-detail{font-size:10px;color:var(--muted);line-height:1.6;font-family:var(--mono)}
+.es-action{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;
+           padding:5px 14px;border-radius:2px;border:0.5px solid;width:100%;text-align:center}
+.es-foot{background:var(--bg4);border-top:0.5px solid var(--border);
+         padding:5px 10px;font-family:var(--mono);font-size:7px;color:var(--muted2)}
+
+/* ── log viewer ── */
+.log{border:0.5px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.log-head{background:var(--bg3);border-bottom:0.5px solid var(--border);
+          padding:7px 14px;display:flex;align-items:center;gap:8px}
+.log-ht{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);flex:1}
+.log-btn{font-family:var(--mono);font-size:8px;padding:2px 8px;
+         border:0.5px solid var(--border);border-radius:2px;color:var(--muted2)}
+.log-row{padding:7px 14px;border-bottom:0.5px solid var(--border);
+         display:flex;align-items:flex-start;gap:10px;font-family:var(--mono);font-size:10px}
+.log-row:last-child{border-bottom:none}
+.log-t{color:var(--muted2);width:80px;flex-shrink:0}
+.log-lv{width:36px;flex-shrink:0;font-weight:700;font-size:9px}
+.lv-e{color:var(--red)}.lv-w{color:var(--amber)}.lv-i{color:var(--blue)}.lv-d{color:var(--muted2)}
+.log-m{color:rgba(242,240,235,0.6);flex:1;line-height:1.45}
+.log-src{color:var(--muted2);font-size:9px;flex-shrink:0}
+
+/* ── claude code task blocks ── */
+.cc-block{margin-top:12px;background:var(--bg);border:0.5px solid rgba(54,113,198,0.22);
+          border-left:2px solid var(--blue);border-radius:3px;overflow:hidden}
+.cc-head{background:rgba(54,113,198,0.07);border-bottom:0.5px solid rgba(54,113,198,0.15);
+         padding:6px 12px;display:flex;align-items:center;gap:8px;
+         font-family:var(--mono);font-size:8px;letter-spacing:0.12em;
+         text-transform:uppercase;color:var(--blue)}
+.cc-head-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);opacity:0.7;flex-shrink:0}
+.cc-tasks{padding:4px 0}
+.cc-task{display:flex;gap:12px;padding:6px 12px;border-bottom:0.5px solid var(--border);
+         font-size:12px;color:rgba(242,240,235,0.62);line-height:1.58;align-items:flex-start}
+.cc-task:last-child{border-bottom:none}
+.cc-n{font-family:var(--mono);font-size:9px;color:var(--blue);min-width:18px;
+      flex-shrink:0;padding-top:2px;letter-spacing:0.04em}
+.cc-body{flex:1}
+.cc-label{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--white);
+          letter-spacing:0.06em;margin-bottom:2px;display:block}
+.cc-cmd{font-family:var(--mono);font-size:9px;color:var(--green);
+        background:rgba(29,184,106,0.07);padding:1px 6px;border-radius:2px;
+        border:0.5px solid rgba(29,184,106,0.15);display:inline-block;margin-top:3px}
+.cc-files{font-family:var(--mono);font-size:9px;color:var(--muted2);
+          margin-top:3px;display:block;line-height:1.7}
+
+/* ── footer ── */
+.foot{margin-top:80px;padding:28px 0;border-top:0.5px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between}
+.foot-brand{font-family:var(--cond);font-size:22px;font-weight:800}
+.foot-brand span{color:var(--red)}
+.foot-meta{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;
+           text-transform:uppercase;color:var(--muted2);text-align:right;line-height:1.8}
+
+/* ── state bar ── */
+.amb{height:50px;display:flex;align-items:center;padding:0 18px;gap:12px;
+     position:relative;border-radius:4px;overflow:hidden;margin-bottom:6px}
+.amb-flag{width:24px;height:16px;border-radius:2px;border:0.5px solid rgba(255,255,255,0.1);flex-shrink:0}
+.amb-label{font-family:var(--cond);font-size:16px;font-weight:700;letter-spacing:0.04em;flex:1}
+.amb-toast{font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:2px;border:0.5px solid}
+.amb-glow{position:absolute;bottom:0;left:0;right:0;height:1px}
+
+/* ── phase timeline ── */
+.phase{display:flex;gap:20px;margin-bottom:0}
+.phase-track{display:flex;flex-direction:column;align-items:center;width:22px;flex-shrink:0}
+.phase-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.phase-line{width:1px;flex:1;min-height:32px;margin:3px 0}
+.phase-body{padding-bottom:28px;flex:1}
+.phase-label{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.1em;
+              text-transform:uppercase;margin-bottom:3px}
+.phase-title{font-family:var(--cond);font-size:19px;font-weight:700;margin-bottom:5px}
+.phase-detail{font-size:12px;color:var(--muted);line-height:1.72}
+
+/* ── monitor diagram ── */
+.monitors{display:flex;gap:8px;padding:12px;background:#141415;border-radius:0 0 6px 6px}
+.mon{flex:1;border:1.5px solid var(--border2);border-radius:5px;overflow:hidden;display:flex;flex-direction:column}
+.mon-bar{background:var(--bg3);border-bottom:0.5px solid var(--border);
+         padding:5px 10px;display:flex;align-items:center;gap:3px}
+.mon-dot{width:7px;height:7px;border-radius:50%}
+.mon-title{font-family:var(--mono);font-size:7px;color:var(--muted2);flex:1;text-align:center;letter-spacing:0.04em}
+.mon-ws{font-family:var(--mono);font-size:7px;padding:1px 6px;border-radius:2px}
+.mon-tabs{background:var(--bg4);border-bottom:0.5px solid var(--border);
+          padding:4px 8px;display:flex;gap:4px}
+.mon-tab{padding:2px 7px;border-radius:2px;font-family:var(--mono);font-size:7px;color:var(--muted)}
+.mon-tab.act{background:var(--bg2);color:var(--white);border:0.5px solid var(--border2)}
+.mon-body{flex:1;background:#141415;padding:4px;display:grid;gap:3px;min-height:120px}
+.mw{background:var(--bg2);border:0.5px solid var(--border);border-radius:2px;padding:5px 7px}
+.mw.sp2{grid-column:span 2}
+.mwl{font-family:var(--mono);font-size:6px;color:var(--muted2);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:1px}
+.mwv{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;line-height:1}
+.mws{font-family:var(--mono);font-size:6px;color:var(--muted);margin-top:1px}
+.sync-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 4px;flex-shrink:0}
+.sync-ln{width:1px;flex:1;background:rgba(29,184,106,0.22)}
+.sync-lbl{font-family:var(--mono);font-size:6px;color:var(--green);letter-spacing:0.08em;writing-mode:vertical-lr;transform:rotate(180deg)}
+.sync-arr{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent}
+.nosync-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 6px;flex-shrink:0}
+.nosync-ln{width:0.5px;flex:1;background:var(--border2)}
+.nosync-lbl{font-family:var(--mono);font-size:6px;color:var(--muted2);letter-spacing:0.06em;writing-mode:vertical-lr;transform:rotate(180deg)}
+
+/* ── driver manager panel ── */
+.driver-panel{border:0.5px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.dp-header{background:var(--bg3);border-bottom:0.5px solid var(--border);
+           padding:10px 14px;display:flex;align-items:center;gap:8px}
+.dp-title{font-family:var(--cond);font-size:16px;font-weight:700;letter-spacing:0.02em}
+.dp-section-bar{background:var(--bg4);border-bottom:0.5px solid var(--border);
+                padding:6px 14px;display:flex;align-items:center;justify-content:space-between}
+.dp-section-title{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;
+                  text-transform:uppercase;color:var(--muted2)}
+.dp-section-action{font-family:var(--mono);font-size:8px;color:var(--blue);
+                   letter-spacing:0.06em;cursor:pointer}
+
+/* ── compact driver badges (focus bar / canvas focus strip) ── */
+.driver-badge{display:flex;align-items:center;gap:0;border:0.5px solid var(--border2);
+              border-radius:3px;overflow:hidden;cursor:pointer;opacity:0.6}
+.driver-badge.active{opacity:1;border-color:var(--border3);
+                     box-shadow:0 0 0 1px rgba(255,255,255,0.08)}
+.db-color{width:3px;align-self:stretch;flex-shrink:0}
+.db-body{display:flex;align-items:center;gap:5px;padding:3px 7px 3px 6px}
+.db-abbr{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--white);
+         letter-spacing:0.05em}
+.db-pos{font-family:var(--mono);font-size:8px;color:var(--muted2);letter-spacing:0.04em}
+
+/* ── role badges (P1/P2/GAP etc.) ── */
+.role-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;
+            padding:3px 8px;border-radius:2px;cursor:pointer;font-weight:500}
+.rb-p1{background:rgba(201,168,76,0.14);color:var(--gold);border:0.5px solid rgba(201,168,76,0.3)}
+.rb-p2{background:rgba(201,168,76,0.1);color:var(--gold);border:0.5px solid rgba(201,168,76,0.22)}
+.rb-p3{background:rgba(201,168,76,0.1);color:var(--gold);border:0.5px solid rgba(201,168,76,0.22)}
+.rb-gap{background:rgba(201,168,76,0.08);color:var(--gold);border:0.5px solid rgba(201,168,76,0.18)}
+.rb-all{background:rgba(74,74,79,0.22);color:var(--muted);border:0.5px solid var(--border2)}
+
+/* ── starred driver cards ── */
+.driver-card-grid{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;
+                  border-bottom:0.5px solid var(--border)}
+.driver-card{width:92px;border:0.5px solid var(--border);border-radius:3px;
+             overflow:hidden;position:relative}
+.driver-card.starred{border-color:var(--border2)}
+.dc-color-bar{height:3px;width:100%}
+.dc-body{padding:8px 10px;display:flex;flex-direction:column;gap:2px;position:relative}
+.dc-star{position:absolute;top:6px;right:8px;font-size:9px;color:var(--gold);line-height:1}
+.dc-pos{font-family:var(--mono);font-size:9px;font-weight:700;width:18px;height:18px;
+        border-radius:2px;display:flex;align-items:center;justify-content:center;
+        line-height:1;margin-bottom:3px}
+.dc-num{font-family:var(--mono);font-size:9px;color:var(--muted2);letter-spacing:0.04em}
+.dc-abbr{font-family:var(--cond);font-size:18px;font-weight:800;line-height:1;
+         letter-spacing:0.02em;margin-top:1px}
+.dc-team{font-family:var(--mono);font-size:7px;color:var(--muted2);
+         letter-spacing:0.04em;margin-top:2px;white-space:nowrap;overflow:hidden;
+         text-overflow:ellipsis}
+.dc-context-dot{width:6px;height:6px;border-radius:50%;position:absolute;
+                bottom:8px;right:8px}
+
+/* ── full driver roster ── */
+.driver-roster{display:flex;flex-direction:column;padding:4px 0}
+.roster-item{display:flex;align-items:center;gap:0;padding:5px 14px;
+             border-bottom:0.5px solid var(--border);font-size:12px}
+.roster-item:last-child{border-bottom:none}
+.ri-colorbar{width:3px;height:16px;border-radius:1px;margin-right:10px;flex-shrink:0}
+.ri-num{font-family:var(--mono);font-size:9px;color:var(--muted2);width:22px;flex-shrink:0}
+.ri-abbr{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--white);
+         width:34px;flex-shrink:0;letter-spacing:0.05em}
+.ri-team{font-size:11px;color:var(--muted);font-weight:300}
+.ri-pos{font-family:var(--mono);font-size:9px;color:var(--muted2);
+        width:28px;text-align:right;flex-shrink:0;margin-right:10px}
+.ri-star{font-size:11px;color:var(--border2);cursor:pointer;flex-shrink:0}
+.ri-star.on{color:var(--gold)}
+
+/* ── all-drivers team grouping ── */
+.dp-all-drivers{padding:12px 14px 14px;display:flex;flex-wrap:wrap;gap:16px 20px;
+                align-items:flex-start;border-bottom:0.5px solid var(--border)}
+.dp-team-group{display:flex;flex-direction:column;gap:6px}
+.dp-team-label{display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.dp-team-swatch{width:3px;height:14px;border-radius:1px;flex-shrink:0}
+.dp-team-name{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;
+              text-transform:uppercase;color:var(--muted2)}
+.dp-team-cards{display:flex;flex-wrap:wrap;gap:7px}
+
+/* ── callout alias ── */
+.callout{background:var(--bg3);border:0.5px solid var(--border);
+         border-left:2px solid var(--gold);border-radius:2px;
+         padding:14px 18px;font-size:13px;font-weight:300;
+         color:rgba(242,240,235,0.68);line-height:1.72;margin-bottom:16px}
+.callout strong{color:var(--gold);font-weight:500}
+.callout.green{border-left-color:var(--green)}.callout.green strong{color:var(--green)}
+
+/* ── compact driver target selector (widget settings mockup) ── */
+.dts{background:var(--bg3);border:0.5px solid var(--border);border-radius:4px;
+     overflow:hidden;margin-bottom:16px}
+.dts-head{background:var(--bg4);border-bottom:0.5px solid var(--border);
+          padding:6px 12px;font-family:var(--mono);font-size:8px;
+          letter-spacing:0.12em;text-transform:uppercase;color:var(--muted2)}
+.dts-body{padding:10px 12px;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.dts-divider{width:0.5px;height:20px;background:var(--border2);flex-shrink:0;margin:0 3px}
+.dts-chip{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;
+          padding:4px 9px;border-radius:2px;cursor:pointer;font-weight:500;
+          border:0.5px solid var(--border2);color:var(--muted2)}
+.dts-chip.focus{background:rgba(29,184,106,0.12);color:var(--green);
+                border-color:rgba(29,184,106,0.28)}
+.dts-chip.pos{background:rgba(201,168,76,0.1);color:var(--gold);
+              border-color:rgba(201,168,76,0.22)}
+.dts-chip.more{background:var(--bg4);color:var(--muted);border-color:var(--border2)}
+.dts-driver{display:flex;align-items:center;gap:0;border:0.5px solid var(--border2);
+            border-radius:3px;overflow:hidden;cursor:pointer}
+.dts-driver.sel{border-color:var(--border3);box-shadow:0 0 0 1px rgba(255,255,255,0.08)}
+.dts-dc{width:3px;align-self:stretch;flex-shrink:0}
+.dts-dl{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--white);
+        letter-spacing:0.05em;padding:4px 7px}
+.dts-footer{border-top:0.5px solid var(--border);padding:6px 12px;
+            font-family:var(--mono);font-size:8px;color:var(--muted2);
+            display:flex;align-items:center;gap:6px}
+.dts-footer span{color:var(--blue)}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-grid"></div>
+  <div class="cover-line"></div>
+  <div class="cover-bg">PW</div>
+  <div class="cover-eyebrow">Master Product Specification · All volumes consolidated</div>
+  <div class="cover-title">PIT<span>W</span>ALL</div>
+  <div class="cover-desc">F1 race intelligence platform built on OpenF1. Covers north star, data layer, ambient race layer, window and workspace architecture, driver management system, canvas and layout system, the full widget catalog, car visualization widget, weather radar integration, advanced radio scanner, F1TV stream overlay architecture, API key system, error states and graceful handling, inference engine, and tech stack.</div>
+  <div class="cover-meta">
+    <div class="cm"><strong>v1.0</strong>Master spec</div>
+    <div class="cms"></div>
+    <div class="cm"><strong>OpenF1</strong>Primary data source</div>
+    <div class="cms"></div>
+    <div class="cm"><strong>2026</strong>Regulation-era</div>
+    <div class="cms"></div>
+    <div class="cm"><strong>Confidential</strong>Internal draft</div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="sect"><span class="sect-n">00</span><span class="sect-t">Contents</span><div class="sect-r"></div></div>
+<div class="toc">
+  <div class="toc-row"><span class="toc-n">01</span><span class="toc-t">North star & data layer</span><span class="toc-sub">OpenF1 endpoints · rate limits · stack overview</span></div>
+  <div class="toc-row"><span class="toc-n">02</span><span class="toc-t">API key system & pricing</span><span class="toc-sub">OpenF1 $10/month · onboarding flow · key storage</span></div>
+  <div class="toc-row"><span class="toc-n">03</span><span class="toc-t">Ambient race layer</span><span class="toc-sub">Flag states · color values · toast timing · leader color · RGB sync</span></div>
+  <div class="toc-row"><span class="toc-n">04</span><span class="toc-t">Window & workspace architecture</span><span class="toc-sub">Workspace vs canvas vs window · multi-monitor scenarios · sync mechanism</span></div>
+  <div class="toc-row"><span class="toc-n">05</span><span class="toc-t">Driver management system</span><span class="toc-sub">Three-tier context · focus bar · roles · team colors</span></div>
+  <div class="toc-row"><span class="toc-n">06</span><span class="toc-t">Canvas & layout system</span><span class="toc-sub">Drag-and-drop · autosave · layout code format · export/import</span></div>
+  <div class="toc-row"><span class="toc-n">07</span><span class="toc-t">Widget catalog — all 33 widgets</span><span class="toc-sub">Timing · Telemetry · Tyres & Strategy · Map · Weather · Audio · Championship · Visual</span></div>
+  <div class="toc-row"><span class="toc-n">08</span><span class="toc-t">Widget settings framework</span><span class="toc-sub">Four-tab panel · driver source · formula tab · advanced tab · settings persistence</span></div>
+  <div class="toc-row"><span class="toc-n">09</span><span class="toc-t">Car visualization widget</span><span class="toc-sub">2026 SVG profile · team color stripe · tyre overlays · damage indicators</span></div>
+  <div class="toc-row"><span class="toc-n">10</span><span class="toc-t">Weather radar integration</span><span class="toc-sub">Windy embed · circuit geo-lock · layer controls · rain alert</span></div>
+  <div class="toc-row"><span class="toc-n">11</span><span class="toc-t">Advanced radio scanner</span><span class="toc-sub">Four modes · squelch · key-up SFX · transcription pipeline · keyword alerts</span></div>
+  <div class="toc-row"><span class="toc-n">12</span><span class="toc-t">F1TV & stream overlay</span><span class="toc-sub">Overlay architecture · Electron window composition · cockpit streams · Phase 4</span></div>
+  <div class="toc-row"><span class="toc-n">13</span><span class="toc-t">Error states & graceful handling</span><span class="toc-sub">Six error screens · archive mode · diagnostic log · Sentry integration</span></div>
+  <div class="toc-row"><span class="toc-n">14</span><span class="toc-t">Inference engine</span><span class="toc-sub">Three data tiers · formulas · accuracy table · formula builder</span></div>
+  <div class="toc-row"><span class="toc-n">15</span><span class="toc-t">OpenF1 API reference</span><span class="toc-sub">All endpoints · key fields · widget mapping · rate limits</span></div>
+  <div class="toc-row"><span class="toc-n">16</span><span class="toc-t">Tech stack & build phases</span><span class="toc-sub">Frontend · audio · RGB · desktop (Phase 4) · roadmap</span></div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     01 — NORTH STAR & DATA LAYER
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">01</span><span class="sect-t">North Star & Data Layer</span><div class="sect-r"></div></div>
+
+<p>Pitwall is an F1 race intelligence platform built on the OpenF1 API. The goal is to give fans access to the same quality of real-time data that professional teams work with, in an interface that is fully configurable, shareable, and that responds to the environment around the user.</p>
+
+<p>Every widget is drag-and-drop. Every inferred metric is built on a user-editable formula. Layouts export as compact code strings that can be shared anywhere without an account. Smart lights and the app environment respond to flag state and race events. The app is not affiliated with Formula 1, FIA, or Formula One Management.</p>
+
+<div class="sub">Core principles</div>
+<table class="t">
+  <thead><tr><th style="width:110px">Principle</th><th>Definition</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">No lock-in</td><td>Layouts export as plaintext codes. No account needed to share. The app works meaningfully without a paid API key (historical mode).</td></tr>
+    <tr><td class="tn">Honesty</td><td>All inferred metrics are labeled ~EST. Accuracy figures are documented. The app never presents estimates as official data.</td></tr>
+    <tr><td class="tn">Configurable</td><td>Every widget has settings. Every inferred formula is editable. Every layout element is moveable and resizable.</td></tr>
+    <tr><td class="tn">Community</td><td>Layouts, formulas, and widget configurations can all be shared. The community improves the inference engine over time via a public formula registry.</td></tr>
+    <tr><td class="tn">Peripheral</td><td>The ambient layer is designed for peripheral perception. A user watching the race on TV should absorb race state through color alone without looking directly at the app.</td></tr>
+  </tbody>
+</table>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     02 — API KEY & PRICING
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">02</span><span class="sect-t">API Key & Pricing</span><div class="sect-r"></div></div>
+
+<p>OpenF1 live data requires a paid subscription at $10/month per user. Pitwall does not proxy or relay this feed. Users provide their own OpenF1 API key to enable live mode. Historical data from 2023 onward is free and requires no key. This is disclosed clearly at first launch with two explicit tiers.</p>
+
+<div class="note red"><strong>No live workaround exists.</strong> Real-time OpenF1 data requires a paid user subscription. Pitwall cannot aggregate or relay live data on behalf of users without violating OpenF1 terms of service. The key is stored locally and never sent to Pitwall servers. All API calls originate directly from the user's browser to api.openf1.org.</div>
+
+<div class="sub">Tier definitions</div>
+<table class="t">
+  <thead><tr><th style="width:120px">Tier</th><th style="width:100px">Cost</th><th>Data access</th><th>Limitations</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Historical</td><td>Free</td><td>2023–present sessions, all 33 widgets functional, all derived and inferred metrics</td><td>No live updates. Team radio unavailable for live sessions. No race control messages mid-race.</td></tr>
+    <tr><td class="tn">Live</td><td>$10/month</td><td>~3-second real-time data, WebSocket feed, all 18 endpoints, team radio clips, race control messages</td><td>User must provide their own OpenF1 subscriber key. Rate limits: 6 req/s, 60 req/min.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Key validation flow</div>
+<div class="steps">
+  <div class="step">User pastes their OpenF1 API key into the onboarding screen.</div>
+  <div class="step">App fires <code>GET /sessions?session_key=latest</code> as a validation probe. This endpoint requires authentication and returns quickly.</div>
+  <div class="step"><strong style="color:var(--green)">200 OK</strong> — key valid. Store in localStorage (desktop app: OS keychain) and transition to live mode.</div>
+  <div class="step"><strong style="color:var(--red)">401 Unauthorized</strong> — display "Invalid API key" with a direct link to openf1.org/subscribe.</div>
+  <div class="step"><strong style="color:var(--red)">403 Forbidden</strong> — display "Subscription required." Key exists but is not on a paid tier.</div>
+  <div class="step"><strong style="color:var(--amber)">429 Too Many Requests</strong> — display rate limit warning. Suggest waiting 60 seconds before retrying.</div>
+  <div class="step">Network failure on probe — offer to continue in historical mode with a "retry later" prompt.</div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     03 — AMBIENT RACE LAYER
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">03</span><span class="sect-t">Ambient Race Layer</span><div class="sect-r"></div></div>
+
+<p>The ambient layer is a persistent banner at the top of every canvas view that communicates race state through color. When race state changes, a brief toast notification appears over the banner, shows the relevant race control message, then fades out. After the toast fades, the gradient color continues to carry the meaning passively. Users watching the race on TV should absorb race state through peripheral vision without looking at the app.</p>
+
+<p>Design principle: The toast announces. The gradient remembers. After the text fades, a fan glancing up absorbs race state through color alone — no reading required.</p>
+
+<div class="sub">State definitions, color values, and priority order</div>
+
+<div class="amb" style="background:#0a1a0e">
+  <div class="amb-flag" style="background:#00C850"></div>
+  <div class="amb-label" style="color:#4EFF8A">Green flag — racing</div>
+  <div class="amb-toast" style="background:rgba(0,200,80,0.12);border-color:rgba(0,200,80,0.3);color:#4EFF8A">Track is clear — racing conditions <span style="opacity:0.35">→ fading out</span></div>
+  <div class="amb-glow" style="background:linear-gradient(90deg,transparent,#00C850,transparent)"></div>
+</div>
+<div class="amb" style="background:#0f1a0a">
+  <div class="amb-flag" style="background:#00C850"></div>
+  <div class="amb-label" style="color:rgba(78,255,138,0.7)">Green + leader team color (when leader-color mode enabled)</div>
+  <div class="amb-toast" style="background:rgba(54,113,198,0.12);border-color:rgba(54,113,198,0.3);color:#8BB5FF">NOR takes the lead <span style="opacity:0.35">→ fading out</span></div>
+  <div class="amb-glow" style="background:linear-gradient(90deg,transparent,rgba(54,113,198,0.6),transparent)"></div>
+</div>
+<div class="amb" style="background:#1a1500">
+  <div class="amb-flag" style="background:#FFD600"></div>
+  <div class="amb-label" style="color:#FFE566">Yellow flag</div>
+  <div class="amb-toast" style="background:rgba(255,214,0,0.12);border-color:rgba(255,214,0,0.3);color:#FFE566">Yellow flag — incident T12, GAS <span style="opacity:0.35">→ fading</span></div>
+  <div class="amb-glow" style="background:linear-gradient(90deg,transparent,#FFD600,transparent)"></div>
+</div>
+<div class="amb" style="background:#110d00">
+  <div class="amb-flag" style="background:linear-gradient(135deg,#FFA500 50%,#222 50%)"></div>
+  <div class="amb-label" style="color:#FFB830">Safety car deployed</div>
+  <div class="amb-toast" style="background:rgba(255,165,0,0.12);border-color:rgba(255,165,0,0.3);color:#FFB830">Safety car deployed — maintain delta <span style="opacity:0.35">→ fading</span></div>
+  <div class="amb-glow" style="background:linear-gradient(90deg,transparent,#FFA500,transparent)"></div>
+</div>
+<div class="amb" style="background:#100a00">
+  <div class="amb-flag" style="background:#E09000"></div>
+  <div class="amb-label" style="color:#E09000">Virtual safety car</div>
+  <div class="amb-toast" style="background:rgba(224,144,0,0.1);border-color:rgba(224,144,0,0.3);color:#E09000">Virtual safety car deployed <span style="opacity:0.35">→ fading</span></div>
+  <div class="amb-glow" style="background:linear-gradient(90deg,transparent,#E09000,transparent)"></div>
+</div>
+<div class="amb" style="background:#1a0404">
+  <div class="amb-flag" style="background:#FF1E1E"></div>
+  <div class="amb-label" style="color:#FF6060">Red flag — race suspended</div>
+  <div class="amb-toast" style="background:rgba(255,30,30,0.14);border-color:rgba(255,30,30,0.4);color:#FF7070">RED FLAG — all cars return to pit lane immediately <span style="opacity:0.35">→ fading</span></div>
+  <div class="amb-glow" style="background:linear-gradient(90deg,transparent,#FF1E1E,transparent)"></div>
+</div>
+<div class="amb" style="background:#100b1a">
+  <div class="amb-flag" style="background:linear-gradient(135deg,#9B59F5 50%,#222 50%)"></div>
+  <div class="amb-label" style="color:#C89BFF">Fastest lap — VER · 1:14.821</div>
+  <div class="amb-toast" style="background:rgba(155,89,245,0.14);border-color:rgba(155,89,245,0.4);color:#C89BFF">VER sets fastest lap — 1:14.821 <span style="opacity:0.35">→ fading · returns to green after 2.8s</span></div>
+  <div class="amb-glow" style="background:linear-gradient(90deg,transparent,#9B59F5,transparent)"></div>
+</div>
+
+<br>
+<table class="t">
+  <thead><tr><th style="width:30px">P</th><th style="width:130px">State</th><th style="width:130px">RGB value</th><th style="width:110px">Transition</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">1</td><td>Red flag</td><td style="font-family:var(--mono);font-size:9px">rgb(255, 30, 30)</td><td style="font-family:var(--mono);font-size:9px">0.3s ease</td><td>Always overrides everything. Pulses at 1 Hz while active.</td></tr>
+    <tr><td class="tn">2</td><td>Safety car</td><td style="font-family:var(--mono);font-size:9px">rgb(255, 165, 0)</td><td style="font-family:var(--mono);font-size:9px">0.6s ease</td><td>Slow pulse at 0.5 Hz while SC is deployed. Returns on green flag message.</td></tr>
+    <tr><td class="tn">3</td><td>Virtual SC</td><td style="font-family:var(--mono);font-size:9px">rgb(224, 144, 0)</td><td style="font-family:var(--mono);font-size:9px">0.8s ease</td><td>Dimmer than full SC. No pulse. Returns on green.</td></tr>
+    <tr><td class="tn">4</td><td>Yellow flag</td><td style="font-family:var(--mono);font-size:9px">rgb(255, 214, 0)</td><td style="font-family:var(--mono);font-size:9px">0.8s ease</td><td>Holds until green flag message received from race_control.</td></tr>
+    <tr><td class="tn">5</td><td>Fastest lap</td><td style="font-family:var(--mono);font-size:9px">rgb(155, 89, 245)</td><td style="font-family:var(--mono);font-size:9px">0.3s ease</td><td>2.8s duration then returns to current green state.</td></tr>
+    <tr><td class="tn">6</td><td>Lead overtake</td><td style="font-family:var(--mono);font-size:9px">new team color</td><td style="font-family:var(--mono);font-size:9px">0.2s flash</td><td>800ms flash of new leader's team color, then 1.2s transition to settled tint.</td></tr>
+    <tr><td class="tn">7</td><td>Green + leader color</td><td style="font-family:var(--mono);font-size:9px">team color (dynamic)</td><td style="font-family:var(--mono);font-size:9px">1.2s ease</td><td>Base racing state when leader-color mode is enabled. Changes when lead changes.</td></tr>
+    <tr><td class="tn">8</td><td>Green — neutral</td><td style="font-family:var(--mono);font-size:9px">rgb(0, 200, 80)</td><td style="font-family:var(--mono);font-size:9px">1.2s ease</td><td>Base racing state when leader-color mode is disabled.</td></tr>
+    <tr><td class="tn">—</td><td>Calm mode</td><td style="font-family:var(--mono);font-size:9px">rgb(237, 232, 220)</td><td style="font-family:var(--mono);font-size:9px">2.0s ease</td><td>Overrides all color events. Flag icon still changes. Text toasts still appear.</td></tr>
+    <tr><td class="tn">—</td><td>Checkered flag</td><td style="font-family:var(--mono);font-size:9px">rgb(240, 238, 232)</td><td style="font-family:var(--mono);font-size:9px">1.0s ease</td><td>Warm white for 30 seconds, then fades to off.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Toast animation timing</div>
+<p>On every state change a pill-shaped toast notification appears over the ambient bar. It shows the race control message text, then disappears. No text persists after the fade. Timing model:</p>
+<table class="t">
+  <thead><tr><th style="width:120px">Phase</th><th style="width:120px">Duration</th><th>Behavior</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Gradient transition</td><td style="font-family:var(--mono);font-size:9px">1.2s ease</td><td>Ambient bar color shifts to new state color.</td></tr>
+    <tr><td class="tn">Toast slide in</td><td style="font-family:var(--mono);font-size:9px">300ms ease-out</td><td>Toast slides up from below the bar with simultaneous fade-in.</td></tr>
+    <tr><td class="tn">Toast hold</td><td style="font-family:var(--mono);font-size:9px">2000ms</td><td>Toast is fully visible. Shows race control message text.</td></tr>
+    <tr><td class="tn">Toast fade out</td><td style="font-family:var(--mono);font-size:9px">600ms ease-in</td><td>Toast fades to transparent. After this, no text remains in the bar.</td></tr>
+    <tr><td class="tn">Glow line</td><td style="font-family:var(--mono);font-size:9px">permanent</td><td>A 1px gradient line at the bottom of the bar persists as a passive color signal.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Moment events</div>
+<p>In addition to flag states, three moment events fire as brief pulses that do not change the base state permanently:</p>
+<table class="t">
+  <thead><tr><th style="width:150px">Event</th><th>Color behavior</th><th style="width:130px">Duration</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Fastest lap</td><td>Brief purple pulse (rgb 155, 89, 245). Toast reads driver name + time + "Fastest lap." Returns to current flag state after 2.8s. If fastest lap occurs during yellow or SC, toast still shows but gradient remains safety color.</td><td style="font-family:var(--mono);font-size:9px">2.8s then returns</td></tr>
+    <tr><td class="tn">Lead overtake</td><td>New leader's team color flashes for 800ms then the bar settles into the new leader's tint over 1.2s. Toast reads "[driver] takes the lead." If leader-color mode is off, no color change — only toast.</td><td style="font-family:var(--mono);font-size:9px">800ms flash + 1.2s settle</td></tr>
+    <tr><td class="tn">Pit confirmation</td><td>Orange 400ms fade indicating a car has stopped in its pit box. Does not persist.</td><td style="font-family:var(--mono);font-size:9px">400ms</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">RGB light output</div>
+<p>A local Node bridge process runs on the user's LAN, receiving color commands via WebSocket from Pitwall and translating to device-specific protocols. The browser never communicates directly with smart light APIs. Publishing to an MQTT topic means Home Assistant and Node-RED users get integration without Pitwall building every device connector.</p>
+<table class="t">
+  <thead><tr><th style="width:160px">Protocol</th><th style="width:100px">Status</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">WLED (UDP)</td><td><span class="tag t-grn">Supported</span></td><td>Near-zero latency UDP broadcast. Best option for LED strips.</td></tr>
+    <tr><td class="tn">Philips Hue LAN API</td><td><span class="tag t-grn">Supported</span></td><td>LAN API works without cloud once authenticated. No Hue cloud dependency at runtime.</td></tr>
+    <tr><td class="tn">Govee LAN API</td><td><span class="tag t-grn">Supported</span></td><td>Govee LAN API requires enabling LAN mode in the Govee app first.</td></tr>
+    <tr><td class="tn">LIFX LAN</td><td><span class="tag t-ambe">Planned</span></td><td>Protocol is documented and open but not yet implemented.</td></tr>
+    <tr><td class="tn">MQTT</td><td><span class="tag t-grn">Supported</span></td><td>Publishes flag color to a configurable topic. Home Assistant and Node-RED pick it up.</td></tr>
+    <tr><td class="tn">HomeKit</td><td><span class="tag t-ambe">Planned</span></td><td>Via a Homebridge plugin. Not direct — requires Homebridge running on the LAN.</td></tr>
+  </tbody>
+</table>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     04 — WINDOW & WORKSPACE ARCHITECTURE
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">04</span><span class="sect-t">Window & Workspace Architecture</span><div class="sect-r"></div></div>
+
+<div class="sub">Term definitions</div>
+<table class="t">
+  <thead><tr><th style="width:120px">Term</th><th>Definition</th><th style="width:100px">Scope</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Workspace</td><td>A named configuration. Contains: canvases, a focus driver, ambient settings, radio config, and driver favorites. All windows showing a canvas from the same workspace share these settings.</td><td>App-level</td></tr>
+    <tr><td class="tn">Canvas</td><td>A named grid layout of widgets within a workspace. One workspace can have multiple canvases accessible as tabs. A window shows exactly one canvas at a time.</td><td>Within workspace</td></tr>
+    <tr><td class="tn">Window</td><td>A physical browser window or tab displaying one canvas. Can be popped out to any monitor. Syncs with sibling windows in the same workspace via BroadcastChannel API at ~16ms latency.</td><td>OS-level</td></tr>
+    <tr><td class="tn">Cross-workspace sync</td><td>None by design. Windows in different workspaces are fully independent. Changing focus in "Race day" does not affect "NOR focus".</td><td>—</td></tr>
+    <tr><td class="tn">Intra-workspace sync</td><td>Immediate. Focus driver, ambient state, and session changes propagate to all windows in the same workspace within one render frame.</td><td>~16ms</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Scenario A — two windows, same workspace</div>
+<p>Both windows belong to the same workspace. They show different canvas tabs. Changing the focus driver in either window propagates to the other. Both windows show the same ambient state.</p>
+
+<div style="border:0.5px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:20px">
+  <div style="background:var(--bg3);border-bottom:0.5px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px">
+    <span style="font-family:var(--cond);font-size:14px;font-weight:700;flex:1">Workspace: Race day</span>
+    <span class="tag t-gold">Scenario A</span>
+  </div>
+  <div class="monitors">
+    <div class="mon">
+      <div class="mon-bar"><div class="mon-dot" style="background:#FF5F57"></div><div class="mon-dot" style="background:#FEBC2E"></div><div class="mon-dot" style="background:#28C840"></div><div class="mon-title">Pitwall — Race day · Monitor 1</div><div class="mon-ws" style="background:var(--red2);color:var(--red);border:0.5px solid rgba(232,19,43,0.2)">Race day</div></div>
+      <div class="mon-tabs"><div class="mon-tab act">Main view</div><div class="mon-tab">Delta</div><div style="margin-left:auto;font-family:var(--mono);font-size:6px;color:var(--green)">● Live</div></div>
+      <div class="mon-body" style="grid-template-columns:2fr 1fr">
+        <div class="mw sp2"><div class="mwl">Lap delta — all drivers</div><div style="display:flex;flex-direction:column;gap:2px;margin-top:3px"><div style="display:flex;align-items:center;gap:3px"><span style="font-family:var(--mono);font-size:6px;color:#3671C6;width:18px">VER</span><div style="flex:1;height:2px;background:var(--bg4);border-radius:1px;overflow:hidden"><div style="height:100%;width:92%;background:#3671C6"></div></div><span style="font-family:var(--mono);font-size:6px;color:var(--muted)">1:14.8</span></div><div style="display:flex;align-items:center;gap:3px"><span style="font-family:var(--mono);font-size:6px;color:#FF8000;width:18px">NOR</span><div style="flex:1;height:2px;background:var(--bg4);border-radius:1px;overflow:hidden"><div style="height:100%;width:86%;background:#FF8000"></div></div><span style="font-family:var(--mono);font-size:6px;color:var(--muted)">+4.2s</span></div></div></div>
+        <div class="mw"><div class="mwl">ERS</div><div class="mwv" style="color:#E8132B">68%</div></div>
+        <div class="mw"><div class="mwl">Battery</div><div class="mwv" style="color:#1DB86A">74%</div></div>
+        <div class="mw"><div class="mwl">Tyre</div><div class="mwv" style="color:#E09000;font-size:11px">M · L18</div></div>
+      </div>
+    </div>
+    <div class="sync-col">
+      <div class="sync-arr" style="border-bottom:5px solid rgba(29,184,106,0.35)"></div>
+      <div class="sync-ln"></div>
+      <div class="sync-lbl">BroadcastChannel</div>
+      <div class="sync-ln"></div>
+      <div class="sync-arr" style="border-top:5px solid rgba(29,184,106,0.35)"></div>
+    </div>
+    <div class="mon">
+      <div class="mon-bar"><div class="mon-dot" style="background:#FF5F57"></div><div class="mon-dot" style="background:#FEBC2E"></div><div class="mon-dot" style="background:#28C840"></div><div class="mon-title">Pitwall — Race day · Monitor 2</div><div class="mon-ws" style="background:var(--red2);color:var(--red);border:0.5px solid rgba(232,19,43,0.2)">Race day</div></div>
+      <div class="mon-tabs"><div class="mon-tab act">Telemetry</div><div class="mon-tab">Radio</div><div style="margin-left:auto;font-family:var(--mono);font-size:6px;color:var(--green)">● Live</div></div>
+      <div class="mon-body" style="grid-template-columns:1fr 1fr">
+        <div class="mw"><div class="mwl">Speed</div><div class="mwv" style="color:#E8132B">312</div><div class="mws">km/h</div></div>
+        <div class="mw"><div class="mwl">Throttle</div><div class="mwv">99%</div></div>
+        <div class="mw"><div class="mwl">Gear</div><div class="mwv">8</div><div class="mws">11,141 rpm</div></div>
+        <div class="mw"><div class="mwl">DRS</div><div class="mwv" style="color:#1DB86A;font-size:11px">Active</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:7px 14px;background:var(--bg3);border-top:0.5px solid var(--border);font-family:var(--mono);font-size:8px;color:var(--muted2)">Both windows share focus driver (VER) and ambient state · Different canvas tabs · Change focus in either → both update</div>
+</div>
+
+<div class="sub">Scenario B — two windows, different workspaces</div>
+<p>Each window belongs to a different workspace with an independent focus driver and settings. No sync occurs between them. Correct setup for following two parallel stories in the same race.</p>
+
+<div style="border:0.5px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:20px">
+  <div style="background:var(--bg3);border-bottom:0.5px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px">
+    <span style="font-family:var(--cond);font-size:14px;font-weight:700;flex:1">Two workspaces — fully independent</span>
+    <span class="tag t-gold">Scenario B</span>
+  </div>
+  <div class="monitors">
+    <div class="mon">
+      <div class="mon-bar"><div class="mon-dot" style="background:#FF5F57"></div><div class="mon-dot" style="background:#FEBC2E"></div><div class="mon-dot" style="background:#28C840"></div><div class="mon-title">Pitwall — Race day</div><div class="mon-ws" style="background:var(--red2);color:var(--red);border:0.5px solid rgba(232,19,43,0.2)">Race day</div></div>
+      <div class="mon-tabs"><div class="mon-tab act">Main view</div><div style="margin-left:auto;font-family:var(--mono);font-size:6px;color:var(--muted)">Focus: VER</div></div>
+      <div class="mon-body" style="grid-template-columns:1fr 1fr">
+        <div class="mw sp2"><div class="mwl">Track map</div><div style="height:48px;background:var(--bg4);border-radius:2px;margin-top:2px;display:flex;align-items:center;justify-content:center"><span style="font-family:var(--mono);font-size:6px;color:var(--muted2)">live positions</span></div></div>
+        <div class="mw"><div class="mwl">VER gap</div><div class="mwv">+0.0s</div></div>
+        <div class="mw"><div class="mwl">VER tyre</div><div class="mwv" style="color:#E09000;font-size:11px">M · L18</div></div>
+      </div>
+    </div>
+    <div class="nosync-col">
+      <div style="border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:5px solid var(--border2)"></div>
+      <div class="nosync-ln"></div>
+      <div class="nosync-lbl">no sync · independent</div>
+      <div class="nosync-ln"></div>
+      <div style="border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--border2)"></div>
+    </div>
+    <div class="mon">
+      <div class="mon-bar"><div class="mon-dot" style="background:#FF5F57"></div><div class="mon-dot" style="background:#FEBC2E"></div><div class="mon-dot" style="background:#28C840"></div><div class="mon-title">Pitwall — NOR focus</div><div class="mon-ws" style="background:rgba(255,128,0,0.1);color:#FF8000;border:0.5px solid rgba(255,128,0,0.2)">NOR focus</div></div>
+      <div class="mon-tabs"><div class="mon-tab act">NOR tel.</div><div style="margin-left:auto;font-family:var(--mono);font-size:6px;color:var(--muted)">Focus: NOR</div></div>
+      <div class="mon-body" style="grid-template-columns:1fr 1fr">
+        <div class="mw"><div class="mwl">NOR gap</div><div class="mwv">+4.2s</div><div class="mws">closing ▲</div></div>
+        <div class="mw"><div class="mwl">ERS</div><div class="mwv" style="color:#FF8000">71%</div></div>
+        <div class="mw"><div class="mwl">Tyre</div><div class="mwv" style="color:#E8132B;font-size:11px">S · L22</div><div class="mws" style="color:var(--red)">cliff ~L27</div></div>
+        <div class="mw"><div class="mwl">Traffic</div><div class="mwv" style="color:#9B59F5">+1.4s</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:7px 14px;background:var(--bg3);border-top:0.5px solid var(--border);font-family:var(--mono);font-size:8px;color:var(--muted2)">Left: Race day · Focus VER · Right: NOR focus · Focus NOR · No sync between workspaces</div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     05 — DRIVER MANAGEMENT SYSTEM
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">05</span><span class="sect-t">Driver Management System</span><div class="sect-r"></div></div>
+
+<p>The driver system is a first-class panel. Every widget needs to know whose data to show. Pitwall uses a three-tier context hierarchy — canvas inherit, role-based targeting, and specific driver pin — so widgets default to sensible behavior without manual configuration per widget, but any widget can override independently.</p>
+
+<div class="sub">Three-tier driver context</div>
+<table class="t">
+  <thead><tr><th style="width:120px">Tier</th><th style="width:100px">Visual indicator</th><th>Behavior</th><th style="width:130px">Widget border</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Canvas inherit</td><td><span class="tag t-grn">FOCUS</span></td><td>Default for all new widgets. Shows data for whichever driver the canvas is focused on. When canvas focus changes, all inherit-mode widgets update immediately.</td><td style="font-family:var(--mono);font-size:9px;color:var(--green)">0.5px dashed green</td></tr>
+    <tr><td class="tn">Position role</td><td><span class="tag t-gold">P1 / P2 / P3<br>GAP±1</span></td><td>Widget targets a live race position. P1 always shows the race leader regardless of who that is. GAP+1 and GAP-1 are relative to the canvas focus driver. Roles resolve from <code>/position</code> every ~3 seconds. On a lead change, P1 widgets crossfade to new leader over 400ms.</td><td style="font-family:var(--mono);font-size:9px;color:var(--gold)">0.5px dashed gold</td></tr>
+    <tr><td class="tn">Specific driver</td><td><span class="tag t-pur">PINNED</span></td><td>Widget permanently locked to one named driver. Does not change when canvas focus changes or when positions change. Shown with a purple PINNED badge in the widget corner.</td><td style="font-family:var(--mono);font-size:9px;color:var(--purple)">0.5px dashed purple</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Available driver targets</div>
+<p>Every widget's driver source selector presents the following options. Named driver targets show only the user's <strong style="color:var(--white)">starred drivers</strong> — not the full 20-driver roster. A <strong style="color:var(--white)">+ more</strong> button at the end opens the Driver Manager panel to browse all drivers and toggle stars.</p>
+<table class="t">
+  <thead><tr><th style="width:100px">Target</th><th style="width:100px">Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">FOCUS</td><td>Canvas inherit</td><td>Default. Inherits canvas focus driver. Changes when focus switches.</td></tr>
+    <tr><td class="tn">P1 / P2 / P3<br>P4 / P5</td><td>Position role</td><td>Follows live race position. P1 always shows whoever is leading.</td></tr>
+    <tr><td class="tn">GAP+1</td><td>Position role</td><td>Car directly ahead of the canvas focus driver.</td></tr>
+    <tr><td class="tn">GAP-1</td><td>Position role</td><td>Car directly behind the canvas focus driver.</td></tr>
+    <tr><td class="tn">Starred drivers</td><td>Specific / pinned</td><td>Only your favorited drivers appear here. Widget locks permanently to that driver. Manage starred drivers via the <strong style="color:var(--white)">+ more</strong> button, the focus bar, or Settings → Drivers.</td></tr>
+    <tr><td class="tn">+ more</td><td>Opens Driver Manager</td><td>Opens the Driver Manager panel showing the full 20-driver roster. Toggle stars, browse by team, and set canvas focus assignment from here.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Focus bar</div>
+<p>The focus bar is the compact driver selector shown above the canvas grid. It displays only the user's starred drivers (up to ~8 fit comfortably). Clicking any driver badge sets them as canvas focus. All canvas-inherit widgets update immediately. The Driver Manager is accessible from the focus bar's <strong style="color:var(--white)">+ more</strong> button, from any widget's Driver settings tab, or from Settings → Drivers. Drivers can be starred from within the Driver Manager panel.</p>
+
+<div class="card-label" style="margin-top:20px;margin-bottom:8px">Driver Manager panel</div>
+
+<div class="driver-panel">
+  <div class="dp-header">
+    <div class="dp-title">Driver manager</div>
+    <div style="display:flex;gap:6px;margin-left:auto">
+      <div style="font-family:var(--mono);font-size:8px;color:var(--muted2);padding:3px 8px;border:0.5px solid var(--border);border-radius:2px;letter-spacing:0.05em">Team colors</div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--muted2);padding:3px 8px;border:0.5px solid var(--border);border-radius:2px;letter-spacing:0.05em">Import season</div>
+    </div>
+  </div>
+
+  <!-- Canvas focus strip -->
+  <div style="background:var(--bg4);border-bottom:0.5px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted2);flex-shrink:0;margin-right:2px">Focus</div>
+
+    <!-- Inherit -->
+    <div class="role-badge" style="background:rgba(29,184,106,0.12);color:var(--green);border:0.5px solid rgba(29,184,106,0.3)">FOCUS</div>
+
+    <div style="width:0.5px;height:16px;background:var(--border2);flex-shrink:0;margin:0 2px"></div>
+
+    <!-- Position roles -->
+    <div class="role-badge rb-p1">P1</div>
+    <div class="role-badge rb-p2">P2</div>
+    <div class="role-badge rb-p3">P3</div>
+    <div class="role-badge rb-p2">P4</div>
+    <div class="role-badge rb-p2">P5</div>
+    <div class="role-badge rb-gap">GAP+1</div>
+    <div class="role-badge rb-gap">GAP−1</div>
+
+    <div style="width:0.5px;height:16px;background:var(--border2);flex-shrink:0;margin:0 2px"></div>
+
+    <!-- Starred drivers — active on VER -->
+    <div class="driver-badge active">
+      <div class="db-color" style="background:#3671C6"></div>
+      <div class="db-body"><span class="db-abbr">VER</span><span class="db-pos">P1</span></div>
+    </div>
+    <div class="driver-badge">
+      <div class="db-color" style="background:#FF8000"></div>
+      <div class="db-body"><span class="db-abbr">NOR</span><span class="db-pos">P2</span></div>
+    </div>
+    <div class="driver-badge">
+      <div class="db-color" style="background:#E8002D"></div>
+      <div class="db-body"><span class="db-abbr">LEC</span><span class="db-pos">P3</span></div>
+    </div>
+    <div class="driver-badge">
+      <div class="db-color" style="background:#27F4D2"></div>
+      <div class="db-body"><span class="db-abbr">HAM</span><span class="db-pos">P6</span></div>
+    </div>
+    <div class="driver-badge">
+      <div class="db-color" style="background:#FF8000"></div>
+      <div class="db-body"><span class="db-abbr">PIA</span><span class="db-pos">P4</span></div>
+    </div>
+
+    <!-- + more -->
+    <div style="font-family:var(--mono);font-size:8px;color:var(--muted2);padding:3px 8px;border:0.5px solid var(--border2);border-radius:2px;letter-spacing:0.05em;cursor:pointer">+ more</div>
+
+    <div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:var(--muted2);letter-spacing:0.05em">5 starred · right-click → set widget context</div>
+  </div>
+
+  <!-- Starred drivers -->
+  <div class="dp-section-bar">
+    <div class="dp-section-title">Starred drivers</div>
+    <div class="dp-section-action">Edit</div>
+  </div>
+  <div class="driver-card-grid">
+    <div class="driver-card starred">
+      <div class="dc-color-bar" style="background:#3671C6"></div>
+      <div class="dc-body">
+        <div class="dc-star">★</div>
+        <div class="dc-pos" style="background:rgba(54,113,198,0.2);color:#3671C6">1</div>
+        <div class="dc-num">#1</div>
+        <div class="dc-abbr">VER</div>
+        <div class="dc-team">Red Bull Racing</div>
+        <div class="dc-context-dot" style="background:var(--green)" title="canvas focus"></div>
+      </div>
+    </div>
+    <div class="driver-card starred">
+      <div class="dc-color-bar" style="background:#FF8000"></div>
+      <div class="dc-body">
+        <div class="dc-star">★</div>
+        <div class="dc-pos" style="background:rgba(255,128,0,0.15);color:#FF8000">2</div>
+        <div class="dc-num">#4</div>
+        <div class="dc-abbr">NOR</div>
+        <div class="dc-team">McLaren</div>
+      </div>
+    </div>
+    <div class="driver-card starred">
+      <div class="dc-color-bar" style="background:#E8002D"></div>
+      <div class="dc-body">
+        <div class="dc-star">★</div>
+        <div class="dc-pos" style="background:rgba(232,0,45,0.15);color:#E8002D">3</div>
+        <div class="dc-num">#16</div>
+        <div class="dc-abbr">LEC</div>
+        <div class="dc-team">Ferrari</div>
+      </div>
+    </div>
+    <div class="driver-card starred">
+      <div class="dc-color-bar" style="background:#27F4D2"></div>
+      <div class="dc-body">
+        <div class="dc-star">★</div>
+        <div class="dc-pos" style="background:rgba(39,244,210,0.1);color:#27F4D2">6</div>
+        <div class="dc-num">#44</div>
+        <div class="dc-abbr">HAM</div>
+        <div class="dc-team">Ferrari</div>
+      </div>
+    </div>
+    <div class="driver-card starred">
+      <div class="dc-color-bar" style="background:#FF8000"></div>
+      <div class="dc-body">
+        <div class="dc-star">★</div>
+        <div class="dc-pos" style="background:rgba(255,128,0,0.12);color:#FF8000">4</div>
+        <div class="dc-num">#81</div>
+        <div class="dc-abbr">PIA</div>
+        <div class="dc-team">McLaren</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All drivers — by team -->
+  <div class="dp-section-bar" style="margin-top:0">
+    <div class="dp-section-title">All drivers — 2025 season</div>
+    <div class="dp-section-action">Sort by position</div>
+  </div>
+  <div class="dp-all-drivers">
+
+    <!-- Red Bull -->
+    <div class="dp-team-group">
+      <div class="dp-team-label">
+        <div class="dp-team-swatch" style="background:#3671C6"></div>
+        <div class="dp-team-name">Red Bull Racing</div>
+      </div>
+      <div class="dp-team-cards">
+        <div class="driver-card starred">
+          <div class="dc-color-bar" style="background:#3671C6"></div>
+          <div class="dc-body">
+            <div class="dc-star">★</div>
+            <div class="dc-pos" style="background:rgba(54,113,198,0.2);color:#3671C6">1</div>
+            <div class="dc-num">#1</div>
+            <div class="dc-abbr">VER</div>
+            <div class="dc-team">Red Bull</div>
+            <div class="dc-context-dot" style="background:var(--green)" title="canvas focus"></div>
+          </div>
+        </div>
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#3671C6"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(54,113,198,0.1);color:rgba(54,113,198,0.5)">7</div>
+            <div class="dc-num">#11</div>
+            <div class="dc-abbr">PER</div>
+            <div class="dc-team">Red Bull</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- McLaren -->
+    <div class="dp-team-group">
+      <div class="dp-team-label">
+        <div class="dp-team-swatch" style="background:#FF8000"></div>
+        <div class="dp-team-name">McLaren</div>
+      </div>
+      <div class="dp-team-cards">
+        <div class="driver-card starred">
+          <div class="dc-color-bar" style="background:#FF8000"></div>
+          <div class="dc-body">
+            <div class="dc-star">★</div>
+            <div class="dc-pos" style="background:rgba(255,128,0,0.15);color:#FF8000">2</div>
+            <div class="dc-num">#4</div>
+            <div class="dc-abbr">NOR</div>
+            <div class="dc-team">McLaren</div>
+          </div>
+        </div>
+        <div class="driver-card starred">
+          <div class="dc-color-bar" style="background:#FF8000"></div>
+          <div class="dc-body">
+            <div class="dc-star">★</div>
+            <div class="dc-pos" style="background:rgba(255,128,0,0.12);color:#FF8000">4</div>
+            <div class="dc-num">#81</div>
+            <div class="dc-abbr">PIA</div>
+            <div class="dc-team">McLaren</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ferrari -->
+    <div class="dp-team-group">
+      <div class="dp-team-label">
+        <div class="dp-team-swatch" style="background:#E8002D"></div>
+        <div class="dp-team-name">Ferrari</div>
+      </div>
+      <div class="dp-team-cards">
+        <div class="driver-card starred">
+          <div class="dc-color-bar" style="background:#E8002D"></div>
+          <div class="dc-body">
+            <div class="dc-star">★</div>
+            <div class="dc-pos" style="background:rgba(232,0,45,0.15);color:#E8002D">3</div>
+            <div class="dc-num">#16</div>
+            <div class="dc-abbr">LEC</div>
+            <div class="dc-team">Ferrari</div>
+          </div>
+        </div>
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#E8002D"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(232,0,45,0.08);color:rgba(232,0,45,0.5)">5</div>
+            <div class="dc-num">#55</div>
+            <div class="dc-abbr">SAI</div>
+            <div class="dc-team">Ferrari</div>
+          </div>
+        </div>
+        <div class="driver-card starred">
+          <div class="dc-color-bar" style="background:#27F4D2"></div>
+          <div class="dc-body">
+            <div class="dc-star">★</div>
+            <div class="dc-pos" style="background:rgba(39,244,210,0.1);color:#27F4D2">6</div>
+            <div class="dc-num">#44</div>
+            <div class="dc-abbr">HAM</div>
+            <div class="dc-team">Ferrari</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mercedes -->
+    <div class="dp-team-group">
+      <div class="dp-team-label">
+        <div class="dp-team-swatch" style="background:#00A0DD"></div>
+        <div class="dp-team-name">Mercedes</div>
+      </div>
+      <div class="dp-team-cards">
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#00A0DD"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(0,160,221,0.1);color:rgba(0,160,221,0.6)">9</div>
+            <div class="dc-num">#63</div>
+            <div class="dc-abbr">RUS</div>
+            <div class="dc-team">Mercedes</div>
+          </div>
+        </div>
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#00A0DD"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(0,160,221,0.07);color:rgba(0,160,221,0.45)">—</div>
+            <div class="dc-num">#2</div>
+            <div class="dc-abbr">ANT</div>
+            <div class="dc-team">Mercedes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aston Martin -->
+    <div class="dp-team-group">
+      <div class="dp-team-label">
+        <div class="dp-team-swatch" style="background:#1AACB8"></div>
+        <div class="dp-team-name">Aston Martin</div>
+      </div>
+      <div class="dp-team-cards">
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#1AACB8"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(26,172,184,0.1);color:rgba(26,172,184,0.6)">8</div>
+            <div class="dc-num">#14</div>
+            <div class="dc-abbr">ALO</div>
+            <div class="dc-team">Aston Martin</div>
+          </div>
+        </div>
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#1AACB8"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(26,172,184,0.07);color:rgba(26,172,184,0.45)">10</div>
+            <div class="dc-num">#18</div>
+            <div class="dc-abbr">STR</div>
+            <div class="dc-team">Aston Martin</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alpine -->
+    <div class="dp-team-group">
+      <div class="dp-team-label">
+        <div class="dp-team-swatch" style="background:#52E252"></div>
+        <div class="dp-team-name">Alpine</div>
+      </div>
+      <div class="dp-team-cards">
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#52E252"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(82,226,82,0.08);color:rgba(82,226,82,0.5)">12</div>
+            <div class="dc-num">#10</div>
+            <div class="dc-abbr">GAS</div>
+            <div class="dc-team">Alpine</div>
+          </div>
+        </div>
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#52E252"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(82,226,82,0.06);color:rgba(82,226,82,0.4)">—</div>
+            <div class="dc-num">#6</div>
+            <div class="dc-abbr">DOO</div>
+            <div class="dc-team">Alpine</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RB -->
+    <div class="dp-team-group">
+      <div class="dp-team-label">
+        <div class="dp-team-swatch" style="background:#C92D4B"></div>
+        <div class="dp-team-name">RB</div>
+      </div>
+      <div class="dp-team-cards">
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#C92D4B"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(201,45,75,0.1);color:rgba(201,45,75,0.6)">11</div>
+            <div class="dc-num">#22</div>
+            <div class="dc-abbr">TSU</div>
+            <div class="dc-team">RB</div>
+          </div>
+        </div>
+        <div class="driver-card">
+          <div class="dc-color-bar" style="background:#C92D4B"></div>
+          <div class="dc-body">
+            <div class="dc-star" style="color:var(--border2)">★</div>
+            <div class="dc-pos" style="background:rgba(201,45,75,0.07);color:rgba(201,45,75,0.45)">—</div>
+            <div class="dc-num">#30</div>
+            <div class="dc-abbr">LAW</div>
+            <div class="dc-team">RB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="note green">
+  <strong>Team color tracking:</strong> Each driver is mapped to their constructor's primary hex color via a season asset file bundled with the app, sourced primarily from the <code>team_colour</code> field returned by <code>/drivers</code>. This color is used consistently across: the focus bar driver badges, the lap delta tower row accents, the position map dots, the ambient bar leader color, the radio scanner channel indicators, and the car visualization widget. When a driver changes team mid-season, their color updates on the next session load.
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     06 — CANVAS & LAYOUT SYSTEM
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">06</span><span class="sect-t">Canvas & Layout System</span><div class="sect-r"></div></div>
+
+<p>A canvas is a named drag-and-drop widget grid within a workspace. Each canvas autosaves to localStorage every 3 seconds. Canvases can be exported as a compact layout code string encoding all widget positions, sizes, driver contexts, formula overrides, and ambient settings. The code can be shared anywhere and imported on any device — no account needed on either end.</p>
+
+<div class="sub">Workspace and canvas instructions</div>
+<div class="steps">
+  <div class="step">Click <strong style="color:var(--white)">+</strong> to the right of the tab row to create a new canvas. Give it a name.</div>
+  <div class="step">Each canvas has its own independent layout, focus driver, and settings. Switching tabs never affects other canvases.</div>
+  <div class="step">Double-click any tab label to rename. Drag tabs to reorder. Right-click → Close canvas to remove (prompts to confirm if unsaved).</div>
+  <div class="step">Right-click any tab → Open in new window to pop the canvas out to another monitor. Both windows remain in sync via BroadcastChannel.</div>
+  <div class="step">Canvases autosave every 3 seconds. Green dot in toolbar = saved. Spinner = saving in progress.</div>
+</div>
+
+<div class="sub">Widget management instructions</div>
+<div class="steps">
+  <div class="step">Click <strong style="color:var(--white)">+ Widget</strong> in the toolbar to open the widget palette. All available widget types are listed by category with a one-line description and data source tag.</div>
+  <div class="step">Click a widget type to place it at 1×1 on the canvas, or drag it directly to a grid position. All new widgets default to FOCUS driver context.</div>
+  <div class="step">Toggle <strong style="color:var(--white)">Edit</strong> mode to enable drag and resize. Widgets are locked outside Edit mode to prevent accidental changes during a live race.</div>
+  <div class="step">Drag any widget to a new grid position. Snap is automatic. Drag the bottom-right handle to resize. Minimum and maximum sizes are enforced per widget type.</div>
+  <div class="step">Right-click any widget to open its settings panel. Configure driver source, display options, and formula overrides. Changes apply immediately.</div>
+  <div class="step">Right-click → Remove, or click the × handle in Edit mode, to remove a widget.</div>
+</div>
+
+<div class="sub">Layout export and sharing</div>
+<div class="steps">
+  <div class="step">Click <strong style="color:var(--white)">Export</strong> in the toolbar. The layout code is copied to clipboard and shown in a panel below.</div>
+  <div class="step">The layout code is a compact human-readable string encoding: widget positions, sizes, driver contexts, ambient toggles, radio config, and formula overrides. Contains no personal data.</div>
+  <div class="step">To import: paste the code into the import field (workspace menu or + tab menu). Canvas loads immediately for preview before confirmation.</div>
+  <div class="step">Download a <code>.pitwall</code> file for a full JSON representation including all formula overrides. More complete than the code string. Useful for personal backups.</div>
+  <div class="step">Share the layout code anywhere — Reddit, Discord, X, group chats. No account needed on either end. The code works on any device with Pitwall open.</div>
+</div>
+
+<div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:4px;padding:14px 18px;margin-bottom:16px">
+  <div class="card-label">Layout code example — compact format</div>
+  <div style="font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--muted)">
+    <span style="color:#9B59F5">pw:</span><span style="color:var(--green)">v1</span> · <span style="color:#9B59F5">ws:</span><span style="color:var(--gold)">"Race day"</span> · <span style="color:#9B59F5">focus:</span><span style="color:var(--green)">VER</span> · <span style="color:#9B59F5">theme:</span><span style="color:var(--green)">dark</span><br>
+    <span style="color:#9B59F5">widgets:</span>[lap_delta·2x1, ers_deploy·1x1, tyre_age·1x1<span style="color:#9B59F5">@</span><span style="color:var(--gold)">NOR</span>, traffic·1x1, battery·1x1, weather·1x1]<br>
+    <span style="color:#9B59F5">ambient:</span><span style="color:var(--green)">on</span> · <span style="color:#9B59F5">leader_color:</span><span style="color:var(--green)">on</span> · <span style="color:#9B59F5">rgb:</span><span style="color:var(--green)">wled</span> · <span style="color:#9B59F5">radio:</span><span style="color:var(--green)">scanner</span>
+  </div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     07 — WIDGET CATALOG
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">07</span><span class="sect-t">Widget Catalog</span><div class="sect-r"></div></div>
+
+<p>33 widgets across 8 categories. Every widget supports the three-tier driver context system. Every widget has a four-tab settings panel (Display · Driver · Formula · Advanced). Formula tab is visible only on inferred widgets. Grid size notation is W×H in canvas grid cells. Minimum sizes are enforced; maximum sizes are either constrained or unconstrained as noted.</p>
+
+<!-- ─── TIMING & GAPS ─── -->
+<div class="cat-head">
+  <div class="cat-name">Timing & Gaps</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">6 widgets</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">T.1</div><div class="w-name">Lap Delta Tower</div><div class="w-tags"><span class="tag t-red">Live</span><span class="tag t-teal">Multi-driver</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Full ranked list of all active drivers showing race position, driver abbreviation, last lap time, gap to leader, interval to car ahead, and a 3-lap trend arrow (▲ closing / = stable / ▼ dropping). The tower is always multi-driver — driver context does not apply to this widget, though the canvas focus driver row is visually emphasized with a left accent bar in their team color. The row holding the current session fastest lap shows a purple left border with the lap time rendered in purple, and briefly flashes when the record is set. Drivers currently in the pit lane show a grayed row with a PIT badge replacing their lap time and an estimated stationary duration countdown.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/laps</code> · <code>/intervals</code> · <code>/position</code></div></div>
+    <div class="row"><div class="rl">Columns</div><div class="rv">Position · Driver abbreviation · Team color bar · Last lap time · Gap to leader · Interval to car ahead · 3-lap trend arrow</div></div>
+    <div class="row"><div class="rl">Fastest lap</div><div class="rv">Current session fastest lap row: purple left border, lap time in purple. Flashes briefly when the record is set. Resets each session.</div></div>
+    <div class="row"><div class="rl">Pit indicator</div><div class="rv">Drivers in pits: row grayed, lap time replaced with PIT badge and estimated stationary timer countdown.</div></div>
+    <div class="row"><div class="rl">User controls</div><div class="rv">Sort column toggle (position / lap time / gap delta trend) · Show/hide DNF drivers · Compact vs expanded row height · Optional sector split columns</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">T.2</div><div class="w-name">Lap Time Card</div><div class="w-tags"><span class="tag t-red">Live</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Single-driver lap time display. Shows the most recent completed lap time, sector split times (S1, S2, S3) with personal best and session best comparison using standard F1 color coding (purple for session best, green for personal best, yellow for slower), and a mini sparkline chart of the last 8 laps. SC laps are marked with a gray dot on the sparkline and excluded from trend calculations. Pit-out laps are also excluded.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/laps</code> — lap_duration, sector_1_duration, sector_2_duration, sector_3_duration, is_pit_out</div></div>
+    <div class="row"><div class="rl">Color coding</div><div class="rv">Purple = session fastest · Green = driver personal best · Yellow = slower than personal best</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">T.3</div><div class="w-name">Gap Evolution Chart</div><div class="w-tags"><span class="tag t-red">Live</span><span class="tag t-blue">Historic</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Line chart of the gap between two configurable drivers across the full session. The x-axis is lap number. The y-axis is time delta in seconds. Pit stops for either driver are annotated as vertical dashed lines. Undercut or overcut crossover points — where the gap inverts — are marked with a diamond annotation. Safety car periods are shown as gray shaded bands. The two drivers are configured independently in widget settings and can use any driver target (named, role, or focus).</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/intervals</code> gap_to_leader field (differenced) · <code>/pit</code> for pit annotations · <code>/race_control</code> for SC shading</div></div>
+    <div class="row"><div class="rl">Driver config</div><div class="rv">Primary driver (own line) and comparison driver (reference line) configured independently. Neither defaults to canvas focus — both must be explicitly set.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">T.4</div><div class="w-name">Stint Pace Comparison</div><div class="w-tags"><span class="tag t-pur">Inferred</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Bar chart comparing average stint pace across multiple drivers filtered to the same compound age window. Shows who has pace in hand versus who is managing their tyres within a matched window. Traffic laps are excluded from each driver's pace average using the same traffic detection logic as the Traffic Time Loss widget. Compound age window is configurable with a default tolerance of ±5 laps from the canvas focus driver's current tyre age.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/laps</code> — stint-scoped lap times · <code>/stints</code> — compound filtering · <code>/intervals</code> — traffic exclusion</div></div>
+    <div class="row"><div class="rl">Filter</div><div class="rv">Only includes drivers on the same compound. Configurable: same compound vs all compounds vs user-selected compound.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">T.5</div><div class="w-name">Head-to-Head Delta</div><div class="w-tags"><span class="tag t-red">Live</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Two drivers shown side by side on a single configurable metric. Designed for a direct comparison without the noise of a full lap delta tower. Both driver slots are configured independently using the standard driver target system (named, role, or focus). Either slot can use role targeting so the widget tracks, for example, P1 vs P2 automatically through lead changes.</div>
+    <div class="row"><div class="rl">Selectable metrics</div><div class="rv">Last lap time · Top speed (this lap) · Best sector time (S1, S2, or S3 selectable) · Degradation rate (from tyre model) · Traffic time loss (this stint)</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">T.6</div><div class="w-name">Sector Mini-Cards</div><div class="w-tags"><span class="tag t-red">Live</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Three compact sector time cards for the configured driver: S1, S2, and S3. Each card uses F1-standard color coding (purple for session best, green for driver personal best, yellow for slower than personal best). Also shows the driver's theoretical best lap — the sum of their best individual sector times — compared to their actual best lap time, to quantify how much time they are leaving on the table across sectors.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/laps</code> — sector_1_duration, sector_2_duration, sector_3_duration per driver per lap</div></div>
+  </div>
+</div>
+
+<!-- ─── TELEMETRY ─── -->
+<div class="cat-head">
+  <div class="cat-name">Telemetry</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">7 widgets</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">L.1</div><div class="w-name">Speed Gauge</div><div class="w-tags"><span class="tag t-pur">Live telemetry</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Real-time speed readout from the car_data endpoint at 3.7 Hz — the fastest polling rate available from OpenF1. Also shows current gear and rpm. Configurable as a radial gauge (default at 2×2 or larger) or a compact numeric card (default at 1×1). Color-coded by speed: neutral below 250 km/h, amber from 250–300, red above 300.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — speed (km/h), n_gear (1–8, 0 = neutral), rpm at ~3.7 Hz</div></div>
+    <div class="row"><div class="rl">Display modes</div><div class="rv">Radial gauge · Compact numeric card with gear and rpm · Switchable in widget settings</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">L.2</div><div class="w-name">Throttle / Brake Trace</div><div class="w-tags"><span class="tag t-pur">Live telemetry</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Live scrolling chart showing throttle percentage and brake application over the last 30 seconds. Throttle is rendered in the driver's team color. Brake is rendered in blue. Can overlay two drivers on the same chart for comparison. In compare mode, the chart x-axis aligns to lap fraction rather than wall clock time, so corner behavior between drivers is correctly aligned regardless of lap time differences.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — throttle (0–100%), brake (0 or 100 in OpenF1, not percentage)</div></div>
+    <div class="row"><div class="rl">Compare mode</div><div class="rv">Driver A in team color at full opacity. Driver B in their team color at 50% opacity. Synchronized to lap fraction on x-axis.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">L.3</div><div class="w-name">Gear Trace</div><div class="w-tags"><span class="tag t-pur">Live telemetry</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Step-line chart of gear selection over the current lap. Upshift events are marked with upward tick marks; downshifts with downward tick marks. Corner numbers from the circuit database are shown on the x-axis where gear changes cluster, to provide geographic context. An optional rpm overlay line can be enabled on a secondary y-axis to show the relationship between gear selection and engine revs through each corner sequence.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — n_gear (1–8, 0 = neutral). RPM secondary: rpm field. Circuit database for corner labels.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">L.4</div><div class="w-name">Throttle Heatmap</div><div class="w-tags"><span class="tag t-pur">Live telemetry</span><span class="tag t-blue">Historic</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">SVG track outline colored segment by segment by throttle or brake application percentage. The throttle overlay uses a green-to-red scale (green = light throttle, red = full). The brake overlay uses a blue-to-white scale. Can be configured for the current lap, an average of the last N laps, or a specific historical lap number entered manually. Supports overlaying two drivers or two different laps on the same track map so differences in application patterns are immediately visible.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — throttle, brake mapped to track position via <code>/location</code> x/y coordinates</div></div>
+    <div class="row"><div class="rl">Lap range</div><div class="rv">Current lap · Last N laps averaged (N configurable 1–20) · Specific historical lap number</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">L.5</div><div class="w-name">ERS Micro-Sectors</div><div class="w-tags"><span class="tag t-pur">Inferred</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Visualizes estimated ERS deploy and harvest zones around the lap. No official ERS data is available from OpenF1 — all values are inferred from car_data telemetry patterns and labeled ~EST. Three display modes: a track mini-map colored by zone type, a bar chart of the lap split into micro-sectors each colored by inferred mode, and a live SOC estimate gauge. A deploy budget visualization shows estimated energy remaining for the current stint based on the cumulative balance of inferred deploy and harvest events. Compare mode overlays two drivers' ERS patterns on the same track map.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — speed, throttle, rpm at 3.7 Hz</div></div>
+    <div class="row"><div class="rl">Detection logic</div><div class="rv">Deploy: speed_delta &gt; 0 AND throttle &lt; 30% AND rpm_delta &gt; 200 — motor assisting beyond what throttle alone explains. Harvest: braking event where rpm drops slower than speed decay alone explains.</div></div>
+    <div class="row"><div class="rl">Display modes</div><div class="rv">Track mini-map (outline colored by zone) · Bar chart (lap segments colored deploy/harvest) · Live SOC gauge · Any combination simultaneously</div></div>
+    <div class="row"><div class="rl">Compare mode</div><div class="rv">Overlay two drivers' ERS patterns on the same track map. Both labeled by driver abbreviation.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">L.6</div><div class="w-name">DRS Efficiency</div><div class="w-tags"><span class="tag t-pur">Inferred</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Shows the speed gain when DRS activates versus the theoretical maximum gain for that zone, the DRS zone hit rate (what proportion of eligible activations are actually being used), and the activation timing relative to the detection line per lap. Values are inferred from speed deltas at DRS activation events rather than from official FIA telemetry.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — drs (encoded integer: 10, 12, 14 = active states), speed at the moment of activation</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">L.7</div><div class="w-name">Engine Mode Tracker</div><div class="w-tags"><span class="tag t-pur">Inferred</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Uses RPM ceiling hit rate as a proxy for engine deployment mode. A high rate of reaching the observed session maximum RPM suggests the driver is running a higher power mode or actively using an overtake button. Displayed as a trend chart across the last 10 laps with a session average reference line. This inference is directional at best — RPM ceiling hits can also be explained by track layout rather than engine mode. Labeled ~EST accordingly.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — rpm, normalized to observed session max per session</div></div>
+    <div class="row"><div class="rl">Accuracy</div><div class="rv">~60%. Treat as a directional signal only. RPM ceiling is influenced by track layout as well as engine mode.</div></div>
+  </div>
+</div>
+
+<!-- ─── TYRES & STRATEGY ─── -->
+<div class="cat-head">
+  <div class="cat-name">Tyres & Strategy</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">6 widgets</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">Y.1</div><div class="w-name">Tyre Intelligence</div><div class="w-tags"><span class="tag t-gold">Inferred</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Compound, lap age, lap-time degradation slope (expressed as seconds per lap lost), predicted cliff lap, and pit urgency score. The cliff prediction formula is user-editable. Warning badges activate at configurable thresholds: amber at N laps before predicted cliff (default 5 laps), red at 2 laps. The pit urgency score is a composite 0–1 metric described under Y.4. All values labeled ~EST.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/stints</code> — compound, tyre_age · <code>/laps</code> — lap time trend for deg rate · <code>/weather</code> — track_temp for cliff model</div></div>
+    <div class="row"><div class="rl">Deg rate calc</div><div class="rv">Linear regression on the last 5 non-traffic, non-SC laps of the current stint. Outliers beyond 2σ are excluded. Expressed as seconds per lap.</div></div>
+    <div class="row"><div class="rl">Cliff formula</div><div class="rv">Default: <code>BASE_WINDOW[compound] - (track_temp - 45) × 0.3 - deg_rate × 1.8 + sc_laps × 2.1</code>. BASE_WINDOW: SOFT=18, MEDIUM=28, HARD=40, INTER=35, WET=50. Editable in Formula tab.</div></div>
+    <div class="row"><div class="rl">Accuracy</div><div class="rv">±3 laps under typical conditions. Degrades in non-standard track temperatures or when SC laps skew the deg rate calculation.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">Y.2</div><div class="w-name">Strategy Timeline</div><div class="w-tags"><span class="tag t-red">Live</span><span class="tag t-blue">Historic</span></div><div class="w-size">min 4×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Full race strategy visualization. All drivers are shown as horizontal rows. Each stint is a colored bar: red for soft, yellow for medium, white for hard, green for intermediate, blue for wet. The bars are proportional to stint length in laps. Pit stop events are shown as vertical tick marks between stints. The widget scrolls horizontally when the number of laps exceeds the widget width. Clicking any stint bar displays pace statistics for that driver/stint combination in a tooltip: average pace, peak degradation rate, traffic laps count.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/stints</code> — compound, lap_start, lap_end, tyre_age · <code>/pit</code> — pit timing for annotations</div></div>
+    <div class="row"><div class="rl">Interaction</div><div class="rv">Click any stint bar → tooltip with stint stats. Hover shows exact lap range. Horizontal scroll by lap number. Click driver name to jump canvas focus to that driver.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">Y.3</div><div class="w-name">Deg Rate Graph</div><div class="w-tags"><span class="tag t-gold">Inferred</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Lap-time degradation scatter plot and trend line for the current stint. The x-axis is tyre age in laps from the start of this stint. The y-axis is lap time delta from the stint's opening reference pace. The regression line through clean laps gives the deg rate. A second reference line shows the session average degradation for the same compound. Traffic laps are shown as gray dots and are excluded from the regression. SC laps are also excluded and marked separately.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/laps</code> — stint-scoped lap times · <code>/intervals</code> — traffic detection (interval_to_ahead &lt; 1.0s) · <code>/race_control</code> — SC lap marking</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">Y.4</div><div class="w-name">Pit Window Urgency</div><div class="w-tags"><span class="tag t-gold">Inferred</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">A composite pit urgency score expressed as a green/amber/red indicator with a numeric value from 0 to 1. Combines laps remaining until predicted cliff, gap to car behind, and whether the undercut window is closing. Designed to be the single actionable output of the tyre and gap data — one number that indicates whether to be thinking about a pit stop.</div>
+    <div class="row"><div class="rl">Formula</div><div class="rv"><code>(laps_to_cliff / 5) + (1 − gap_behind / 3) + undercut_closing_bonus</code>, clamped 0–1. Result below 0.4 = green, 0.4–0.7 = amber, above 0.7 = red. Editable in Formula tab.</div></div>
+    <div class="row"><div class="rl">Accuracy</div><div class="rv">~70%. Depends on accuracy of the cliff prediction and traffic loss models feeding it.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">Y.5</div><div class="w-name">Pit Stop Log</div><div class="w-tags"><span class="tag t-red">Live</span><span class="tag t-blue">Historic</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Timestamped log of all pit stops in the session. Each entry shows: driver, lap number, stationary time, total pit delta (stationary + in-lap delta + out-lap delta versus theoretical), the compound fitted, and an outcome classification. During a live pit stop, shows a real-time stationary timer. After the stop completes, the outcome is classified based on the pre-pit gap to the targeted rival and the post-stop gap after both cars complete their sequences.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/pit</code> — pit_duration, lap_number · <code>/stints</code> — compound fitted · <code>/position</code> — pre/post position comparison</div></div>
+    <div class="row"><div class="rl">Outcome tags</div><div class="rv">Undercut worked · Overcut worked · Lost position · Net neutral · Data insufficient</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">Y.6</div><div class="w-name">Undercut Simulator</div><div class="w-tags"><span class="tag t-gold">Inferred</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">What-if simulator for evaluating an undercut or overcut scenario against any rival. The user specifies a hypothetical pit lap, the target rival, an estimated stationary time, and the compound to fit. The simulator models the projected gap after the full stop sequence completes using current pace data, the current gap, and pit stop time estimates. Output shows projected gap after the sequence and a position outcome prediction. Scenarios can be exported as a shareable link.</div>
+    <div class="row"><div class="rl">Inputs</div><div class="rv">Hypothetical pit lap · Rival driver (any target type) · Estimated stationary time · New compound</div></div>
+    <div class="row"><div class="rl">Output</div><div class="rv">Projected gap after the pit sequence completes · Confidence band (based on deg rate uncertainty) · Position outcome prediction</div></div>
+  </div>
+</div>
+
+<!-- ─── MAP & POSITION ─── -->
+<div class="cat-head">
+  <div class="cat-name">Map & Position</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">4 widgets</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">M.1</div><div class="w-name">Full Track Map</div><div class="w-tags"><span class="tag t-grn">Live</span><span class="tag t-teal">Multi-driver</span></div><div class="w-size">min 2×2 · max 4×4</div></div>
+  <div class="w-body">
+    <div class="w-desc">SVG track outline with all 20 cars as live position dots derived from the location endpoint. Positions are interpolated between API updates (every ~3s) for smooth movement. Canvas focus driver dot is larger, labeled with their abbreviation, and shows current speed. All other drivers are shown as team-colored smaller dots. Battle proximity is indicated by a colored cone between cars: gray at 2 second gap, amber at 1 second, red at 0.3 seconds (DRS range). Drivers in the pit lane are shown on a separate pit lane overlay rendered below the track SVG.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/location</code> — x, y, z coordinates at ~3.7 Hz · <code>/intervals</code> for battle proximity detection</div></div>
+    <div class="row"><div class="rl">Interaction</div><div class="rv">Scroll to zoom · Double-click to reset zoom · Hover any dot to show driver name, position, and current gap · Pinch zoom on mobile</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">M.2</div><div class="w-name">Sector Map</div><div class="w-tags"><span class="tag t-grn">Live</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Track map with sector boundaries highlighted. Each sector zone is color-coded to show the current best time holder using the standard purple (session best) / green (driver personal best) / yellow (slower) coding. Useful for seeing at a glance where pace is being made or lost across the field in real time. Sector boundaries are sourced from the circuit database bundled with the app.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/laps</code> — sector_1/2/3_duration · Circuit database for sector boundary coordinates</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">M.3</div><div class="w-name">Running Order Strip</div><div class="w-tags"><span class="tag t-grn">Live</span><span class="tag t-teal">Multi-driver</span></div><div class="w-size">4×1 fixed</div></div>
+  <div class="w-body">
+    <div class="w-desc">Compact horizontal strip showing all drivers in race position order as team-colored dots with driver abbreviation labels. Updates live on overtakes. Designed to sit as a permanent orientation layer at the top of a canvas — faster to read than the full lap delta tower when the user only needs to know the current running order. Canvas focus driver is shown slightly larger than the others.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/position</code> — position order per driver, updated every ~3s</div></div>
+    <div class="row"><div class="rl">Display options</div><div class="rv">Dot only (most compact) · Dot + abbreviation (default) · Position number + abbreviation (fullest)</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">M.4</div><div class="w-name">Overtake Replay</div><div class="w-tags"><span class="tag t-blue">Historic</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Animated micro-replay of any overtake event sourced from the overtakes endpoint. Shows the approach, the braking zone relative to the overtaken car, and the position switch on the track map, with speed and gap data overlaid as callouts. The replay is scrub-able with a timeline slider. A sidebar lists all overtakes in the session filterable by driver. Clicking any event loads that replay. A header shows the lap number, position change, and the drivers involved.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/overtakes</code> — event metadata · <code>/car_data</code> and <code>/location</code> — telemetry reconstruction for the relevant lap window</div></div>
+  </div>
+</div>
+
+<!-- ─── WEATHER & CONDITIONS ─── -->
+<div class="cat-head">
+  <div class="cat-name">Weather & Conditions</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">4 widgets</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">W.1</div><div class="w-name">Weather Dashboard</div><div class="w-tags"><span class="tag t-blue">Live</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Displays air temperature, track temperature, humidity, wind speed, wind direction, and rainfall flag. Each field shows a 10-minute trend arrow. A tyre crossover indicator activates when conditions are approaching the threshold where intermediate or wet tyres would be faster than slicks — the threshold is a configurable formula in the widget settings. Data updates on each OpenF1 weather sample, typically every 30–60 seconds.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/weather</code> — air_temp, track_temp, humidity, wind_speed, wind_direction, rainfall</div></div>
+    <div class="row"><div class="rl">Crossover indicator</div><div class="rv">Configurable rain rate threshold. When exceeded, shows an amber "crossover approaching" badge. Formula is editable.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">W.2</div><div class="w-name">Track Temp Evolution</div><div class="w-tags"><span class="tag t-blue">Live</span><span class="tag t-gold">Inferred overlay</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Line chart of track temperature across the full session timeline. An optional secondary axis overlay shows the inferred tyre degradation rate from the Tyre Intelligence widget at the same timestamps, making it possible to see whether a pace degradation event correlates with a track temperature spike or drop. Useful for separating temperature-driven pace changes from genuine tyre wear.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/weather</code> — track_temp, sampled over the session · Tyre Intelligence inferred deg_rate overlaid as a secondary series</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">W.3</div><div class="w-name">Wind Direction</div><div class="w-tags"><span class="tag t-blue">Live</span></div><div class="w-size">min 1×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Compass rose showing current wind direction and speed overlaid on a simplified track outline. Sectors of the track that face into the headwind are highlighted. DRS zones that may be affected by crosswind are indicated. Updates live with each weather sample.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/weather</code> — wind_speed (m/s), wind_direction (degrees, 0=north) · Circuit database for track cardinal orientation</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">W.4</div><div class="w-name">Weather Radar</div><div class="w-tags"><span class="tag t-blue">Live</span><span class="tag t-teal">Windy embed</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Embeds the Windy interactive weather radar map via iframe, pre-locked to the current circuit's geographic coordinates. The embed URL is constructed from the circuit lat/lng in the circuit database, matched against the circuit name from the active session's meetings data. Users can scroll and zoom freely within the embedded map. The layer selector in the widget footer switches between rain, wind, cloud, pressure, and temperature overlays. An optional rain alert threshold, configurable in widget settings, triggers the ambient bar "rain approaching" toast when rain is detected within a set radius of the circuit.</div>
+    <div class="row"><div class="rl">Embed URL</div><div class="rv"><code>https://embed.windy.com/config/map?lat={lat}&amp;lon={lon}&amp;zoom=11&amp;level=surface&amp;overlay=rain&amp;menu=false&amp;marker=true</code></div></div>
+    <div class="row"><div class="rl">Auth</div><div class="rv">Windy free embed tier requires no API key for the basic map. Optional Windy Forecast API key enables programmatic rain threshold polling for the ambient toast.</div></div>
+    <div class="row"><div class="rl">Circuit database</div><div class="rv">All current F1 circuit coordinates bundled as a static JSON asset. If a circuit is absent, a manual coordinate entry field appears in the widget footer. User-entered coordinates persist in workspace settings.</div></div>
+    <div class="row"><div class="rl">Layers</div><div class="rv">Rain (default) · Wind · Cloud cover · Pressure · Temperature · Selected via footer toolbar</div></div>
+  </div>
+</div>
+
+<!-- ─── AUDIO & COMMS ─── -->
+<div class="cat-head">
+  <div class="cat-name">Audio & Comms</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">3 widgets</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">A.1</div><div class="w-name">Radio Scanner</div><div class="w-tags"><span class="tag t-pink">Live audio</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Scanner-style multi-channel team radio interface. Per-driver channel toggles, four listening modes, squelch control, key-up sound effects, auto-transcription, and keyword alert badging. Full specification in Section 11. Requires a live API key — the team_radio endpoint is not available without authentication.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/team_radio</code> — recording_url (audio clip URL), date, driver_number. Live key required.</div></div>
+    <div class="row"><div class="rl">Modes</div><div class="rv">Scanner · Locked · All drivers · Focus only — see Section 11 for full mode specifications</div></div>
+    <div class="row"><div class="rl">Key-up SFX</div><div class="rv">80ms synthesized radio click via Web Audio API before each clip. Volume adjustable independently. Can be disabled.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">A.2</div><div class="w-name">Radio Feed (Text)</div><div class="w-tags"><span class="tag t-pink">Live</span></div><div class="w-size">min 1×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Text-only team radio transcript feed without audio playback. Every incoming clip appears as a timestamped row showing driver name, time, and the Whisper auto-transcription result. Keyword matches are highlighted with a colored badge. The full session log is searchable. Each row has a play button that opens the audio clip in the system audio player. Suitable for secondary screens or silent environments where audio is not wanted.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/team_radio</code> — recording_url, date, driver_number · Whisper for transcription</div></div>
+    <div class="row"><div class="rl">Search</div><div class="rv">Full text search across all transcribed clips in the current session. Matching terms highlighted in results.</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">A.3</div><div class="w-name">Race Control Feed</div><div class="w-tags"><span class="tag t-pink">Live</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Timestamped log of all race control messages: flag changes, DRS enabled/disabled, penalty notifications, investigation notices, and sector neutralizations. Each message is tagged by category. An optional audio chime on new message arrival is configurable. This widget is the primary source that drives ambient bar state changes — flag messages from race_control are the trigger for all ambient flag transitions. The ambient bar section documents how each flag message type maps to an ambient state.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/race_control</code> — flag, message, category, driver_number (for driver-specific penalties), date</div></div>
+    <div class="row"><div class="rl">Categories</div><div class="rv">Flag · DRS · Penalty · Investigation · Sector neutralization · Other (filterable per category in widget settings)</div></div>
+  </div>
+</div>
+
+<!-- ─── CHAMPIONSHIP ─── -->
+<div class="cat-head">
+  <div class="cat-name">Championship</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">3 widgets</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">C.1</div><div class="w-name">Standings Table</div><div class="w-tags"><span class="tag t-gold">Live</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">Driver and constructor championship standings updated live during the race as positions are finalized. Shows each driver's current points total, the points gained in this race so far (based on current provisional position), and position change versus the standings at race start. Canvas focus driver row is highlighted. A toggle in the widget header switches between driver standings and constructor standings views. Only populated for race sessions — qualification and practice do not update championship data.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/championship_drivers</code> · <code>/championship_teams</code> — only populated during race sessions</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">C.2</div><div class="w-name">Championship Calculator</div><div class="w-tags"><span class="tag t-gold">Inferred</span></div><div class="w-size">min 2×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">What-if final standings calculator. Shows remaining races on the calendar and lets the user specify hypothetical finishing positions for any driver in any remaining race. The standings update live as hypothetical results are adjusted. Multiple scenario slots allow comparison of different outcome sets side by side. Scenarios can be exported as a shareable URL or image for posting to social media.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv">Current standings from <code>/championship_drivers</code> · Remaining race calendar from <code>/meetings</code> filtered to future dates · F1 points system: 25-18-15-12-10-8-6-4-2-1 plus 1 for fastest lap</div></div>
+  </div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">C.3</div><div class="w-name">Points Delta Tracker</div><div class="w-tags"><span class="tag t-blue">Historic</span></div><div class="w-size">min 2×1</div></div>
+  <div class="w-body">
+    <div class="w-desc">Line chart showing the points gap between two configurable drivers race by race across the season. The current gap is annotated on the right axis. A dashed reference line shows the maximum possible recovery if the trailing driver wins every remaining race and the leading driver scores zero — the mathematical championship limit. The crossover point where mathematically the trailing driver cannot win is annotated when it occurs.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/championship_drivers</code> queried per session key across the season · <code>/meetings</code> for the race calendar and event labels</div></div>
+  </div>
+</div>
+
+<!-- ─── VISUAL ─── -->
+<div class="cat-head">
+  <div class="cat-name">Visual</div>
+  <div class="cat-rule"></div>
+  <div class="cat-count">1 widget</div>
+</div>
+
+<div class="w-entry">
+  <div class="w-head"><div class="w-id">V.1</div><div class="w-name">Car Visualization</div><div class="w-tags"><span class="tag t-pur">Live telemetry</span><span class="tag t-gold">Inferred</span></div><div class="w-size">min 3×2</div></div>
+  <div class="w-body">
+    <div class="w-desc">SVG side-profile illustration of the F1 car in 2026-regulation geometry. Team color applied as a livery stripe along the body. Tyre compound, lap age, and estimated wear percentage for all four corners rendered as badges directly on top of each tyre circle. ERS and battery estimate bars shown on the sidepod surfaces. DRS status indicator near the rear wing. A damage health row below the car shows component status inferred from telemetry anomalies. A stats strip at the bottom shows speed, throttle, brake, ERS, battery, fuel estimate, gear, and rpm. Full widget specification in Section 09.</div>
+    <div class="row"><div class="rl">Data source</div><div class="rv"><code>/car_data</code> — speed, throttle, brake, rpm, drs, n_gear · <code>/stints</code> — compound, tyre_age · wear and fuel inferred from models</div></div>
+    <div class="row"><div class="rl">Team color</div><div class="rv">Constructor primary color applied as a gradient-masked stripe across sidepods and engine cover. Ghost driver number on engine cover at low opacity. Hub centers in team color at 55% opacity. No full livery replication.</div></div>
+    <div class="row"><div class="rl">Tyre overlays</div><div class="rv">FL/FR badges float above and below the front tyre. RL/RR above and below the rear. Each badge: compound label, lap age, and a wear progress bar. Bar color: green 0–27%, amber 28–49%, red 50%+.</div></div>
+    <div class="row"><div class="rl">Damage row</div><div class="rv">Front wing · Rear wing · Floor · Suspension · RR tyre wear. Inferred from lap time anomalies and telemetry patterns. All labeled ~EST. Status: OK (green) · Minor (amber) · Critical (red).</div></div>
+    <div class="row"><div class="rl">View settings</div><div class="rv">Side view (default) · Top-down · Tyre display: all four / rear only / compound label only · Stat bar selection · Show/hide damage row · Show/hide fuel estimate · Animate wear updates per lap</div></div>
+  </div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     08 — WIDGET SETTINGS FRAMEWORK
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">08</span><span class="sect-t">Widget Settings Framework</span><div class="sect-r"></div></div>
+
+<p>Every widget exposes a settings panel with four tabs. Settings persist in the layout JSON and are included in layout code exports. Recipients of a shared layout get the exact same widget configuration including formula overrides, driver sources, and alert thresholds.</p>
+
+<table class="t">
+  <thead><tr><th style="width:100px">Tab</th><th>Contents</th><th style="width:140px">Available on</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Display</td><td>Widget size (within min/max bounds) · Theme accent color · Label style · Chart type where applicable · Unit system (metric or imperial) · Show/hide sub-components · Compact versus expanded row height</td><td>All widgets</td></tr>
+    <tr><td class="tn">Driver</td><td>Driver source selector presenting: FOCUS, position roles (P1/P2/P3/P4/P5/GAP+1/GAP-1), and the user's starred drivers. A <strong style="color:var(--white)">+ more</strong> button at the end opens the Driver Manager panel for browsing and starring from the full 20-driver roster. For comparison widgets, primary and secondary driver are configured independently using the same selector.</td><td>All widgets</td></tr>
+    <tr><td class="tn">Formula</td><td>Active formula expression with syntax highlighting. Inline editor. Live preview against the last historical session dataset. Load from community formula library. Publish to community formula library. Fork (creates a copy before editing). Only present on inferred widgets.</td><td>Inferred widgets only</td></tr>
+    <tr><td class="tn">Advanced</td><td>Polling rate override (default / faster / slower) · Alert threshold configuration · Color scale overrides · Debug data panel showing raw API field values feeding the widget in real time · Reset to default for all settings in this widget</td><td>All widgets</td></tr>
+  </tbody>
+</table>
+
+<div class="card-label" style="margin-bottom:8px">Driver tab — compact target selector</div>
+<div class="dts">
+  <div class="dts-head">Driver source</div>
+  <div class="dts-body">
+    <!-- Canvas inherit -->
+    <div class="dts-chip focus">FOCUS</div>
+
+    <div class="dts-divider"></div>
+
+    <!-- Position roles -->
+    <div class="dts-chip pos">P1</div>
+    <div class="dts-chip pos">P2</div>
+    <div class="dts-chip pos">P3</div>
+    <div class="dts-chip pos">P4</div>
+    <div class="dts-chip pos">P5</div>
+    <div class="dts-chip pos">GAP+1</div>
+    <div class="dts-chip pos">GAP−1</div>
+
+    <div class="dts-divider"></div>
+
+    <!-- Starred drivers -->
+    <div class="dts-driver sel">
+      <div class="dts-dc" style="background:#3671C6"></div>
+      <div class="dts-dl">VER</div>
+    </div>
+    <div class="dts-driver">
+      <div class="dts-dc" style="background:#FF8000"></div>
+      <div class="dts-dl">NOR</div>
+    </div>
+    <div class="dts-driver">
+      <div class="dts-dc" style="background:#E8002D"></div>
+      <div class="dts-dl">LEC</div>
+    </div>
+    <div class="dts-driver">
+      <div class="dts-dc" style="background:#27F4D2"></div>
+      <div class="dts-dl">HAM</div>
+    </div>
+    <div class="dts-driver">
+      <div class="dts-dc" style="background:#FF8000"></div>
+      <div class="dts-dl">PIA</div>
+    </div>
+
+    <!-- Overflow -->
+    <div class="dts-chip more">+ more</div>
+  </div>
+  <div class="dts-footer">
+    <span>+ more</span> opens Driver Manager · also accessible from the focus bar and Settings → Drivers
+  </div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     09 — CAR VISUALIZATION WIDGET
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">09</span><span class="sect-t">Car Visualization Widget</span><div class="sect-r"></div></div>
+
+<p>The car visualization widget uses an SVG illustration based on the FIA 2026 technical regulation reference geometry. The 2026 car differs from the 2022–2025 cars in several ways that matter to the illustration: a substantially longer and lower nose that tapers to nearly ground level; larger, more rounded sidepods with a pronounced undercut shadow channel beneath them; a simplified front wing with cleaner end plates and fewer elements; a shorter and wider rear wing; and a more aerodynamically integrated halo surround. The SVG is parametric — team color stripe, hub color, halo color, and livery accent line all update from the constructor color data for the active driver.</p>
+
+<div class="note"><strong>No livery replication.</strong> Full team livery graphics are not rendered. Only the constructor's primary color is applied as a gradient-masked stripe. This avoids intellectual property concerns while still providing clear visual team identification. The color is sourced from the <code>team_colour</code> field returned by <code>/drivers</code>.</div>
+
+<div class="sub">2026 regulation profile elements present in the SVG</div>
+<table class="t">
+  <thead><tr><th style="width:200px">Element</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Nose cone</td><td>Long, tapered profile that sweeps from cockpit level down to nearly ground level. S-duct opening visible on the upper surface.</td></tr>
+    <tr><td class="tn">Front wing</td><td>Simplified multi-element design with cleaner end plates versus 2022 regs. Shorter cascade elements.</td></tr>
+    <tr><td class="tn">Sidepods</td><td>Large, rounded upper surface. Pronounced undercut channel shown as a dark shadow beneath the sidepod body.</td></tr>
+    <tr><td class="tn">Cockpit / halo</td><td>Halo flush with the cockpit surround, center pillar visible. Headrest fairing integrated behind the driver position.</td></tr>
+    <tr><td class="tn">Engine cover</td><td>Hump profile from cockpit rising to the roll hoop / airbox. Antenna mast and camera mount visible.</td></tr>
+    <tr><td class="tn">Rear wing</td><td>Shorter span and wider chord than 2022 regs. DRS gap indicator at the element junction. Swan neck support struts visible.</td></tr>
+    <tr><td class="tn">Wheels</td><td>18-inch diameter with 5-spoke rim design. Pirelli compound-colored sidewall ring segment. Rear tyre visibly wider than front.</td></tr>
+    <tr><td class="tn">Underfloor</td><td>Flat underfloor channel and diffuser ramp visible in profile. Diffuser strakes shown as fine lines.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Tyre data overlay positioning</div>
+<p>Each tyre position has a data badge rendered directly on top of the tyre circle in the SVG, not alongside it. The front tyre shows FL above center and FR below center. The rear tyre shows RL above center and RR below center. Each badge contains: a corner label (FL/FR/RL/RR) in muted text, a compound label in the Pirelli compound color (red for soft, yellow for medium, white for hard, green for intermediate, blue for wet), a lap age number, and a wear progress bar. The wear bar fill is green below 28%, amber from 28–49%, and red at 50% and above. The percentage is rendered to the right of the bar in the same color as the fill.</p>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     10 — WEATHER RADAR INTEGRATION
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">10</span><span class="sect-t">Weather Radar Integration</span><div class="sect-r"></div></div>
+
+<p>The Weather Radar widget (W.4) embeds the Windy interactive map via iframe. The embed URL is constructed dynamically from circuit coordinates stored in the circuit database, cross-referenced against the circuit name returned by the active session's meetings data. The map is geo-locked to the circuit on load. Users can scroll and zoom freely within the embedded map.</p>
+
+<div class="sub">Circuit coordinate lookup</div>
+<div class="steps">
+  <div class="step">On session load, read <code>circuit_short_name</code> from <code>/meetings</code> for the active session.</div>
+  <div class="step">Look up the matching entry in <code>/assets/circuits/coordinates.json</code> to get lat/lng.</div>
+  <div class="step">Construct the Windy embed URL with the lat/lng as both the map center and the detail marker position.</div>
+  <div class="step">Render the iframe. The Windy free embed tier requires no API key for the map itself.</div>
+  <div class="step">If the circuit is not in the database, show a manual coordinate entry field in the widget footer. User-entered values persist in workspace settings.</div>
+  <div class="step">Optional: use Windy Forecast API (separate paid key) to poll rain probability at circuit coordinates every 5 minutes. When probability exceeds the configured threshold, fire the ambient bar "rain approaching" toast.</div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     11 — ADVANCED RADIO SCANNER
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">11</span><span class="sect-t">Advanced Radio Scanner</span><div class="sect-r"></div></div>
+
+<p>The radio scanner sources clips from the OpenF1 <code>/team_radio</code> endpoint. The endpoint provides timestamped audio clip URLs per driver. The scanner downloads and plays these clips client-side. This feature requires a live API key — the team_radio endpoint is not available without authentication. Historical clips from past sessions are accessible in historical mode.</p>
+
+<div class="sub">Listening modes</div>
+<table class="t">
+  <thead><tr><th style="width:110px">Mode</th><th>Playback behavior</th><th style="width:180px">Overlap handling</th><th style="width:160px">Best use case</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Scanner</td><td>All enabled channels active. Plays whichever driver's clip arrives first from any open channel.</td><td>Overlap toggle: ON plays clips simultaneously (authentic scanner). OFF queues clips arriving within a 500ms window and serializes them.</td><td>Users who want the authentic scanner experience and do not want to miss any enabled driver's transmission.</td></tr>
+    <tr><td class="tn">Locked</td><td>One driver channel only. All other channels silenced even if their toggle is enabled in the channel grid.</td><td>Single channel — no overlap possible.</td><td>Following one driver closely through a strategic sequence or battle.</td></tr>
+    <tr><td class="tn">All drivers</td><td>Ignores all channel toggle states. Plays every available clip from every driver without exception.</td><td>Queue mode forced — clips serialize to avoid simultaneous playback from multiple drivers.</td><td>Researchers, journalists, or fans who want the complete unfiltered record of all radio activity.</td></tr>
+    <tr><td class="tn">Focus only</td><td>Plays only the canvas focus driver's channel. Automatically switches if canvas focus changes.</td><td>Single channel — no overlap possible.</td><td>Users who set a focus driver and want radio to follow automatically without managing locked mode manually.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Squelch</div>
+<p>Clips are analyzed for peak amplitude before playback using a Web Audio AnalyserNode against a brief pre-buffer. Clips where peak amplitude falls below the squelch threshold are silenced entirely — the feed row still appears with a muted indicator icon, but no audio plays. The threshold is adjustable from 0% (no squelch) to 100% (nothing plays). Default is 30%. The recommended range for eliminating dead air while retaining all speech is 20–40%.</p>
+
+<div class="sub">Key-up sound effect</div>
+<p>An 80-millisecond synthesized radio click plays before each audio clip. The sound is generated client-side using the Web Audio API — no audio file to load. The synthesis uses a short burst of bandlimited white noise through a fast attack/decay envelope, producing a sound characteristic of a push-to-talk radio activating. Key-up SFX volume is controlled by a separate slider from clip volume. Default 60%. Can be disabled entirely in widget settings.</p>
+
+<div class="sub">Auto-transcription pipeline</div>
+<p>Each audio clip URL is passed to a Whisper endpoint immediately on receipt. Transcription typically completes within 1–2 seconds. The endpoint can be self-hosted (recommended for privacy) or a cloud API endpoint configured in Settings → Integrations. Transcripts are stored against their clip timestamp and displayed in the feed row below the play button. All transcripts in the session are searchable and exportable as plain text or JSON.</p>
+
+<div class="sub">Keyword alerts</div>
+<p>After transcription, each clip is scanned for a configurable keyword list. When a match is found, the clip row receives a colored badge identifying the matched keyword and is elevated to the top of the feed regardless of the active listening mode. Default keywords: <code>box</code>, <code>cliff</code>, <code>unsafe</code>, <code>retire</code>, <code>push</code>, <code>tyre</code>, <code>safety car</code>, <code>rain</code>. The list is editable in widget settings and persists in the layout JSON.</p>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     12 — F1TV & STREAM OVERLAY
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">12</span><span class="sect-t">F1TV & Stream Overlay</span><div class="sect-r"></div></div>
+
+<div class="note red"><strong>Phase 4 — not yet built.</strong> This section documents the planned architecture. No development has started. Implementation is contingent on completing Phases 1–3 and shipping a desktop app.</div>
+
+<p>The overlay system allows Pitwall to run as a transparent window positioned above F1TV or any other streaming application. Pitwall widgets float over the video content at the OS compositor level. The app does not capture, record, intercept, or re-transmit any stream content. It only renders its own SVG and HTML widgets on top of the existing window. Compliance with F1TV terms of service is the user's responsibility.</p>
+
+<div class="sub">Technical requirements</div>
+<table class="t">
+  <thead><tr><th style="width:160px">Requirement</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Desktop app shell</td><td>Overlay requires an Electron or Tauri shell for OS-level window composition APIs. A browser tab cannot float above another application's window. The web version of Pitwall can run alongside F1TV in a separate browser window — no overlay, but otherwise fully functional as a companion.</td></tr>
+    <tr><td class="tn">Transparent window</td><td>Electron BrowserWindow created with <code>transparent: true</code> and <code>backgroundColor: '#00000000'</code>. Non-widget areas of the Pitwall window must be click-through via <code>setIgnoreMouseEvents</code> with forwarding.</td></tr>
+    <tr><td class="tn">Always on top</td><td>Window set with <code>alwaysOnTop: true</code> at the <code>'screen-saver'</code> level to remain above the F1TV browser window across common OS configurations.</td></tr>
+    <tr><td class="tn">Widget positioning</td><td>Users drag widgets freely over the stream. Overlay layout positions are stored separately from canvas grid positions — overlay mode uses a different configuration from the standard canvas layout.</td></tr>
+    <tr><td class="tn">F1TV cockpit streams</td><td>F1TV Pro subscribers have access to onboard feeds per driver. If F1TV exposes embeddable URLs for these feeds, Pitwall can display them within a widget frame. No stream capture or rehosting at any point.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Implementation sequence (when Phase 4 begins)</div>
+<div class="steps">
+  <div class="step">Build the Electron shell. The existing Pitwall web app runs in a BrowserWindow renderer process without changes.</div>
+  <div class="step">Create the overlay window with <code>transparent: true</code>, <code>alwaysOnTop: true</code>, <code>frame: false</code>, <code>hasShadow: false</code>.</div>
+  <div class="step">Implement the click-through boundary. Non-widget canvas areas call <code>setIgnoreMouseEvents(true, { forward: true })</code>. Widget areas call <code>setIgnoreMouseEvents(false)</code>. The boundary updates dynamically as widgets are moved.</div>
+  <div class="step">Build the overlay layout mode. Widgets in overlay mode use absolute positioning rather than the react-grid-layout grid.</div>
+  <div class="step">Add a system tray icon for show/hide toggle so users can hide the overlay without quitting the app.</div>
+  <div class="step">Test on Windows (Direct Composition), macOS (Core Animation / Quartz), and Linux (X11 and Wayland separately). Compositor behavior differs between platforms.</div>
+</div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     13 — ERROR STATES & GRACEFUL HANDLING
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">13</span><span class="sect-t">Error States & Graceful Handling</span><div class="sect-r"></div></div>
+
+<p>The app defines six distinct failure modes. Each has a full-screen error state, a specific error code, a clear status description, and one or two recovery actions. All errors are written to the diagnostic log.</p>
+
+<div class="es-grid">
+  <div class="es">
+    <div class="es-chrome"><div class="esd" style="background:#FF5F57"></div><div class="esd" style="background:#FEBC2E"></div><div class="esd" style="background:#28C840"></div><span class="es-chrome-title">Pitwall</span></div>
+    <div class="es-body">
+      <div class="es-icon">📡</div>
+      <div class="es-badge" style="background:rgba(232,19,43,0.1);color:var(--red);border:0.5px solid rgba(232,19,43,0.25)">OpenF1 unreachable</div>
+      <div class="es-title">Data feed offline</div>
+      <div class="es-detail">api.openf1.org is not responding.<br>Last data received 2m 14s ago.<br>Widgets showing cached values.</div>
+      <div class="es-action" style="background:rgba(232,19,43,0.08);border-color:rgba(232,19,43,0.3);color:var(--red)">Retry connection</div>
+      <div class="es-action" style="background:transparent;border-color:var(--border);color:var(--muted2)">Show cached data</div>
+    </div>
+    <div class="es-foot">Auto-retry every 15s · ERR_OPENF1_UNREACHABLE</div>
+  </div>
+
+  <div class="es">
+    <div class="es-chrome"><div class="esd" style="background:#FF5F57"></div><div class="esd" style="background:#FEBC2E"></div><div class="esd" style="background:#28C840"></div><span class="es-chrome-title">Pitwall</span></div>
+    <div class="es-body">
+      <div class="es-icon">🔌</div>
+      <div class="es-badge" style="background:rgba(74,74,79,0.2);color:var(--muted);border:0.5px solid var(--border2)">No network</div>
+      <div class="es-title">No network connection</div>
+      <div class="es-detail">Your device is offline.<br>Historical data from cache<br>is available to browse.</div>
+      <div class="es-action" style="background:rgba(29,184,106,0.08);border-color:rgba(29,184,106,0.3);color:var(--green)">Browse cached sessions</div>
+    </div>
+    <div class="es-foot">Checks for connection every 10s · ERR_OFFLINE</div>
+  </div>
+
+  <div class="es">
+    <div class="es-chrome"><div class="esd" style="background:#FF5F57"></div><div class="esd" style="background:#FEBC2E"></div><div class="esd" style="background:#28C840"></div><span class="es-chrome-title">Pitwall</span></div>
+    <div class="es-body">
+      <div class="es-icon">🏁</div>
+      <div class="es-badge" style="background:rgba(201,168,76,0.1);color:var(--gold);border:0.5px solid rgba(201,168,76,0.3)">Pre-session</div>
+      <div class="es-title">Coverage not started</div>
+      <div class="es-detail">Next: British GP — Qualifying<br>Silverstone · in 2h 34m<br>App connects automatically.</div>
+      <div class="es-action" style="background:rgba(201,168,76,0.08);border-color:rgba(201,168,76,0.3);color:var(--gold)">Browse last session</div>
+    </div>
+    <div class="es-foot">Polls /sessions every 60s waiting for live session · ERR_PRE_SESSION</div>
+  </div>
+
+  <div class="es">
+    <div class="es-chrome"><div class="esd" style="background:#FF5F57"></div><div class="esd" style="background:#FEBC2E"></div><div class="esd" style="background:#28C840"></div><span class="es-chrome-title">Pitwall</span></div>
+    <div class="es-body">
+      <div class="es-icon">📂</div>
+      <div class="es-badge" style="background:rgba(74,74,79,0.15);color:var(--muted);border:0.5px solid var(--border2)">No data</div>
+      <div class="es-title">No data for this season</div>
+      <div class="es-detail">OpenF1 covers 2023 onward.<br>The selected season has no<br>available data.</div>
+      <div class="es-action" style="background:rgba(54,113,198,0.08);border-color:rgba(54,113,198,0.3);color:var(--blue)">Browse available seasons</div>
+    </div>
+    <div class="es-foot">ERR_NO_SEASON_DATA · openf1.org/coverage</div>
+  </div>
+
+  <div class="es">
+    <div class="es-chrome"><div class="esd" style="background:#FF5F57"></div><div class="esd" style="background:#FEBC2E"></div><div class="esd" style="background:#28C840"></div><span class="es-chrome-title">Pitwall</span></div>
+    <div class="es-body">
+      <div class="es-icon">🗃️</div>
+      <div class="es-badge" style="background:rgba(201,168,76,0.1);color:var(--gold);border:0.5px solid rgba(201,168,76,0.3)">Archive mode</div>
+      <div class="es-title">Update required for live</div>
+      <div class="es-detail">v2.1 required for 2026 season.<br>All historical sessions remain<br>fully accessible.</div>
+      <div class="es-action" style="background:var(--red);border-color:var(--red);color:#fff">Update app</div>
+      <div class="es-action" style="background:transparent;border-color:var(--border);color:var(--muted2)">Continue in archive mode</div>
+    </div>
+    <div class="es-foot">Archive mode: full historical functionality · no live feed · ERR_UPDATE_REQUIRED</div>
+  </div>
+
+  <div class="es">
+    <div class="es-chrome"><div class="esd" style="background:#FF5F57"></div><div class="esd" style="background:#FEBC2E"></div><div class="esd" style="background:#28C840"></div><span class="es-chrome-title">Pitwall</span></div>
+    <div class="es-body">
+      <div class="es-icon">🔑</div>
+      <div class="es-badge" style="background:rgba(232,19,43,0.1);color:var(--red);border:0.5px solid rgba(232,19,43,0.25)">Auth failed</div>
+      <div class="es-title">API key rejected</div>
+      <div class="es-detail">OpenF1 returned HTTP 401.<br>Key may be expired<br>or on an inactive plan.</div>
+      <div class="es-action" style="background:rgba(232,19,43,0.08);border-color:rgba(232,19,43,0.3);color:var(--red)">Update API key</div>
+      <div class="es-action" style="background:transparent;border-color:var(--border);color:var(--muted2)">Use historical only</div>
+    </div>
+    <div class="es-foot">HTTP 401 · ERR_INVALID_API_KEY · openf1.org/subscribe</div>
+  </div>
+</div>
+
+<div class="sub">Archive mode</div>
+<p>Archive mode activates when live data is unavailable for a persistent reason: update required, API key failure after all retries exhausted, or manual user selection. In archive mode: all 33 widgets function with historical data; the ambient bar shows neutral grey with no event-driven color changes; team radio is unavailable for live sessions; a persistent banner at the top of every canvas view indicates archive status. Historical sessions from 2023 onward are fully browsable.</p>
+
+<div class="sub">Diagnostic log</div>
+<p>All application errors, warnings, and state transitions are written to a structured in-memory log. The last 1,000 entries are retained. The log is accessible at Settings → Diagnostics and can be filtered by level (ERR / WARN / INFO / DBG) and exported as JSON.</p>
+
+<div class="log">
+  <div class="log-head"><div class="log-ht">Diagnostic log</div><div class="log-btn">Filter</div><div class="log-btn">Export JSON</div><div class="log-btn">Clear</div></div>
+  <div class="log-row"><span class="log-t">14:32:07.441</span><span class="log-lv lv-i">INFO</span><span class="log-m">Session connected · session_key=9839 · British GP Race 2025</span><span class="log-src">data.ts:112</span></div>
+  <div class="log-row"><span class="log-t">14:33:18.002</span><span class="log-lv lv-w">WARN</span><span class="log-m">Rate limit approaching · 55/60 req/min · backing off 8s</span><span class="log-src">api.ts:88</span></div>
+  <div class="log-row"><span class="log-t">14:35:01.774</span><span class="log-lv lv-e">ERR</span><span class="log-m">WebSocket dropped · code=1006 · connection closed abnormally · reconnecting in 3s</span><span class="log-src">ws.ts:203</span></div>
+  <div class="log-row"><span class="log-t">14:35:04.801</span><span class="log-lv lv-i">INFO</span><span class="log-m">WebSocket reconnected · latency 84ms · 1 car_data poll missed during outage</span><span class="log-src">ws.ts:221</span></div>
+  <div class="log-row"><span class="log-t">14:38:42.119</span><span class="log-lv lv-w">WARN</span><span class="log-m">Whisper transcription timeout (5s) · clip driver_number=1 · retrying</span><span class="log-src">radio.ts:57</span></div>
+  <div class="log-row"><span class="log-t">14:40:11.330</span><span class="log-lv lv-d">DBG</span><span class="log-m">Cliff formula computed · VER · compound=MEDIUM · cliff_lap=26 · deg_rate=0.182 · track_temp=43</span><span class="log-src">inference.ts:144</span></div>
+</div>
+
+<p>Optional Sentry integration is available for crash and error telemetry. Opt-in during onboarding. Collects only stack traces, error codes, and app version — no personal data, no usage tracking, no driver selection data. Revocable at any time from Settings → Privacy. All error codes use the <code>ERR_*</code> namespace shown in the screens above.</p>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     14 — INFERENCE ENGINE
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">14</span><span class="sect-t">Inference Engine</span><div class="sect-r"></div></div>
+
+<p>OpenF1 does not provide ERS state, battery level, tyre wear percentage, fuel load, or engine mode — these are proprietary team telemetry values not exposed by the API. Pitwall infers approximations of these metrics from the available raw data. All inferred values carry an ~EST label and documented accuracy figures. The formulas are user-editable and the community can publish improvements to a shared formula registry.</p>
+
+<div class="sub">Three data tiers</div>
+<table class="t">
+  <thead><tr><th style="width:100px">Tier</th><th>Definition</th><th style="width:280px">Examples</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Raw</td><td>Direct OpenF1 API fields. No transformation. Used as-is from endpoint responses.</td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">speed, throttle, brake, rpm, n_gear, drs, gap_to_leader, interval, compound, tyre_age, lap_duration, sector times</td></tr>
+    <tr><td class="tn">Derived</td><td>Calculations on raw fields requiring no domain assumptions. Deterministic from the data.</td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">gap delta, rolling lap average, stint pace, sector personal best, gap trend direction, DRS active boolean from drs integer mapping</td></tr>
+    <tr><td class="tn">Inferred</td><td>Domain-specific estimates that require modeled assumptions. All labeled ~EST in the UI. Accuracy documented below.</td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">ERS deploy/harvest zones, battery SOC, tyre cliff lap, traffic time loss, pit urgency score, fuel load estimate, engine mode proxy</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Accuracy reference</div>
+<table class="t">
+  <thead><tr><th style="width:150px">Metric</th><th style="width:200px">API fields used</th><th>Formula logic</th><th style="width:80px">Accuracy</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Traffic time loss</td><td style="font-family:var(--mono);font-size:9px"><code>/laps</code> <code>/intervals</code></td><td>Reference pace = median of fastest 40% of clean stint laps. Loss = actual − reference on laps where interval_to_ahead &lt; 1.0s.</td><td style="font-family:var(--mono);font-size:9px;color:var(--green)">~85%</td></tr>
+    <tr><td class="tn">Deg rate</td><td style="font-family:var(--mono);font-size:9px"><code>/laps</code></td><td>Linear regression slope on last 5 clean laps (non-traffic, non-SC). Outliers beyond 2σ excluded. Expressed as s/lap.</td><td style="font-family:var(--mono);font-size:9px;color:var(--green)">~80%</td></tr>
+    <tr><td class="tn">Tyre cliff lap</td><td style="font-family:var(--mono);font-size:9px"><code>/stints</code> <code>/laps</code> <code>/weather</code></td><td>BASE_WINDOW[compound] − (track_temp − 45) × 0.3 − deg_rate × 1.8 + sc_laps × 2.1</td><td style="font-family:var(--mono);font-size:9px;color:var(--amber)">±3 laps</td></tr>
+    <tr><td class="tn">Pit urgency score</td><td style="font-family:var(--mono);font-size:9px">Derived from above</td><td>(laps_to_cliff / 5) + (1 − gap_behind / 3) + undercut_closing_bonus, clamped 0–1</td><td style="font-family:var(--mono);font-size:9px;color:var(--amber)">~70%</td></tr>
+    <tr><td class="tn">ERS deploy zone</td><td style="font-family:var(--mono);font-size:9px"><code>/car_data</code></td><td>speed_delta &gt; 0 AND throttle &lt; 30 AND rpm_delta &gt; 200 → deploy. Braking where rpm drops slower than speed → harvest.</td><td style="font-family:var(--mono);font-size:9px;color:var(--amber)">~70%</td></tr>
+    <tr><td class="tn">Tyre wear %</td><td style="font-family:var(--mono);font-size:9px"><code>/stints</code> <code>/laps</code></td><td>Deg rate integrated from stint start. Represents pace degradation percentage, not physical rubber thickness.</td><td style="font-family:var(--mono);font-size:9px;color:var(--amber)">~65%</td></tr>
+    <tr><td class="tn">Engine mode</td><td style="font-family:var(--mono);font-size:9px"><code>/car_data</code></td><td>RPM ceiling hit rate — frequency of rpm &gt; 97% of observed session max.</td><td style="font-family:var(--mono);font-size:9px;color:var(--amber)">~60%</td></tr>
+    <tr><td class="tn">Battery SOC</td><td style="font-family:var(--mono);font-size:9px"><code>/car_data</code></td><td>Cumulative (throttle × dt) as discharge proxy, braking events as charge proxy. Normalized per lap. Large uncertainty.</td><td style="font-family:var(--mono);font-size:9px;color:var(--red)">~50%</td></tr>
+    <tr><td class="tn">Fuel load estimate</td><td style="font-family:var(--mono);font-size:9px"><code>/car_data</code></td><td>Modeled consumption rate from throttle integral. Starts at ~110 kg. ±15 kg uncertainty at race end.</td><td style="font-family:var(--mono);font-size:9px;color:var(--red)">~45%</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Default tyre cliff formula</div>
+<div class="formula">
+<span class="fc">// Base lap windows per compound — under neutral conditions (track_temp ≈ 45°C, no SC, low deg)</span><br>
+<span class="fk">BASE_WINDOW</span> = { SOFT: <span class="fa">18</span>, MEDIUM: <span class="fa">28</span>, HARD: <span class="fa">40</span>, INTER: <span class="fa">35</span>, WET: <span class="fa">50</span> }<br><br>
+<span class="fc">// Adjustment factors — all user-editable in the Formula tab</span><br>
+<span class="fk">TEMP_FACTOR</span>  = (track_temp − <span class="fa">45</span>) × <span class="fa">0.3</span>  <span class="fc">// hot track accelerates tyre degradation</span><br>
+<span class="fk">DEG_FACTOR</span>   = deg_rate × <span class="fa">1.8</span>           <span class="fc">// observed slope amplified to account for late-stint acceleration</span><br>
+<span class="fk">SC_CREDIT</span>    = sc_laps_this_stint × <span class="fa">2.1</span>  <span class="fc">// SC laps extend tyre life by reducing thermal and mechanical stress</span><br><br>
+<span class="fk">CLIFF_LAP</span> = stint_start_lap<br>
+           + BASE_WINDOW[<span class="fk">compound</span>]<br>
+           − TEMP_FACTOR<br>
+           − DEG_FACTOR<br>
+           + SC_CREDIT
+</div>
+
+<div class="sub">Formula builder</div>
+<p>Every inferred metric's formula is accessible from Widget Settings → Formula tab. The editor shows the current active formula with syntax highlighting. Field names correspond to raw API field names and derived metric names. A live preview panel applies the formula against a historical session dataset and shows predicted versus actual values (e.g., cliff lap predicted versus observed pace cliff) to give the user a quantified sense of accuracy before saving. Community formulas can be loaded from the formula registry with a single click. User formulas can be published with an optional label and description.</p>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     15 — OPENF1 API REFERENCE
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">15</span><span class="sect-t">OpenF1 API Reference</span><div class="sect-r"></div></div>
+
+<p>All data is sourced from the OpenF1 REST API at <code>https://api.openf1.org/v1/</code>. Historical data (2023 onward) is freely accessible without authentication. Live data requires a Bearer token from the user's OpenF1 subscriber credentials. Rate limits: 6 req/s and 60 req/min for subscribers; 3 req/s and 30 req/min for anonymous access.</p>
+
+<table class="t">
+  <thead><tr><th style="width:170px">Endpoint</th><th style="width:230px">Key fields</th><th style="width:100px">Update rate</th><th>Widget consumers</th></tr></thead>
+  <tbody>
+    <tr><td><code>/car_data</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">speed, throttle, brake, rpm, n_gear, drs, date</td><td style="font-family:var(--mono);font-size:9px">~3.7 Hz</td><td>Speed Gauge · Throttle/Brake Trace · Gear Trace · Throttle Heatmap · ERS Micro-Sectors · DRS Efficiency · Engine Mode Tracker · Car Visualization</td></tr>
+    <tr><td><code>/laps</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">lap_duration, sector_1/2/3_duration, is_pit_out, lap_number, date_start</td><td style="font-family:var(--mono);font-size:9px">Per lap completion</td><td>Lap Delta Tower · Lap Time Card · Sector Mini-Cards · Stint Pace Comparison · Deg Rate Graph · Tyre Intelligence · Traffic Time Loss</td></tr>
+    <tr><td><code>/intervals</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">gap_to_leader, interval, date</td><td style="font-family:var(--mono);font-size:9px">~1–2 Hz</td><td>Gap Evolution Chart · Head-to-Head Delta · Traffic Time Loss · Pit Window Urgency · Running Order Strip · Full Track Map (proximity)</td></tr>
+    <tr><td><code>/position</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">position, date, driver_number</td><td style="font-family:var(--mono);font-size:9px">~1 Hz</td><td>Running Order Strip · P1/P2/P3 role resolution · Lead change ambient event · Pit Stop Log outcome classification</td></tr>
+    <tr><td><code>/location</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">x, y, z (track coordinates), date</td><td style="font-family:var(--mono);font-size:9px">~3.7 Hz</td><td>Full Track Map · Sector Map · Overtake Replay (positional reconstruction) · Throttle Heatmap (position mapping)</td></tr>
+    <tr><td><code>/stints</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">compound, tyre_age_at_start, lap_start, lap_end, driver_number</td><td style="font-family:var(--mono);font-size:9px">On pit event</td><td>Tyre Intelligence · Strategy Timeline · Deg Rate Graph · Undercut Simulator · Car Visualization (compound)</td></tr>
+    <tr><td><code>/pit</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">pit_duration, lap_number, date, driver_number</td><td style="font-family:var(--mono);font-size:9px">On pit event</td><td>Pit Stop Log · Pit Window Urgency (timing reference) · Strategy Timeline (pit annotations)</td></tr>
+    <tr><td><code>/weather</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">air_temp, track_temp, humidity, wind_speed, wind_direction, rainfall</td><td style="font-family:var(--mono);font-size:9px">~30–60 seconds</td><td>Weather Dashboard · Track Temp Evolution · Wind Direction · Weather Radar (supplementary) · Tyre Intelligence (temp adjustment)</td></tr>
+    <tr><td><code>/team_radio</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">recording_url, date, driver_number</td><td style="font-family:var(--mono);font-size:9px">Per transmission</td><td>Radio Scanner · Radio Feed (Text)</td></tr>
+    <tr><td><code>/race_control</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">flag, message, category, driver_number, date</td><td style="font-family:var(--mono);font-size:9px">Per event</td><td>Race Control Feed · Ambient Bar (all flag transitions) · RGB event trigger</td></tr>
+    <tr><td><code>/overtakes</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">overtaking_driver_number, overtaken_driver_number, position, date</td><td style="font-family:var(--mono);font-size:9px">Per overtake event</td><td>Overtake Replay · Ambient lead change event</td></tr>
+    <tr><td><code>/sessions</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">session_key, session_type, session_name, circuit_short_name, date_start, date_end, year</td><td style="font-family:var(--mono);font-size:9px">Static per session</td><td>Session selector · API key validation probe · Weather Radar circuit lookup · Pre-session countdown screen</td></tr>
+    <tr><td><code>/meetings</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">meeting_key, meeting_name, circuit_short_name, country_name, date_start</td><td style="font-family:var(--mono);font-size:9px">Static per GP weekend</td><td>Weather Radar (circuit name to coordinate lookup) · Championship Calculator (remaining race calendar) · Pre-session screen</td></tr>
+    <tr><td><code>/drivers</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">driver_number, name_acronym, full_name, team_name, team_colour, headshot_url</td><td style="font-family:var(--mono);font-size:9px">Static per session</td><td>Driver manager panel · Focus bar · Lap Delta Tower · All widgets with driver context. team_colour is the primary source for all team color rendering across the app.</td></tr>
+    <tr><td><code>/championship_drivers</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">driver_number, points_current, points_start, position_current, position_start</td><td style="font-family:var(--mono);font-size:9px">Race sessions only</td><td>Standings Table · Championship Calculator · Points Delta Tracker</td></tr>
+    <tr><td><code>/championship_teams</code></td><td style="font-family:var(--mono);font-size:9px;color:var(--muted)">team_name, points_current, points_start, position_current, position_start</td><td style="font-family:var(--mono);font-size:9px">Race sessions only</td><td>Standings Table (constructor tab) · Championship Calculator</td></tr>
+  </tbody>
+</table>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     16 — TECH STACK & BUILD PHASES
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">16</span><span class="sect-t">Tech Stack & Build Phases</span><div class="sect-r"></div></div>
+
+<div class="sub">Stack</div>
+<table class="t">
+  <thead><tr><th style="width:130px">Layer</th><th>Technology</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Core framework</td><td>React · TypeScript · Vite</td><td></td></tr>
+    <tr><td class="tn">Canvas / grid</td><td>react-grid-layout</td><td>Drag-and-drop widget grid with min/max size constraints per widget</td></tr>
+    <tr><td class="tn">Charts</td><td>Recharts · D3</td><td>Recharts for standard series charts; D3 for custom SVG visualizations (track map, throttle heatmap, sector map)</td></tr>
+    <tr><td class="tn">State</td><td>Zustand · React Query · BroadcastChannel API · localStorage</td><td>Zustand for UI state; React Query for API data; BroadcastChannel for cross-window sync; localStorage for persistence</td></tr>
+    <tr><td class="tn">Styling</td><td>Tailwind CSS</td><td></td></tr>
+    <tr><td class="tn">Audio</td><td>Web Audio API · AudioWorklet (squelch) · Whisper (transcription)</td><td>All audio synthesis client-side. Whisper can be self-hosted or a cloud endpoint.</td></tr>
+    <tr><td class="tn">RGB bridge</td><td>Local Node.js process · WebSocket · MQTT · WLED UDP · Philips Hue LAN · Govee LAN</td><td>Browser sends commands to local bridge; bridge translates to device protocols. Browser never touches light APIs directly.</td></tr>
+    <tr><td class="tn">Backend (community features)</td><td>Node.js · Fastify · Redis · PostgreSQL · tRPC</td><td>For layout registry, formula registry, and shared scenario storage. Not required for the core app.</td></tr>
+    <tr><td class="tn">Error telemetry</td><td>Sentry (opt-in)</td><td>Crash reporting only. No usage tracking. Opt-in during onboarding.</td></tr>
+    <tr><td class="tn">Desktop (Phase 4)</td><td>Electron or Tauri</td><td>Required for the overlay system. Not part of Phases 1–3.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Build phases</div>
+
+<div class="phase">
+  <div class="phase-track"><div class="phase-dot" style="background:var(--red)"></div><div class="phase-line" style="background:var(--border)"></div></div>
+  <div class="phase-body">
+    <div class="phase-label">Phase 1 — Foundation</div>
+    <div class="phase-title">Canvas + core widgets</div>
+    <div class="phase-detail">API key onboarding screen · Drag-and-drop canvas with named tabs · Autosave and layout export/import · Session selector · Driver manager panel · Focus bar · Ambient bar with flag states and toast system · Lap Delta Tower · Full Track Map · Tyre Intelligence (cliff formula) · Weather Dashboard · Weather Radar (Windy embed) · Running Order Strip · Race Control Feed</div>
+
+    <div class="cc-block">
+      <div class="cc-head"><div class="cc-head-dot"></div>Claude Code — Phase 1 build instructions</div>
+      <div class="cc-tasks">
+        <div class="cc-task">
+          <div class="cc-n">01</div>
+          <div class="cc-body">
+            <span class="cc-label">Scaffold the project</span>
+            Bootstrap a Vite + React + TypeScript app. Install react-grid-layout, zustand, @tanstack/react-query, tailwindcss, recharts, and d3. Set up the CSS variable design system matching the token set in this spec (bg, border, red, gold, purple, green, blue, mono, cond font families).
+            <code class="cc-cmd">npm create vite@latest pitwall -- --template react-ts</code>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">02</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the OpenF1 data layer</span>
+            Create <code>src/api/openf1.ts</code> with typed fetch wrappers for every endpoint used in Phase 1: <code>/sessions</code>, <code>/drivers</code>, <code>/laps</code>, <code>/intervals</code>, <code>/position</code>, <code>/weather</code>, <code>/race_control</code>, <code>/stints</code>. Wrap each in a React Query hook with the correct polling interval from the spec. Store the active session key in Zustand. Build an API key entry screen shown on first launch that persists the key to localStorage.
+            <span class="cc-files">src/api/openf1.ts · src/hooks/useSession.ts · src/hooks/useLaps.ts · src/store/sessionStore.ts · src/screens/ApiKeyOnboarding.tsx</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">03</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the driver store and Driver Manager panel</span>
+            Create a Zustand store holding: starred driver array, canvas focus driver, and a team colors map keyed by driver number (sourced from <code>/drivers</code> <code>team_colour</code> field). Build the Driver Manager panel component exactly as specced: header bar, canvas focus strip (FOCUS chip → position role chips → starred driver badges → + more), starred driver card grid, all-drivers section grouped by team with star toggle cards. The panel is opened via a "+ more" button and via Settings → Drivers.
+            <span class="cc-files">src/store/driverStore.ts · src/components/DriverManager/DriverManagerPanel.tsx · src/components/DriverManager/DriverCard.tsx · src/components/DriverManager/FocusStrip.tsx</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">04</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the canvas and workspace system</span>
+            Wrap react-grid-layout in a <code>Canvas</code> component supporting named tabs, per-canvas autosave to localStorage every 3 seconds, and layout export/import via the compact code string format. Implement a <code>WorkspaceStore</code> in Zustand holding multiple canvases. All windows in the same workspace sync focus driver and ambient state via the BroadcastChannel API.
+            <span class="cc-files">src/components/Canvas/Canvas.tsx · src/components/Canvas/CanvasTabs.tsx · src/store/workspaceStore.ts · src/lib/layoutCodec.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">05</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the Ambient Bar</span>
+            Implement the ambient bar as a full-width strip above the canvas. It holds: a flag state machine driven by <code>/race_control</code> (green / yellow / SC / red / VSC / checkered / fastest-lap), a background gradient that transitions to the current flag color, a toast queue system for race events (lead changes, fastest laps, incidents), and a leader team color mode that tints the bar to the race leader's constructor color. Transitions use CSS keyframes — no animation library.
+            <span class="cc-files">src/components/AmbientBar/AmbientBar.tsx · src/components/AmbientBar/flagStateMachine.ts · src/components/AmbientBar/ToastQueue.tsx</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">06</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the widget host and three-tier driver context</span>
+            Create a generic <code>WidgetHost</code> wrapper that every widget renders inside. It reads the widget's driver context setting from the layout store and resolves it to a driver number: FOCUS → canvas focus driver from Zustand; P1–P5 → live position array from <code>/position</code>; GAP±1 → relative position to focus driver; PINNED → the stored driver number. Expose a <code>useWidgetDriver(widgetId)</code> hook that all widgets call. Render the appropriate badge (FOCUS dashed green / position dashed gold / PINNED dashed purple) on the widget chrome.
+            <span class="cc-files">src/components/WidgetHost/WidgetHost.tsx · src/hooks/useWidgetDriver.ts · src/store/layoutStore.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">07</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the widget settings panel</span>
+            Right-click on any widget opens a four-tab settings panel: Display (size, label style, units), Driver (compact target selector — FOCUS chip, position role chips, starred driver badges, + more button), Formula (only on inferred widgets — code editor with live preview), Advanced (polling rate, alert thresholds, debug panel). Settings write back to the layout store and persist in the layout JSON.
+            <span class="cc-files">src/components/WidgetSettings/WidgetSettingsPanel.tsx · src/components/WidgetSettings/DriverTab.tsx · src/components/WidgetSettings/FormulaTab.tsx</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">08</div>
+          <div class="cc-body">
+            <span class="cc-label">Build Phase 1 widgets</span>
+            Implement each widget as a self-contained component that calls <code>useWidgetDriver()</code> and fetches its own data via the React Query hooks. Start with: Lap Delta Tower (full ranked table with team color accents, pit indicator, sector columns toggle), Running Order Strip (horizontal dot row, 4×1 fixed), Race Control Feed (timestamped incident log), Weather Dashboard (6 metrics + trend arrows + tyre crossover indicator), Tyre Intelligence (cliff lap prediction with editable formula), Full Track Map (D3 SVG with interpolated position dots and battle proximity cones), Weather Radar (Windy iframe embed with circuit coordinate lookup).
+            <span class="cc-files">src/widgets/LapDeltaTower/ · src/widgets/RunningOrderStrip/ · src/widgets/RaceControlFeed/ · src/widgets/WeatherDashboard/ · src/widgets/TyreIntelligence/ · src/widgets/FullTrackMap/ · src/widgets/WeatherRadar/</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-track"><div class="phase-dot" style="background:var(--red)"></div><div class="phase-line" style="background:var(--border)"></div></div>
+  <div class="phase-body">
+    <div class="phase-label">Phase 2 — Intelligence</div>
+    <div class="phase-title">Inference engine + telemetry widgets</div>
+    <div class="phase-detail">ERS Micro-Sectors · Battery SOC estimate · Tyre cliff prediction with Formula tab · Traffic Time Loss · Pit Window Urgency · Undercut Simulator · Throttle/Brake Trace · Throttle Heatmap · Gear Trace · Speed Gauge · DRS Efficiency · Engine Mode Tracker · Car Visualization widget · Stint Pace Comparison · Deg Rate Graph · Pit Stop Log</div>
+
+    <div class="cc-block">
+      <div class="cc-head"><div class="cc-head-dot"></div>Claude Code — Phase 2 build instructions</div>
+      <div class="cc-tasks">
+        <div class="cc-task">
+          <div class="cc-n">01</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the inference engine module</span>
+            Create <code>src/lib/inference/</code> as a pure-function module with no React dependencies. Implement: <code>estimateBatterySoc(carData[])</code> integrating ERS deployment and harvesting signals from <code>/car_data</code> drs and rpm fields; <code>estimateTyreWear(stints[], laps[])</code> computing per-corner wear percentage; <code>detectTrafficLap(lapTimes[], locationData[])</code> using the gap increase heuristic; <code>predictTyreCliff(wearRate, currentAge)</code> returning laps-to-cliff. Each function must accept a formula override string so the Formula tab can hot-swap the model at runtime. Label all inferred outputs with an <code>~EST</code> accuracy flag.
+            <span class="cc-files">src/lib/inference/battery.ts · src/lib/inference/tyreWear.ts · src/lib/inference/traffic.ts · src/lib/inference/tyreCliff.ts · src/lib/inference/formulaRunner.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">02</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the Formula tab editor</span>
+            Add a code editor component to the widget settings Formula tab using a lightweight textarea with syntax highlighting (use highlight.js or a minimal tokenizer — no Monaco). Implement a live preview pane that runs the formula expression against the last fetched historical dataset and renders the output in the same visual style as the widget. Add "Fork", "Load from library", and "Publish" actions. The editor only appears on inferred widgets (Y.*, E.3, E.4, E.6, E.7).
+            <span class="cc-files">src/components/WidgetSettings/FormulaEditor.tsx · src/lib/formulaPreview.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">03</div>
+          <div class="cc-body">
+            <span class="cc-label">Build telemetry widgets — car data</span>
+            Implement the five telemetry widgets backed by <code>/car_data</code>: Throttle/Brake Trace (dual-line live scrolling chart, 30s window, team color for throttle, blue for brake, lap-fraction x-axis in compare mode), Throttle Heatmap (track map with corner zones colored by average throttle application across N laps), Gear Trace (step chart with gear number as y-axis), Speed Gauge (large numeric display with sector comparison), DRS Efficiency (bar chart of DRS activation vs time-gained per zone per lap).
+            <span class="cc-files">src/widgets/ThrottleBrakeTrace/ · src/widgets/ThrottleHeatmap/ · src/widgets/GearTrace/ · src/widgets/SpeedGauge/ · src/widgets/DrsEfficiency/</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">04</div>
+          <div class="cc-body">
+            <span class="cc-label">Build telemetry widgets — ERS and battery</span>
+            Implement ERS Micro-Sectors (track map with 50-meter segments colored green/amber/red by ERS deployment intensity, sourced from <code>/car_data</code> drs field + rpm + speed) and Battery SOC Estimate (trend line of estimated battery state of charge across the stint, with deployment/harvesting annotation markers). Both use the inference engine module from task 01 and expose the Formula tab.
+            <span class="cc-files">src/widgets/ErsMicroSectors/ · src/widgets/BatterySoc/</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">05</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the Car Visualization widget</span>
+            Create the SVG car illustration in 2026 regulation profile geometry as described in Section 09. Use React SVG with parametric team color applied as a gradient-masked livery stripe. Mount tyre data badges (FL/FR/RL/RR) directly on the tyre circles with compound label, lap age, and wear bar (green/amber/red thresholds from spec). Render the ERS and battery bars on the sidepod surfaces. Add the damage row below the car using inference engine anomaly signals. The stats strip at the bottom is a live readout row from the current <code>/car_data</code> frame.
+            <span class="cc-files">src/widgets/CarVisualization/CarSvg.tsx · src/widgets/CarVisualization/TyreBadge.tsx · src/widgets/CarVisualization/StatsStrip.tsx · src/widgets/CarVisualization/DamageRow.tsx</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">06</div>
+          <div class="cc-body">
+            <span class="cc-label">Build pit strategy widgets</span>
+            Implement Pit Window Urgency (composite 0–1 score with green/amber/red indicator, formula-editable from spec), Pit Stop Log (live timestamped table with real-time stationary timer and post-stop outcome classification), Undercut Simulator (four-input what-if form with gap projection output and confidence band), Traffic Time Loss (lap-time outlier detection chart with traffic laps highlighted), Stint Pace Comparison (multi-driver bar chart filtered to same compound age window), Deg Rate Graph (scatter + regression on current stint data).
+            <span class="cc-files">src/widgets/PitWindowUrgency/ · src/widgets/PitStopLog/ · src/widgets/UndercutSimulator/ · src/widgets/TrafficTimeLoss/ · src/widgets/StintPaceComparison/ · src/widgets/DegRateGraph/</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">07</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the Engine Mode Tracker</span>
+            Build E.7 Engine Mode Tracker using RPM ceiling hit rate as a proxy for deployment mode. Count frames per lap where RPM exceeds (session_max_rpm − 200). Plot as a trend chart over the last 10 laps with a session average reference line. Add a prominent ~EST accuracy label. Expose the scoring formula via the Formula tab.
+            <span class="cc-files">src/widgets/EngineModeTracker/</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-track"><div class="phase-dot" style="background:var(--red)"></div><div class="phase-line" style="background:var(--border)"></div></div>
+  <div class="phase-body">
+    <div class="phase-label">Phase 3 — Community + Environment</div>
+    <div class="phase-title">RGB sync, radio, sharing, replay</div>
+    <div class="phase-detail">Local RGB bridge · WLED · Philips Hue · Govee · MQTT integrations · Radio Scanner with squelch, key-up SFX, Whisper transcription, keyword alerts · Radio Feed (Text) · Historical session replay scrubber · Overtake Replay · Strategy Timeline · Gap Evolution Chart · Head-to-Head Delta · Sector Mini-Cards · Championship Calculator · Points Delta Tracker · Standings Table · Community formula library · Layout marketplace · Track Temp Evolution · Wind Direction</div>
+
+    <div class="cc-block">
+      <div class="cc-head"><div class="cc-head-dot"></div>Claude Code — Phase 3 build instructions</div>
+      <div class="cc-tasks">
+        <div class="cc-task">
+          <div class="cc-n">01</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the local RGB bridge process</span>
+            Create a standalone Node.js process at <code>bridge/index.ts</code> that opens a WebSocket server on localhost. The browser connects to this WebSocket and sends color command messages (<code>{ r, g, b, brightness, transition_ms }</code>). The bridge translates to three protocol adapters: WLED (UDP Art-Net or HTTP JSON API), Philips Hue (LAN HTTP v2 API), Govee (LAN UDP API). The bridge reads a config file at startup to know which devices are active. Build a Bridge Settings screen in the app where the user enables devices and enters local IPs.
+            <span class="cc-files">bridge/index.ts · bridge/adapters/wled.ts · bridge/adapters/hue.ts · bridge/adapters/govee.ts · src/lib/rgbBridge.ts · src/screens/BridgeSettings.tsx</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">02</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the Radio Scanner widget</span>
+            Implement the full radio scanner as specified in Section 11. Use the Web Audio API for all audio handling — no external library. Pipeline: fetch clip URL from <code>/team_radio</code> → decode ArrayBuffer via <code>AudioContext.decodeAudioData</code> → pre-buffer through AnalyserNode for squelch amplitude check → play via AudioBufferSourceNode. Synthesize the key-up click using a 80ms noise burst through a gain envelope (no audio file). Integrate Whisper for auto-transcription (configurable endpoint — self-hosted or cloud). Implement all four listening modes: Scanner, Locked, All drivers, Focus only. Build the per-driver channel grid UI.
+            <span class="cc-files">src/widgets/RadioScanner/index.tsx · src/widgets/RadioScanner/audioPipeline.ts · src/widgets/RadioScanner/squelch.ts · src/widgets/RadioScanner/keyUpSfx.ts · src/widgets/RadioScanner/whisper.ts · src/widgets/RadioScanner/ChannelGrid.tsx</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">03</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the historical session replay scrubber</span>
+            Add a global replay mode toggle to the toolbar. When active, the session selector shows past sessions. A scrubber bar at the bottom of the canvas represents the full session timeline. All React Query hooks accept an optional <code>replayTimestamp</code> that replaces live polling with a filtered fetch up to that timestamp. The scrubber auto-advances in real time at 1× speed, with controls for pause, 2×, 4×, and jump-to-lap.
+            <span class="cc-files">src/store/replayStore.ts · src/components/ReplayScrubber.tsx · src/hooks/useReplayAwareQuery.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">04</div>
+          <div class="cc-body">
+            <span class="cc-label">Build analysis and strategy widgets</span>
+            Implement the remaining analysis widgets: Gap Evolution Chart (multi-driver gap-to-leader line chart with pit annotations), Head-to-Head Delta (two-driver delta chart with positive/negative fill), Sector Mini-Cards (S1/S2/S3 cards with F1 color coding and theoretical best), Strategy Timeline (horizontal Gantt chart of stints for all drivers), Overtake Replay (animated track map micro-replay with timeline scrubber and overtake sidebar list), Track Temp Evolution (line chart with optional deg overlay), Wind Direction (compass rose on circuit outline).
+            <span class="cc-files">src/widgets/GapEvolution/ · src/widgets/HeadToHeadDelta/ · src/widgets/SectorMiniCards/ · src/widgets/StrategyTimeline/ · src/widgets/OvertakeReplay/ · src/widgets/TrackTempEvolution/ · src/widgets/WindDirection/</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">05</div>
+          <div class="cc-body">
+            <span class="cc-label">Build championship widgets</span>
+            Implement Championship Calculator (remaining-race what-if standings with multiple scenario slots and shareable URL export), Points Delta Tracker (race-by-race points gap line chart with mathematical elimination annotation), Standings Table (current driver and constructor standings with live update during race sessions).
+            <span class="cc-files">src/widgets/ChampionshipCalculator/ · src/widgets/PointsDeltaTracker/ · src/widgets/StandingsTable/</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">06</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the community backend</span>
+            Create a Fastify + TypeScript API with tRPC router at <code>server/</code>. PostgreSQL via Drizzle ORM. Redis for session caching. Three resources: <code>formulas</code> (user-published inference formulas with fork count and community ratings), <code>layouts</code> (shared layout codes with metadata), <code>scenarios</code> (saved Undercut Simulator and Championship Calculator scenario snapshots with shareable slug). Auth is anonymous session-based — no accounts required, but users can claim a handle.
+            <span class="cc-files">server/index.ts · server/router/ · server/db/schema.ts · server/db/migrate.ts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="phase">
+  <div class="phase-track"><div class="phase-dot" style="background:transparent;border:1.5px solid var(--muted2)"></div></div>
+  <div class="phase-body">
+    <div class="phase-label">Phase 4 — Desktop + Overlay</div>
+    <div class="phase-title">Electron app + F1TV overlay</div>
+    <div class="phase-detail">Electron shell · Transparent always-on-top overlay window · Click-through boundaries · Overlay layout mode (absolute positioning) · F1TV cockpit stream embeds if available · System tray icon · Mobile responsive canvas · TV companion mode (minimal widget set) · Push notifications for battle proximity and pit windows</div>
+
+    <div class="cc-block">
+      <div class="cc-head"><div class="cc-head-dot"></div>Claude Code — Phase 4 build instructions</div>
+      <div class="cc-tasks">
+        <div class="cc-task">
+          <div class="cc-n">01</div>
+          <div class="cc-body">
+            <span class="cc-label">Wrap the app in an Electron shell</span>
+            Create an Electron main process at <code>electron/main.ts</code> that loads the Vite dev server in development and the built <code>dist/</code> in production. Configure the BrowserWindow with <code>frame: false</code>, custom title bar via a React overlay, and standard window controls. Move the local RGB bridge process to spawn as a child process from the Electron main process rather than running separately. Store window bounds in Electron's <code>app.getPath('userData')</code>.
+            <code class="cc-cmd">npm install electron electron-builder concurrently --save-dev</code>
+            <span class="cc-files">electron/main.ts · electron/preload.ts · electron/bridge.ts · electron/windowStore.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">02</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the transparent overlay window</span>
+            Add an Overlay mode to the Electron main process: a second BrowserWindow with <code>transparent: true</code>, <code>alwaysOnTop: true</code>, <code>skipTaskbar: true</code>, and <code>hasShadow: false</code>. The overlay window displays a separate canvas in absolute-positioned overlay layout mode (no grid drag — only fixed positions). Implement click-through: the window is fully click-through by default, but a hotkey (configurable, default <kbd>Ctrl+Shift+O</kbd>) toggles interactive mode on the overlay so the user can interact with widgets without unfocusing F1TV. Add an IPC channel so the main canvas can push the active driver focus and ambient state to the overlay.
+            <span class="cc-files">electron/overlayWindow.ts · src/screens/OverlayCanvas.tsx · src/lib/overlayIpc.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">03</div>
+          <div class="cc-body">
+            <span class="cc-label">Build the system tray and overlay layout editor</span>
+            Add an Electron system tray icon with a context menu: Show/Hide main window, Toggle overlay, Open settings, Quit. Build the overlay layout editor — a separate canvas mode where widgets are positioned with absolute x/y rather than the grid. Widget positions are stored as pixel offsets from screen edges so they survive resolution changes. Provide a set of pre-built overlay templates (minimal gap bar, focus driver telemetry strip, tyre corner badges row) that users can load as starting points.
+            <span class="cc-files">electron/tray.ts · src/screens/OverlayLayoutEditor.tsx · src/lib/overlayTemplates.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">04</div>
+          <div class="cc-body">
+            <span class="cc-label">Build push notifications for battle proximity and pit windows</span>
+            Use Electron's <code>Notification</code> API to fire native OS notifications for two triggers: battle proximity (gap between focus driver and adjacent car drops below the configurable threshold — default 1.0s) and pit window urgency (Pit Window Urgency widget score crosses 0.7). Notifications are non-modal and auto-dismiss after 4 seconds. Each notification has a "Focus" action that brings the main window to the front and sets the relevant widget as the highlighted panel.
+            <span class="cc-files">electron/notifications.ts · src/lib/notificationTriggers.ts</span>
+          </div>
+        </div>
+        <div class="cc-task">
+          <div class="cc-n">05</div>
+          <div class="cc-body">
+            <span class="cc-label">Build mobile responsive canvas and TV companion mode</span>
+            Add a responsive breakpoint system to the canvas: below 768px viewport width, switch from the drag-and-drop grid to a single-column vertical stack with swipe navigation between widgets. TV companion mode is a read-only minimal widget set (Running Order Strip, Lap Delta Tower, Ambient Bar only) designed for a second screen or smart TV browser — no settings panel, no edit mode, auto-fit to viewport, updates every 5s instead of polling at full rate.
+            <span class="cc-files">src/screens/MobileCanvas.tsx · src/screens/TvCompanion.tsx · src/hooks/useBreakpoint.ts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="foot">
+  <div class="foot-brand">PIT<span>W</span>ALL</div>
+  <div class="foot-meta">Master Product Specification · v1.0<br>All volumes consolidated · 2025–2026 · Internal draft</div>
+</div>
+
+</body>
+</html>

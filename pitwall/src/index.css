@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg: #0B0B0C;
+  --bg2: #111113;
+  --bg3: #181819;
+  --bg4: #1E1E20;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --border3: rgba(255,255,255,0.22);
+  --red: #E8132B;
+  --red2: rgba(232,19,43,0.13);
+  --red3: rgba(232,19,43,0.06);
+  --white: #F2F0EB;
+  --muted: #6B6B70;
+  --muted2: #4A4A4F;
+  --gold: #C9A84C;
+  --purple: #9B59F5;
+  --green: #1DB86A;
+  --blue: #3671C6;
+  --amber: #E09000;
+  --teal: #1AACB8;
+  --pink: #E8648A;
+  --mono: 'JetBrains Mono', monospace;
+  --cond: 'Barlow Condensed', sans-serif;
+  --body: 'Barlow', sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* react-grid-layout */
+.react-grid-layout {
+  position: relative;
+}
+.react-grid-item {
+  transition: none;
+}
+.react-grid-item.react-grid-placeholder {
+  background: rgba(232,19,43,0.08);
+  border: 0.5px dashed rgba(232,19,43,0.3);
+  border-radius: 4px;
+  opacity: 1;
+}
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.react-grid-item:hover > .react-resizable-handle {
+  opacity: 1;
+}
+.react-grid-item > .react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--border3);
+  border-bottom: 1.5px solid var(--border3);
+  border-radius: 1px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
