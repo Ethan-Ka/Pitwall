@@ -1,16 +1,20 @@
 # Pitwall
 
+<p align="center">
+  <img src="pitwall/public/branding/pitwall-wordmark.svg" alt="Pitwall" width="520" />
+</p>
+
 Fan-built F1 race intelligence platform built on the [OpenF1 API](https://openf1.org). Provides real-time telemetry, inferred strategy metrics, ambient environment control, and a sharable layout system.
 
-Current version: **alpha v0.1.5**
+**Current version:** alpha v0.1.5
 
-Not affiliated with Formula 1, FIA, or Formula One Management.
+> Not affiliated with Formula 1, FIA, or Formula One Management.
 
 ---
 
 ## Status snapshot (April 2026)
 
-This README includes both implemented features and roadmap items. Current status:
+This README includes both implemented features and roadmap items.
 
 | Area | Status | Notes |
 |---|---|---|
@@ -30,12 +34,25 @@ All race data comes from OpenF1.
 
 | Tier | Cost | What you get |
 |---|---|---|
-| Historical | Free | 2023–present sessions, all shipped widgets, inferred metrics where implemented, no live updates |
+| Historical | Free | 2023–present sessions, shipped widgets, inferred metrics where implemented, no live updates |
 | Live | $10/month (your own key) | ~3-second real-time data, WebSocket feed, all 18 endpoints, team radio |
 
-**You must provide your own OpenF1 API key for live data.** The key is stored in localStorage (desktop: OS keychain) and never sent to Pitwall's servers. All API calls go directly from your browser to `api.openf1.org`.
+**You must provide your own OpenF1 API key for live data.** The key is stored in localStorage (desktop: OS keychain) and never sent to Pitwall's servers. All API calls go directly from your browser.
 
 There is no workaround for live data. Real-time OpenF1 requires a paid subscription and Pitwall cannot relay it without violating OpenF1's terms.
+
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/yourname/pitwall.git
+cd pitwall
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. On first launch you will be prompted for an OpenF1 API key. Skipping the key starts the app in historical mode.
 
 ---
 
@@ -43,7 +60,7 @@ There is no workaround for live data. Real-time OpenF1 requires a paid subscript
 
 ### Widgets
 
-Widget catalog target is **33 widgets across 8 categories**. The current build includes production widgets plus prototype placeholders for roadmap items. All widgets remain drag-and-drop. The Formula tab appears on inferred widgets where that logic is implemented.
+Widget catalog target is **33 widgets across 8 categories**. The current build includes production widgets plus prototype placeholders for roadmap items. All widgets remain drag-and-drop. The Formula tab is only visible on inferred widgets.
 
 **Timing & Gaps** (6 widgets)
 - Lap Delta Tower — ranked list of all drivers with lap time, gap to leader, interval, and 3-lap trend arrow
@@ -97,7 +114,7 @@ Widget catalog target is **33 widgets across 8 categories**. The current build i
 
 ### Ambient race layer
 
-A persistent banner communicates race state through color. On every flag change a toast notification announces the event text then fades out. The gradient color remains as a passive signal after the toast disappears.
+A persistent banner communicates race state through color. On every flag change a toast notification announces the event text then fades out. The gradient color remains as a passive signal after the toast.
 
 State priority order: Red flag → Safety car → Virtual SC → Yellow flag → Fastest lap (2.8s pulse) → Lead change (team color flash) → Green (with or without leader team color).
 
@@ -105,7 +122,7 @@ An optional RGB bridge connects to WLED, Philips Hue, Govee, or MQTT so physical
 
 ### Window and workspace system
 
-A workspace is a named configuration containing canvases, a focus driver, ambient settings, and radio config. Multiple browser windows can show different canvas tabs from the same workspace and sync live via BroadcastChannel API (~16ms). Windows in different workspaces are fully independent.
+A workspace is a named configuration containing canvases, a focus driver, ambient settings, and radio config. Multiple browser windows can show different canvas tabs from the same workspace and stay in sync.
 
 ### Driver context system
 
@@ -121,7 +138,7 @@ Widget border styles communicate context type: green dashed for FOCUS, gold dash
 
 ### Layout export and sharing
 
-Canvases export as a compact human-readable code string encoding all widget positions, sizes, driver contexts, formula overrides, and settings. Paste the code into Pitwall on any device to restore the layout exactly. No account required on either end.
+Canvases export as a compact human-readable code string encoding all widget positions, sizes, driver contexts, formula overrides, and settings. Paste the code into Pitwall on any device to restore the layout.
 
 Format:
 ```
@@ -173,20 +190,7 @@ CLIFF_LAP = stint_start_lap
 
 Archive mode keeps all 33 widgets functional on historical data. A persistent banner indicates archive status.
 
-Diagnostic logs are accessible at Settings → Diagnostics. Last 1,000 entries retained in memory. Export as JSON. Optional opt-in Sentry integration for crash reporting (no personal data, no usage tracking).
-
----
-
-## Quick start
-
-```bash
-git clone https://github.com/yourname/pitwall.git
-cd pitwall
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173`. On first launch you will be prompted for an OpenF1 API key. Skipping the key starts the app in historical mode.
+Diagnostic logs are accessible at Settings → Diagnostics. Last 1,000 entries retained in memory. Export as JSON. Optional opt-in Sentry integration for crash reporting (no personal data, no usernames).
 
 ---
 
@@ -247,29 +251,16 @@ pitwall/
 
 ## Build phases
 
-**Phase 1 — Foundation**
-Canvas with named tabs, drag-and-drop grid, autosave, layout export/import, API key onboarding, session selector, driver manager, focus bar, ambient bar with flag states and toasts, Lap Delta Tower, Full Track Map, Tyre Intelligence, Weather Dashboard, Weather Radar, Running Order Strip, Race Control Feed.
-
-**Phase 2 — Intelligence**
-Inference engine, Formula tab, ERS Micro-Sectors, Battery SOC estimate, Traffic Time Loss, Pit Window Urgency, Undercut Simulator, Throttle/Brake Trace, Throttle Heatmap, Gear Trace, Speed Gauge, DRS Efficiency, Engine Mode Tracker, Car Visualization, Stint Pace Comparison, Deg Rate Graph, Pit Stop Log.
-
-**Phase 3 — Community + Environment**
-Local RGB bridge, WLED / Hue / Govee / MQTT adapters, Radio Scanner with squelch / key-up SFX / Whisper / keyword alerts, Radio Feed (Text), historical session replay, Overtake Replay, Strategy Timeline, Gap Evolution Chart, Head-to-Head Delta, Sector Mini-Cards, Championship widgets, community formula library, layout marketplace.
-
-**Phase 4 — Desktop + Overlay**
-Electron shell, transparent always-on-top overlay window, click-through boundaries, overlay layout mode, F1TV cockpit stream embeds if available, mobile responsive canvas, TV companion mode, push notifications.
-
----
-
-## F1TV overlay (Phase 4)
-
-Pitwall can run as a transparent overlay window above F1TV or any other streaming application using Electron's compositor-level window APIs. Pitwall draws on top — it does not capture, record, or re-transmit stream content. Compliance with F1TV terms of service is the user's responsibility. Phase 4 only, not yet built.
+- **Phase 1 — Foundation**: canvas, drag-and-drop grid, autosave, layout export/import, API key onboarding, session selector, driver manager, ambient bar with flag states/toasts.
+- **Phase 2 — Intelligence**: inference engine, Formula tab, ERS/Battery estimates, Traffic Time Loss, Pit Window Urgency, Undercut Simulator, telemetry + strategy widgets.
+- **Phase 3 — Community + Environment**: local RGB bridge (WLED/Hue/Govee/MQTT), Radio Scanner + transcription, historical session replay, Overtake Replay.
+- **Phase 4 — Desktop + Overlay**: Electron/Tauri shell, always-on-top overlay, F1TV mode, mobile responsive canvas.
 
 ---
 
 ## OpenF1 API endpoints used
 
-`/car_data` `/laps` `/intervals` `/position` `/location` `/stints` `/pit` `/weather` `/team_radio` `/race_control` `/overtakes` `/sessions` `/meetings` `/drivers` `/championship_drivers` `/championship_teams`
+`/car_data` `/laps` `/intervals` `/position` `/location` `/stints` `/pit` `/weather` `/team_radio` `/race_control` `/overtakes` `/sessions` `/meetings` `/drivers` `/championship_drivers` `/championship_constructors`
 
 ---
 
@@ -291,4 +282,4 @@ Open an issue before starting large features.
 
 MIT — see [LICENSE](LICENSE).
 
-OpenF1 data is used under OpenF1's terms of service. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One Licensing B.V. Pitwall is an independent fan project not affiliated with Formula 1, FIA, or Formula One Management.
+OpenF1 data is used under OpenF1's terms of service. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One Licensing B.V.
