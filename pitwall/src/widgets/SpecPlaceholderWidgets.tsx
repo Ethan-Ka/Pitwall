@@ -89,22 +89,10 @@ function createSpecWidget(meta: SpecWidgetMeta) {
   }
 }
 
-export const LapTimeCard = createSpecWidget({
-  title: 'Lap Time Card',
-  subtitle: 'Single-driver timing card with lap and split context.',
-  accent: 'var(--red)',
-})
-
 export const GapEvolutionChart = createSpecWidget({
   title: 'Gap Evolution',
   subtitle: 'Session-long gap trend for two selectable drivers.',
   accent: 'var(--red)',
-})
-
-export const StintPaceComparison = createSpecWidget({
-  title: 'Stint Pace Comparison',
-  subtitle: 'Compares average stint pace within a shared tyre-age window.',
-  accent: 'var(--purple)',
 })
 
 export const HeadToHeadDelta = createSpecWidget({

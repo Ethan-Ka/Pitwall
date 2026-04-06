@@ -6,10 +6,10 @@ import { TyreIntelligence } from './TyreIntelligence'
 import { FullTrackMap } from './FullTrackMap'
 import { WeatherRadar } from './WeatherRadar'
 import { StandingsBoard } from './StandingsBoard'
+import { LapTimeCard } from './LapTimeCard'
+import { StintPaceComparison } from './StintPaceComparison'
 import {
-  LapTimeCard,
   GapEvolutionChart,
-  StintPaceComparison,
   HeadToHeadDelta,
   SectorMiniCards,
   SpeedGauge,
@@ -113,5 +113,7 @@ export const WIDGET_DEFAULTS: Record<string, { w: number; h: number }> = {
 }
 
 export function getMinHeightForWidget(type: string): number {
-  return type === 'RunningOrderStrip' ? 1 : 3
+  if (type === 'RunningOrderStrip') return 1
+  if (type === 'LapDeltaTower') return 6
+  return 3
 }

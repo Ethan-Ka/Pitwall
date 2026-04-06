@@ -49,6 +49,14 @@ interface AmbientStore {
   setAmbientLayerWaveEnabled: (enabled: boolean) => void
 }
 
+const AMBIENT_INTENSITY_PRESETS = [25, 50, 75, 100] as const
+
+function toAmbientIntensityPreset(intensity: number): (typeof AMBIENT_INTENSITY_PRESETS)[number] {
+  return AMBIENT_INTENSITY_PRESETS.reduce((closest, preset) => {
+    return Math.abs(preset - intensity) < Math.abs(closest - intensity) ? preset : closest
+  }, AMBIENT_INTENSITY_PRESETS[0])
+}
+
 function buildToast(message: string, flagState: FlagState): ToastItem {
   return {
     id: crypto.randomUUID(),
@@ -103,7 +111,7 @@ export const useAmbientStore = create<AmbientStore>()(
       toasts: [],
       bannerMessage: null,
       ambientLayerEnabled: true,
-      ambientLayerIntensity: 40,
+      ambientLayerIntensity: 75,
       ambientLayerWaveEnabled: true,
 
       setFlagState: (state, message) => {
@@ -174,11 +182,19 @@ export const useAmbientStore = create<AmbientStore>()(
       clearToasts: () => set({ toasts: [] }),
 
       setAmbientLayerEnabled: (enabled) => set({ ambientLayerEnabled: enabled }),
-      setAmbientLayerIntensity: (intensity) => set({ ambientLayerIntensity: Math.max(0, Math.min(100, intensity)) }),
+      setAmbientLayerIntensity: (intensity) =>
+        set({ ambientLayerIntensity: toAmbientIntensityPreset(intensity) }),
       setAmbientLayerWaveEnabled: (enabled) => set({ ambientLayerWaveEnabled: enabled }),
     }),
     {
       name: 'pitwall-ambient',
+      onRehydrateStorage: () => (state) => {
+        if (!state) return
+        const normalized = toAmbientIntensityPreset(state.ambientLayerIntensity)
+        if (state.ambientLayerIntensity !== normalized) {
+          state.setAmbientLayerIntensity(normalized)
+        }
+      },
       partialize: (s) => ({
         leaderColorMode: s.leaderColorMode,
         ambientLayerEnabled: s.ambientLayerEnabled,

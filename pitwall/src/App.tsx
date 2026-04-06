@@ -29,7 +29,7 @@ import { createPitwallChannel, WINDOW_CLIENT_ID } from './lib/windowSync'
 import { coerceWidgetTransferPayload } from './lib/widgetTransfer'
 import { useWindowStore } from './store/windowStore'
 import { WidgetHost } from './components/WidgetHost/WidgetHost'
-import { WIDGET_REGISTRY } from './widgets/registry'
+import { WIDGET_REGISTRY, getMinHeightForWidget } from './widgets/registry'
 import { resolveTeamPalette } from './lib/teamPalette'
 import { APP_VERSION_LABEL } from './lib/appMeta'
 
@@ -43,6 +43,15 @@ interface StartupProgressState {
   workspaceReady: boolean
   sessionReady: boolean
   driversReady: boolean
+}
+
+function isWidgetPopoutWindow(): boolean {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('windowKind') === 'widget-popout'
+  } catch {
+    return false
+  }
 }
 
 type StartupProgressStep = keyof StartupProgressState
@@ -447,6 +456,8 @@ function pickDriverSyncState(state: ReturnType<typeof useDriverStore.getState>) 
 }
 
 function applyBootstrapWidgetPayload(rawPayload: unknown) {
+  if (!isWidgetPopoutWindow()) return
+
   const payload = coerceWidgetTransferPayload(rawPayload)
   if (!payload) return
 
@@ -469,17 +480,79 @@ function applyBootstrapWidgetPayload(rawPayload: unknown) {
     settings: { ...(payload.widget.settings ?? {}), poppedOut: true },
   }
 
+  const widgetMinH = getMinHeightForWidget(nextWidget.type)
+  const minH = Math.max(payload.layout.minH ?? 2, widgetMinH)
+  const h = Math.max(payload.layout.h, minH)
+
   workspace.addWidget(targetTabId, nextWidget, {
     i: nextWidget.id,
     x: 0,
     y: Infinity,
     w: payload.layout.w,
-    h: payload.layout.h,
+    h,
     minW: payload.layout.minW ?? 3,
-    minH: payload.layout.minH ?? 2,
+    minH,
   })
 
   useWindowStore.getState().setPopoutMode(nextWidget.id)
+}
+
+function applyDockedWidgetPayload(rawPayload: unknown) {
+  if (isWidgetPopoutWindow()) return
+
+  const payloadSource = rawPayload && typeof rawPayload === 'object' && 'transferWidget' in (rawPayload as Record<string, unknown>)
+    ? (rawPayload as { transferWidget?: unknown }).transferWidget
+    : rawPayload
+
+  const payload = coerceWidgetTransferPayload(payloadSource)
+  if (!payload) return
+
+  const dockGrid = rawPayload && typeof rawPayload === 'object' && 'dockGrid' in (rawPayload as Record<string, unknown>)
+    ? (rawPayload as { dockGrid?: { x?: number; y?: number } }).dockGrid
+    : undefined
+
+  const dockX = typeof dockGrid?.x === 'number' && Number.isFinite(dockGrid.x)
+    ? Math.max(0, Math.round(dockGrid.x))
+    : 0
+  const dockY = typeof dockGrid?.y === 'number' && Number.isFinite(dockGrid.y)
+    ? Math.max(0, Math.round(dockGrid.y))
+    : Infinity
+
+  const workspace = useWorkspaceStore.getState()
+  const targetTabId = workspace.activeTabId || workspace.tabs[0]?.id
+  if (!targetTabId) return
+
+  const widgetSettings = { ...(payload.widget.settings ?? {}) }
+  if ('poppedOut' in widgetSettings) {
+    delete widgetSettings.poppedOut
+  }
+
+  const nextWidget = {
+    ...payload.widget,
+    settings: widgetSettings,
+  }
+
+  const widgetMinH = getMinHeightForWidget(nextWidget.type)
+  const minH = Math.max(payload.layout.minH ?? 2, widgetMinH)
+  const h = Math.max(payload.layout.h, minH)
+
+  const existingTab = workspace.tabs.find((tab) => tab.widgets[nextWidget.id])
+  if (existingTab) {
+    workspace.removeWidget(existingTab.id, nextWidget.id)
+  }
+
+  workspace.addWidget(targetTabId, nextWidget, {
+    i: nextWidget.id,
+    x: dockX,
+    y: dockY,
+    w: payload.layout.w,
+    h,
+    minW: payload.layout.minW ?? 3,
+    minH,
+  })
+
+  workspace.setActiveTab(targetTabId)
+  useWindowStore.getState().clearPopoutMode()
 }
 
 // Cross-window sync via BroadcastChannel + Electron bootstrap transfer events
@@ -516,6 +589,10 @@ function BroadcastSync() {
 
     const unsubscribeBootstrap = window.electronAPI?.onWindowBootstrapWidget?.((rawPayload) => {
       applyBootstrapWidgetPayload(rawPayload)
+    })
+
+    const unsubscribeDock = window.electronAPI?.onDockWidgetIntoWorkspace?.((rawPayload) => {
+      applyDockedWidgetPayload(rawPayload)
     })
 
     void window.electronAPI?.consumeWindowBootstrapWidget?.().then((payload) => {
@@ -563,6 +640,7 @@ function BroadcastSync() {
       unsubscribeAmbient()
       unsubscribeDriver()
       if (typeof unsubscribeBootstrap === 'function') unsubscribeBootstrap()
+      if (typeof unsubscribeDock === 'function') unsubscribeDock()
       channel.close()
     }
   }, [])
@@ -631,6 +709,11 @@ function PopoutLayout() {
   const widget = popoutWidgetId && tab ? tab.widgets[popoutWidgetId] : undefined
   const WidgetComponent = widget ? WIDGET_REGISTRY[widget.type] : undefined
 
+  useEffect(() => {
+    if (!popoutWidgetId || widget) return
+    void window.electronAPI?.closeCurrentWindow?.()
+  }, [popoutWidgetId, widget])
+
   return (
     <div style={{
       display: 'flex',
@@ -638,9 +721,10 @@ function PopoutLayout() {
       height: '100vh',
       overflow: 'hidden',
       background: 'var(--bg)',
+      padding: 0,
     }} className="animated-fade">
       <AmbientRaceLayer />
-      <div style={{ flex: 1, padding: 6 }}>
+      <div style={{ flex: 1, padding: 0 }}>
         {widget && WidgetComponent ? (
           <WidgetHost widgetId={widget.id}>
             <WidgetComponent widgetId={widget.id} />
@@ -742,7 +826,7 @@ function MainLayout({ hideCanvasWidgetAdd }: { hideCanvasWidgetAdd: boolean }) {
       {/* Full-screen ambient race layer — sits behind all UI */}
       <AmbientRaceLayer />
 
-      <div style={{ position: 'relative', flexShrink: 0, height: 102 }}>
+      <div style={{ position: 'relative', flexShrink: 0, height: 102, overflow: 'hidden', zIndex: 4 }}>
         {/* Layer 1: background bars */}
         <div
           aria-hidden="true"
@@ -1002,6 +1086,7 @@ function MainLayout({ hideCanvasWidgetAdd }: { hideCanvasWidgetAdd: boolean }) {
 export default function App() {
   const mode = useSessionStore((s) => s.mode)
   const windowMode = useWindowStore((s) => s.mode)
+  const isWidgetPopoutShell = isWidgetPopoutWindow()
   const hydrated = usePersistHydrationReady()
   const [startupProgress, setStartupProgress] = useState<StartupProgressState>(makeEmptyStartupProgress)
   const [loadingPreviewActive, setLoadingPreviewActive] = useState(false)
@@ -1088,7 +1173,8 @@ export default function App() {
   const shouldBlockStartup = mode !== 'onboarding' && !startupDataReady
   const showStartupSplash = useStartupSplashVisibility(shouldBlockStartup)
   const effectiveOverlayProgress = loadingPreviewActive ? loadingPreviewProgress : mergedProgress
-  const shouldShowLoadingOverlay = loadingPreviewActive || showStartupSplash
+  const shouldShowLoadingOverlay = !isWidgetPopoutShell && (loadingPreviewActive || showStartupSplash)
+  const renderPopoutLayout = isWidgetPopoutShell || windowMode === 'popout'
 
   useEffect(() => {
     if (shouldShowLoadingOverlay) {
@@ -1109,10 +1195,8 @@ export default function App() {
     <>
       <WorkspaceInit />
       <BroadcastSync />
-      {windowMode === 'popout' ? (
+      {renderPopoutLayout ? (
         <>
-          <DataLayer onStartupProgressChange={setStartupProgress} />
-          {overlayMounted && <StartupLoadingScreen progress={effectiveOverlayProgress} visible={overlayVisible} />}
           <PopoutLayout />
         </>
       ) : mode === 'onboarding' ? (

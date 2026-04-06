@@ -3,6 +3,7 @@ import { useWorkspaceStore } from '../../store/workspaceStore'
 import { DriverTab } from './DriverTab'
 import { FormulaTab } from './FormulaTab'
 import type { DriverContext } from '../../store/workspaceStore'
+import { useDriverStore } from '../../store/driverStore'
 
 // Widget types that expose a formula tab
 const INFERRED_WIDGET_TYPES = [
@@ -25,6 +26,20 @@ const TYRE_DEFAULT_FORMULA =
   `  - (track_temp - 45) * 0.3\n` +
   `  - deg_rate * 1.8\n` +
   `  + sc_laps * 2.1`
+
+const DRIVER_CONTEXT_OPTIONS: DriverContext[] = ['FOCUS', 'P1', 'P2', 'P3', 'P4', 'P5', 'GAP+1', 'GAP-1']
+
+interface MultiDriverField {
+  key: string
+  label: string
+  defaultValue: DriverContext
+}
+
+const MULTI_DRIVER_WIDGET_FIELDS: Partial<Record<string, MultiDriverField[]>> = {
+  GapEvolutionChart: [{ key: 'comparisonDriverContext', label: 'Comparison driver', defaultValue: 'P1' }],
+  HeadToHeadDelta: [{ key: 'comparisonDriverContext', label: 'Opponent driver', defaultValue: 'P1' }],
+  StintPaceComparison: [{ key: 'comparisonDriverContext', label: 'Comparison driver', defaultValue: 'P2' }],
+}
 
 type TabId = 'display' | 'driver' | 'formula' | 'advanced'
 
@@ -55,6 +70,7 @@ export function WidgetSettingsPanel({ widgetId, onClose }: WidgetSettingsPanelPr
 
   const tabs = useWorkspaceStore((s) => s.tabs)
   const updateWidgetConfig = useWorkspaceStore((s) => s.updateWidgetConfig)
+  const starred = useDriverStore((s) => s.starred)
 
   // Find the tab + widget config
   let tabId: string | undefined
@@ -79,6 +95,7 @@ export function WidgetSettingsPanel({ widgetId, onClose }: WidgetSettingsPanelPr
   if (!widgetConfig || !tabId) return null
 
   const isInferred = INFERRED_WIDGET_TYPES.includes(widgetConfig.type)
+  const multiDriverFields = MULTI_DRIVER_WIDGET_FIELDS[widgetConfig.type] ?? []
   const formula = (widgetConfig.settings?.formula as string) ?? TYRE_DEFAULT_FORMULA
   const label = (widgetConfig.settings?.label as string) ?? widgetConfig.type
   const pollingRate = (widgetConfig.settings?.pollingRate as number) ?? 3000
@@ -88,6 +105,11 @@ export function WidgetSettingsPanel({ widgetId, onClose }: WidgetSettingsPanelPr
       settings: { ...widgetConfig!.settings, ...partial },
     })
   }
+
+  const driverSelectOptions = [
+    ...DRIVER_CONTEXT_OPTIONS.map((ctx) => ({ value: ctx, label: ctx })),
+    ...starred.map((num) => ({ value: `PINNED:${num}` as DriverContext, label: `PINNED:${num}` })),
+  ]
 
   const tabStyle = (t: TabId) => ({
     fontFamily: 'var(--mono)' as const,
@@ -273,13 +295,90 @@ export function WidgetSettingsPanel({ widgetId, onClose }: WidgetSettingsPanelPr
         )}
 
         {activeTab === 'driver' && (
-          <DriverTab
-            value={widgetConfig.driverContext}
-            onChange={(ctx: DriverContext) =>
-              updateWidgetConfig(tabId!, widgetId, { driverContext: ctx })
-            }
-            widgetId={widgetId}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <DriverTab
+              value={widgetConfig.driverContext}
+              onChange={(ctx: DriverContext) =>
+                updateWidgetConfig(tabId!, widgetId, { driverContext: ctx })
+              }
+              widgetId={widgetId}
+            />
+
+            {multiDriverFields.length > 0 && (
+              <div
+                style={{
+                  marginTop: 2,
+                  paddingTop: 10,
+                  borderTop: '0.5px solid var(--border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'var(--mono)',
+                    fontSize: 8,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'var(--muted2)',
+                  }}
+                >
+                  Multi-driver selectors
+                </div>
+
+                {multiDriverFields.map((field) => {
+                  const rawValue = widgetConfig.settings?.[field.key]
+                  const configuredValue =
+                    typeof rawValue === 'string' ? (rawValue as DriverContext) : field.defaultValue
+
+                  const hasValueOption = driverSelectOptions.some((opt) => opt.value === configuredValue)
+                  const safeValue = hasValueOption ? configuredValue : field.defaultValue
+
+                  return (
+                    <div key={field.key}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontFamily: 'var(--mono)',
+                          fontSize: 8,
+                          letterSpacing: '0.12em',
+                          textTransform: 'uppercase',
+                          color: 'var(--muted2)',
+                          marginBottom: 6,
+                        }}
+                      >
+                        {field.label}
+                      </label>
+
+                      <select
+                        value={safeValue}
+                        onChange={(e) => update({ [field.key]: e.target.value as DriverContext })}
+                        style={{
+                          width: '100%',
+                          background: 'var(--bg4)',
+                          border: '0.5px solid var(--border2)',
+                          borderRadius: 3,
+                          padding: '7px 10px',
+                          fontFamily: 'var(--mono)',
+                          fontSize: 9,
+                          letterSpacing: '0.08em',
+                          color: 'var(--white)',
+                          outline: 'none',
+                        }}
+                      >
+                        {driverSelectOptions.map((opt) => (
+                          <option key={`${field.key}-${opt.value}`} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         )}
 
         {activeTab === 'formula' && isInferred && (

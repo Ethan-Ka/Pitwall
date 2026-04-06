@@ -9,11 +9,8 @@ import { WidgetErrorBoundary } from '../ErrorBoundary/WidgetErrorBoundary'
 import { useAmbientStore } from '../../store/ambientStore'
 import { FLAG_COLORS } from '../AmbientBar/flagStateMachine'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
-import {
-  serializeWidgetTransferPayload,
-  WIDGET_TRANSFER_MIME,
-} from '../../lib/widgetTransfer'
 import { WINDOW_CLIENT_ID } from '../../lib/windowSync'
+import { useFocusEditorStore } from '../../store/focusEditorStore'
 
 // Maps driverContext type to a human-readable widget type label
 function widgetTypeLabel(type: string): string {
@@ -38,6 +35,9 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const editingWidgetId = useFocusEditorStore((s) => s.editingWidgetId)
+  const setEditingWidgetId = useFocusEditorStore((s) => s.setEditingWidgetId)
 
   const { tabId, config, layoutItem } = useWorkspaceStore(
     useShallow((s) => {
@@ -99,6 +99,11 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
   }
 
   function handleRemove() {
+    if (isPoppedOut) {
+      void dockWidgetBackToWorkspace()
+      setContextMenuPos(null)
+      return
+    }
     if (tabId && config) {
       removeWidget(tabId, widgetId)
     }
@@ -121,11 +126,28 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
     }
   }
 
+  function buildPopoutBounds() {
+    const rect = rootRef.current?.getBoundingClientRect()
+    if (!rect) return undefined
+    const width = Math.max(280, Math.round(rect.width))
+    const height = Math.max(180, Math.round(rect.height))
+    return {
+      x: Math.round(window.screenX + rect.left),
+      y: Math.round(window.screenY + rect.top),
+      width,
+      height,
+    }
+  }
+
   async function popOutWidget() {
     const payload = buildTransferPayload()
     if (!payload || !tabId || !window.electronAPI) return
     try {
-      await window.electronAPI.openNewWindow({ transferWidget: payload })
+      await window.electronAPI.openNewWindow({
+        transferWidget: payload,
+        windowKind: 'widget-popout',
+        popoutBounds: buildPopoutBounds(),
+      })
       removeWidget(tabId, widgetId)
       setContextMenuPos(null)
     } catch {
@@ -133,30 +155,45 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
     }
   }
 
-  function handleTransferDragStart(e: React.DragEvent<HTMLButtonElement>) {
+  async function dockWidgetBackToWorkspace() {
+    if (!isPoppedOut || !window.electronAPI?.dockWidgetToMainWorkspace) return
     const payload = buildTransferPayload()
     if (!payload) return
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData(WIDGET_TRANSFER_MIME, serializeWidgetTransferPayload(payload))
-    e.dataTransfer.setData('text/plain', config?.type ?? 'widget')
+
+    try {
+      const docked = await window.electronAPI.dockWidgetToMainWorkspace(payload)
+      if (!docked) return
+      await window.electronAPI.closeCurrentWindow?.()
+    } catch {
+      // no-op: keep window open if docking fails
+    }
   }
 
   if (!config) return null
 
+  const isFocusEditingTarget = editingWidgetId === widgetId
+
   return (
     <>
       <div
+        ref={rootRef}
+        data-widget-id={widgetId}
+        onClick={() => setEditingWidgetId(widgetId)}
         className="animated-scale-in"
         style={{
+          animationDuration: '110ms',
           width: '100%',
           height: '100%',
           background: 'var(--bg3)',
-          border: `0.5px dashed ${borderColor}`,
+          border: isFocusEditingTarget
+            ? `0.75px solid ${teamColor ?? 'var(--green)'}`
+            : `0.5px dashed ${borderColor}`,
           borderRadius: 4,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           position: 'relative',
+          boxShadow: isFocusEditingTarget ? '0 0 0 1px rgba(0,0,0,0.25) inset' : 'none',
         }}
         onContextMenu={handleContextMenu}
       >
@@ -178,6 +215,7 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
         {/* Chrome header — full header is the drag handle */}
         <div
           className="widget-drag-handle"
+          title={isPoppedOut ? 'Drag over main workspace to auto-dock, or press close to dock back.' : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -187,7 +225,8 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
             background: 'var(--bg4)',
             flexShrink: 0,
             gap: 6,
-            cursor: 'grab',
+            cursor: isPoppedOut ? 'move' : 'grab',
+            WebkitAppRegion: isPoppedOut ? 'drag' : 'no-drag',
             position: 'relative',
             zIndex: 1,
           }}
@@ -207,6 +246,7 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
               border: `0.5px dashed ${badgeColor}55`,
               background: `${badgeColor}11`,
               cursor: 'pointer',
+              WebkitAppRegion: 'no-drag',
             }}
           >
             {teamColor && (
@@ -257,33 +297,36 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
               fontSize: 10,
               lineHeight: 1,
               transition: 'color 0.12s',
+              WebkitAppRegion: 'no-drag',
             }}
             aria-label="Widget settings"
           >
             ⚙
           </button>
 
-          {/* Transfer handle for dragging widget to another window */}
-          <button
-            draggable={true}
-            onDragStart={handleTransferDragStart}
-            onMouseDown={(e) => e.stopPropagation()}
-            title="Drag to another window"
-            className="interactive-button"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--muted2)',
-              cursor: 'grab',
-              padding: '0 2px',
-              fontSize: 10,
-              lineHeight: 1,
-              transition: 'color 0.12s',
-            }}
-            aria-label="Transfer widget"
-          >
-            ⇄
-          </button>
+          {/* Pop out button */}
+          {!isPoppedOut && window.electronAPI && (
+            <button
+              onClick={(e) => { e.stopPropagation(); void popOutWidget() }}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="interactive-button"
+              title="Pop out widget"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--muted2)',
+                cursor: 'pointer',
+                padding: '0 2px',
+                fontSize: 10,
+                lineHeight: 1,
+                transition: 'color 0.12s',
+                WebkitAppRegion: 'no-drag',
+              }}
+              aria-label="Pop out widget"
+            >
+              ↗
+            </button>
+          )}
 
           {/* Close button */}
           <button
@@ -299,8 +342,9 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
               fontSize: 12,
               lineHeight: 1,
               transition: 'color 0.12s',
+              WebkitAppRegion: 'no-drag',
             }}
-            aria-label="Remove widget"
+            aria-label={isPoppedOut ? 'Dock widget back to workspace' : 'Remove widget'}
           >
             ×
           </button>

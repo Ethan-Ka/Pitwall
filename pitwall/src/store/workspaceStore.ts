@@ -46,6 +46,17 @@ function makeDefaultTab(name = 'Canvas 1'): CanvasTab {
   }
 }
 
+function resolveWorkspaceStorageKey(): string {
+  if (typeof window === 'undefined') return 'pitwall-workspace'
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const kind = params.get('windowKind')
+    return kind === 'widget-popout' ? 'pitwall-workspace-popout' : 'pitwall-workspace'
+  } catch {
+    return 'pitwall-workspace'
+  }
+}
+
 export const useWorkspaceStore = create<WorkspaceStore>()(
   persist(
     (set, get) => {
@@ -145,7 +156,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       }
     },
     {
-      name: 'pitwall-workspace',
+      name: resolveWorkspaceStorageKey(),
       onRehydrateStorage: () => (state) => {
         if (!state) return
         // Keep activeTabId valid if legacy persisted data has an empty/missing ID.

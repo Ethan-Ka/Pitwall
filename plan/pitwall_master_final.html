@@ -423,6 +423,7 @@ code{font-family:var(--mono);font-size:10px;color:var(--red);
   <div class="toc-row"><span class="toc-n">14</span><span class="toc-t">Inference engine</span><span class="toc-sub">Three data tiers · formulas · accuracy table · formula builder</span></div>
   <div class="toc-row"><span class="toc-n">15</span><span class="toc-t">OpenF1 API reference</span><span class="toc-sub">All endpoints · key fields · widget mapping · rate limits</span></div>
   <div class="toc-row"><span class="toc-n">16</span><span class="toc-t">Tech stack & build phases</span><span class="toc-sub">Frontend · audio · RGB · desktop (Phase 4) · roadmap</span></div>
+  <div class="toc-row"><span class="toc-n">17</span><span class="toc-t">Plugin SDK & creator wiki</span><span class="toc-sub">Custom widgets · sandbox · manifest · docs portal · examples</span></div>
 </div>
 
 <hr class="rule">
@@ -2178,6 +2179,79 @@ code{font-family:var(--mono);font-size:10px;color:var(--red);
     </div>
   </div>
 </div>
+
+<hr class="rule">
+
+<!-- ══════════════════════════════════════════════
+     17 — PLUGIN SDK & CREATOR WIKI
+══════════════════════════════════════════════ -->
+<div class="sect"><span class="sect-n">17</span><span class="sect-t">Plugin SDK & Creator Wiki</span><div class="sect-r"></div></div>
+
+<p>Pitwall will support user-installed plugin packages that can register custom widgets without requiring core app updates. This creates a community ecosystem for niche race tools while preserving runtime safety, performance, and UI consistency.</p>
+
+<div class="note purple"><strong>Default trust model:</strong> Plugin mode is disabled by default. Users must explicitly enable plugin support, approve requested permissions, and install packages manually or from a signed registry. If a plugin is missing, affected widgets render a graceful unavailable state instead of breaking the canvas.</div>
+
+<div class="sub">Plugin capability scope</div>
+<table class="t">
+  <thead><tr><th style="width:140px">Capability</th><th style="width:120px">Status</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Custom widgets</td><td>Planned</td><td>Plugins can register one or more widget definitions under a new <code>Community</code> category in the widget picker.</td></tr>
+    <tr><td class="tn">Settings schema</td><td>Planned</td><td>Widgets declare typed settings rendered through Pitwall's existing settings panel shell.</td></tr>
+    <tr><td class="tn">Data access</td><td>Planned</td><td>Sandbox API grants access to approved OpenF1 and derived data stores with permission checks.</td></tr>
+    <tr><td class="tn">Host isolation</td><td>Planned</td><td>Plugin widgets render in an isolated host boundary with constrained lifecycle and error containment.</td></tr>
+    <tr><td class="tn">Native / OS access</td><td>Restricted</td><td>No direct filesystem, shell, Electron main process, or RGB bridge control in the first plugin release.</td></tr>
+  </tbody>
+</table>
+
+<div class="sub">Manifest format (draft)</div>
+<div class="formula">
+<span class="fk">id</span>: <span class="fv">"com.example.strategy-pack"</span><br>
+<span class="fk">name</span>: <span class="fv">"Strategy Widgets Pack"</span><br>
+<span class="fk">version</span>: <span class="fv">"1.0.0"</span><br>
+<span class="fk">pitwallApi</span>: <span class="fv">"^1.0"</span><br>
+<span class="fk">widgets</span>: [<span class="fv">"stint-risk-card"</span>, <span class="fv">"traffic-forecast"</span>]<br>
+<span class="fk">permissions</span>: [<span class="fv">"openf1.sessions.read"</span>, <span class="fv">"openf1.laps.read"</span>]<br>
+<span class="fk">entry</span>: <span class="fv">"./dist/index.js"</span><br>
+<span class="fk">signature</span>: <span class="fv">"ed25519:..."</span>
+</div>
+
+<div class="sub">Plugin lifecycle</div>
+<div class="steps">
+  <div class="step">User installs a plugin package (<code>.pitplugin</code> bundle or registry install) and confirms requested permissions.</div>
+  <div class="step">Pitwall validates manifest schema, SDK compatibility, and package signature before activation.</div>
+  <div class="step">Plugin host initializes in a sandbox and registers widget definitions and settings schemas.</div>
+  <div class="step">Registered widgets appear in the picker with plugin provenance and version metadata.</div>
+  <div class="step">Plugin widget configuration persists in workspace autosave and layout export/import formats.</div>
+  <div class="step">On uninstall or load failure, plugin widget slots downgrade to placeholders that retain position and dimensions.</div>
+</div>
+
+<div class="sub">Creator Wiki (official documentation)</div>
+<p>An official Plugin Creator Wiki will launch with the SDK to help developers build, test, and publish plugins consistently. The wiki is versioned with Pitwall API releases and includes migration notes for breaking changes.</p>
+
+<table class="t">
+  <thead><tr><th style="width:170px">Wiki section</th><th>Coverage</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">Getting started</td><td>Local setup, scaffold command, first custom widget walkthrough, and sandbox runner.</td></tr>
+    <tr><td class="tn">SDK reference</td><td>Widget registration contracts, lifecycle hooks, settings schema types, and data subscription APIs.</td></tr>
+    <tr><td class="tn">Permissions</td><td>Permission catalog, least-privilege guidance, denied-call behavior, and debugging patterns.</td></tr>
+    <tr><td class="tn">Design system</td><td>Layout, typography, color contrast, and responsive constraints for 1x1 to 4x4 widget footprints.</td></tr>
+    <tr><td class="tn">Testing & QA</td><td>Contract tests, perf budget checks, error-handling checklist, and release validation steps.</td></tr>
+    <tr><td class="tn">Publishing</td><td>Packaging, signing, semantic versioning, changelog policy, and registry submission workflow.</td></tr>
+    <tr><td class="tn">Examples</td><td>Reference plugins for strategy alerts, weather probability cards, and race-control annotation overlays.</td></tr>
+  </tbody>
+</table>
+
+<div class="note green"><strong>Wiki quality requirement:</strong> Every API page includes a runnable code snippet, a complete manifest example, and a "common failures" table mapped to Diagnostics error codes so plugin authors can self-serve fixes quickly.</div>
+
+<div class="sub">Plugin rollout roadmap</div>
+<table class="t">
+  <thead><tr><th style="width:110px">Phase</th><th style="width:130px">Audience</th><th>Deliverables</th></tr></thead>
+  <tbody>
+    <tr><td class="tn">P-Alpha</td><td>Internal</td><td>Sandbox host, manifest validator, and two first-party example plugins with private draft wiki.</td></tr>
+    <tr><td class="tn">P-Beta</td><td>Closed creators</td><td>Signed package install, plugin diagnostics panel, feedback loop, and public wiki preview.</td></tr>
+    <tr><td class="tn">P-GA</td><td>Public</td><td>Community registry, compatibility matrix, moderation/reporting, and stable SDK policy.</td></tr>
+  </tbody>
+</table>
 
 <!-- FOOTER -->
 <div class="foot">

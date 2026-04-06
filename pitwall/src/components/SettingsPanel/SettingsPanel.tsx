@@ -109,7 +109,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       fontSize: 8,
       letterSpacing: '0.14em',
       textTransform: 'uppercase',
-      color: 'var(--muted2)',
+      color: 'var(--white)',
       marginBottom: 12,
     }}>
       {children}
@@ -153,7 +153,7 @@ function ActionButton({
         fontSize: 8,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: disabled ? 'var(--muted2)' : variant === 'danger' ? 'var(--red)' : 'var(--muted)',
+        color: variant === 'danger' ? 'var(--red)' : 'var(--white)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         transition: 'all 0.12s',
@@ -193,10 +193,15 @@ function ToggleSelector({
       style={{
         width: 42,
         height: 18,
+        padding: 2,
+        appearance: 'none',
+        WebkitAppearance: 'none',
+        boxSizing: 'border-box',
+        display: 'flex',
+        alignItems: 'center',
         borderRadius: 9,
         border: `0.5px solid ${checked ? 'var(--green)' : 'var(--border2)'}`,
         background: checked ? 'rgba(46,204,113,0.22)' : 'var(--bg4)',
-        position: 'relative',
         cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'border-color var(--motion-base) ease, background-color var(--motion-base) ease, opacity var(--motion-fast) ease',
         flexShrink: 0,
@@ -206,9 +211,6 @@ function ToggleSelector({
       <div
         aria-hidden="true"
         style={{
-          position: 'absolute',
-          top: 2,
-          left: 2,
           width: 14,
           height: 14,
           borderRadius: '50%',
@@ -225,7 +227,7 @@ function ToggleSelector({
 export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const EXIT_MS = 220
   const API_REVEAL_EXIT_MS = 180
-  const { mode, apiKey, clearApiKey, apiRequestsEnabled, setApiRequestsEnabled } = useSessionStore()
+  const { mode, apiKey, clearApiKey, setMode, apiRequestsEnabled, setApiRequestsEnabled } = useSessionStore()
   const {
     leaderColorMode,
     flagState,
@@ -254,6 +256,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const [apiKeyInputClosing, setApiKeyInputClosing] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const apiKeyCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasApiKey = Boolean(apiKey)
 
   const { setApiKey } = useSessionStore()
 
@@ -302,6 +305,16 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
   function maskedKey(key: string) {
     return key.slice(0, 8) + '•••••'
+  }
+
+  function handleModeChange(nextMode: 'historical' | 'live') {
+    if (nextMode === 'live') {
+      if (!hasApiKey) return
+      setMode('live')
+      return
+    }
+
+    setMode('historical')
   }
 
   function exportDiagnostics() {
@@ -510,7 +523,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--muted)',
+              color: 'var(--white)',
               fontSize: 16,
               cursor: 'pointer',
               padding: '0 4px',
@@ -523,42 +536,88 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
         </div>
 
         {/* Body */}
-        <div className="scroll-fade" style={{ overflowY: 'auto', flex: 1, padding: '0 16px' }}>
+        <div className="scroll-fade scroll-fade-top-only" style={{ overflowY: 'auto', flex: 1, padding: '0 16px' }}>
 
           {/* Account & Mode */}
           <Section>
             <SectionLabel>Account &amp; Mode</SectionLabel>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
               <span style={{
                 fontFamily: 'var(--mono)',
                 fontSize: 9,
-                color: 'var(--muted)',
+                color: 'var(--white)',
                 letterSpacing: '0.06em',
               }}>
-                Current mode
+                Data mode
               </span>
-              <span style={{
-                fontFamily: 'var(--mono)',
-                fontSize: 8,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: mode === 'live' ? 'var(--green)' : 'var(--amber)',
-                border: `0.5px solid ${mode === 'live' ? 'var(--green)' : 'var(--amber)'}`,
-                borderRadius: 2,
-                padding: '1px 6px',
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: 4,
+                borderRadius: 4,
+                border: '0.5px solid var(--border2)',
+                background: 'var(--bg4)',
+                width: 'fit-content',
               }}>
-                {mode === 'live' ? 'LIVE' : 'HISTORICAL'}
-              </span>
+                {([
+                  { value: 'historical', label: 'Historical', disabled: false },
+                  { value: 'live', label: 'Live', disabled: !hasApiKey },
+                ] as const).map((option) => {
+                  const active = mode === option.value
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className="interactive-chip"
+                      disabled={option.disabled}
+                      onClick={() => handleModeChange(option.value)}
+                      style={{
+                        minWidth: 96,
+                        padding: '4px 10px',
+                        borderRadius: 3,
+                        border: `0.5px solid ${active ? (option.value === 'live' ? 'var(--green)' : 'var(--amber)') : 'var(--border2)'}`,
+                        background: active
+                          ? option.value === 'live'
+                            ? 'rgba(46,204,113,0.18)'
+                            : 'rgba(230,126,34,0.18)'
+                          : 'var(--bg3)',
+                        color: option.disabled ? 'var(--muted2)' : active ? 'var(--white)' : 'var(--muted)',
+                        fontFamily: 'var(--mono)',
+                        fontSize: 8,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        cursor: option.disabled ? 'not-allowed' : 'pointer',
+                        opacity: option.disabled ? 0.5 : 1,
+                        transition: 'all var(--motion-fast) ease',
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  )
+                })}
+              </div>
+              {!hasApiKey && (
+                <span style={{
+                  fontFamily: 'var(--mono)',
+                  fontSize: 8,
+                  letterSpacing: '0.08em',
+                  color: 'var(--muted2)',
+                  textTransform: 'uppercase',
+                }}>
+                  Live mode requires an API key
+                </span>
+              )}
             </div>
 
-            {mode === 'live' && apiKey ? (
+            {hasApiKey ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{
                     fontFamily: 'var(--mono)',
                     fontSize: 9,
-                    color: 'var(--muted2)',
+                    color: 'var(--white)',
                     letterSpacing: '0.06em',
                   }}>
                     API key
@@ -566,14 +625,14 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   <span style={{
                     fontFamily: 'var(--mono)',
                     fontSize: 9,
-                    color: 'var(--muted)',
+                    color: 'var(--white)',
                     letterSpacing: '0.08em',
                   }}>
-                    {maskedKey(apiKey)}
+                    {maskedKey(apiKey!)}
                   </span>
                 </div>
                 <ActionButton variant="danger" onClick={clearApiKey}>
-                  Switch to historical
+                  Remove API key
                 </ActionButton>
               </div>
             ) : (
@@ -581,7 +640,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <span style={{
                   fontFamily: 'var(--mono)',
                   fontSize: 9,
-                  color: 'var(--muted2)',
+                  color: 'var(--white)',
                   letterSpacing: '0.06em',
                 }}>
                   Historical mode — no live data
@@ -630,9 +689,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
             )}
           </Section>
 
-          {/* Ambient Layer */}
+          {/* Ambient Race Layer */}
           <Section>
-            <SectionLabel>Ambient Layer</SectionLabel>
+            <SectionLabel>Ambient Race Layer</SectionLabel>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {/* Leader color mode toggle */}
@@ -650,7 +709,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <span style={{
                   fontFamily: 'var(--mono)',
                   fontSize: 9,
-                  color: 'var(--muted)',
+                  color: 'var(--white)',
                   letterSpacing: '0.06em',
                   userSelect: 'none',
                 }}>
@@ -663,7 +722,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <span style={{
                   fontFamily: 'var(--mono)',
                   fontSize: 9,
-                  color: 'var(--muted2)',
+                  color: 'var(--white)',
                   letterSpacing: '0.06em',
                 }}>
                   Flag state
@@ -673,7 +732,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   fontSize: 8,
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
-                  color: 'var(--muted)',
+                  color: 'var(--white)',
                 }}>
                   {flagState}
                 </span>
@@ -688,7 +747,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <span style={{
                   fontFamily: 'var(--mono)',
                   fontSize: 9,
-                  color: 'var(--muted)',
+                  color: 'var(--white)',
                   letterSpacing: '0.06em',
                   userSelect: 'none',
                 }}>
@@ -710,7 +769,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <span style={{
                   fontFamily: 'var(--mono)',
                   fontSize: 9,
-                  color: ambientLayerEnabled ? 'var(--muted)' : 'var(--muted2)',
+                  color: 'var(--white)',
                   letterSpacing: '0.06em',
                   userSelect: 'none',
                 }}>
@@ -729,7 +788,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   <span style={{
                     fontFamily: 'var(--mono)',
                     fontSize: 9,
-                    color: ambientLayerEnabled ? 'var(--muted)' : 'var(--muted2)',
+                    color: 'var(--white)',
                     letterSpacing: '0.06em',
                   }}>
                     Ambient intensity
@@ -737,7 +796,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   <span style={{
                     fontFamily: 'var(--mono)',
                     fontSize: 8,
-                    color: 'var(--muted2)',
+                    color: 'var(--white)',
                     letterSpacing: '0.08em',
                   }}>
                     {ambientLayerIntensity}%
@@ -763,7 +822,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                           fontFamily: 'var(--mono)',
                           fontSize: 8,
                           letterSpacing: '0.08em',
-                          color: !ambientLayerEnabled ? 'var(--muted2)' : active ? 'var(--white)' : 'var(--muted)',
+                          color: 'var(--white)',
                           cursor: ambientLayerEnabled ? 'pointer' : 'not-allowed',
                           opacity: ambientLayerEnabled ? 1 : 0.55,
                         }}
@@ -791,7 +850,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <span style={{
                   fontFamily: 'var(--mono)',
                   fontSize: 9,
-                  color: 'var(--muted)',
+                  color: 'var(--white)',
                   letterSpacing: '0.06em',
                   userSelect: 'none',
                 }}>
@@ -826,7 +885,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 fontFamily: 'var(--mono)',
                 fontSize: 8,
                 letterSpacing: '0.08em',
-                color: 'var(--muted2)',
+                color: 'var(--white)',
               }}>
                 {starredCount} starred drivers{seasonYear ? ` · ${seasonYear} season` : ''}
               </span>
@@ -850,7 +909,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   fontSize: 8,
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
-                  color: 'var(--muted2)',
+                  color: 'var(--white)',
                 }}>
                   Import / Export (.pitwall)
                 </span>
@@ -885,7 +944,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                       padding: '6px 8px',
                       fontFamily: 'var(--mono)',
                       fontSize: 9,
-                      color: 'var(--muted)',
+                      color: 'var(--white)',
                       letterSpacing: '0.04em',
                       outline: 'none',
                     }}
@@ -911,7 +970,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   fontFamily: 'var(--mono)',
                   fontSize: 8,
                   letterSpacing: '0.06em',
-                  color: ioStatus ? STATUS_COLOR[ioStatus.tone] : 'var(--muted2)',
+                  color: ioStatus ? STATUS_COLOR[ioStatus.tone] : 'var(--white)',
                   minHeight: 12,
                 }}>
                   {ioStatus
@@ -929,7 +988,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
               <span style={{
                 fontFamily: 'var(--mono)',
                 fontSize: 9,
-                color: 'var(--muted)',
+                color: 'var(--white)',
                 letterSpacing: '0.06em',
               }}>
                 Pitwall {APP_VERSION_LABEL}
@@ -937,7 +996,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
               <span style={{
                 fontFamily: 'var(--mono)',
                 fontSize: 9,
-                color: 'var(--muted2)',
+                color: 'var(--white)',
                 letterSpacing: '0.06em',
               }}>
                 Data: OpenF1 API
@@ -952,7 +1011,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
               <span style={{
                 fontFamily: 'var(--mono)',
                 fontSize: 8,
-                color: 'var(--muted2)',
+                color: 'var(--white)',
                 letterSpacing: '0.08em',
               }}>
                 {logEntries.length} log entries in memory (max 1000)

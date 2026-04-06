@@ -7,6 +7,9 @@ type DebugActionMessage = {
   payload?: unknown
 }
 
+const WINDOW_DIMENSIONS_OVERLAY_ID = 'pitwall-window-dimensions-overlay'
+let dimensionsOverlayVisible = false
+
 const LEADER_TEAM_PRESETS: Record<string, { driverNumber: number; color: string; name: string; driver: string }> = {
   ferrari: { driverNumber: 16, color: '#E8002D', name: 'Ferrari', driver: 'LEC' },
   mclaren: { driverNumber: 4, color: '#FF8000', name: 'McLaren', driver: 'NOR' },
@@ -30,6 +33,59 @@ function adjustHexLuminance(hex: string, factor: number): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
+function getDimensionsText(): string {
+  return `${window.innerWidth}x${window.innerHeight} (inner) | ${window.outerWidth}x${window.outerHeight} (outer)`
+}
+
+function getDimensionsOverlayEl(): HTMLDivElement {
+  let el = document.getElementById(WINDOW_DIMENSIONS_OVERLAY_ID) as HTMLDivElement | null
+  if (el) return el
+
+  el = document.createElement('div')
+  el.id = WINDOW_DIMENSIONS_OVERLAY_ID
+  el.style.position = 'fixed'
+  el.style.left = '12px'
+  el.style.bottom = '12px'
+  el.style.padding = '6px 8px'
+  el.style.borderRadius = '6px'
+  el.style.border = '1px solid rgba(120, 224, 178, 0.45)'
+  el.style.background = 'rgba(10, 16, 14, 0.84)'
+  el.style.color = '#93f0c9'
+  el.style.fontSize = '12px'
+  el.style.lineHeight = '1.2'
+  el.style.fontFamily = 'Consolas, SFMono-Regular, Menlo, Monaco, monospace'
+  el.style.letterSpacing = '0.02em'
+  el.style.boxShadow = '0 6px 18px rgba(0, 0, 0, 0.35)'
+  el.style.zIndex = '2147483647'
+  el.style.pointerEvents = 'none'
+  el.style.userSelect = 'none'
+  el.style.whiteSpace = 'nowrap'
+  document.body.appendChild(el)
+  return el
+}
+
+function updateDimensionsOverlay() {
+  if (!dimensionsOverlayVisible) return
+  const el = getDimensionsOverlayEl()
+  el.textContent = getDimensionsText()
+}
+
+function setDimensionsOverlayVisible(visible: boolean) {
+  dimensionsOverlayVisible = visible
+
+  if (visible) {
+    const el = getDimensionsOverlayEl()
+    el.style.display = 'block'
+    updateDimensionsOverlay()
+    window.addEventListener('resize', updateDimensionsOverlay)
+    return
+  }
+
+  const el = document.getElementById(WINDOW_DIMENSIONS_OVERLAY_ID) as HTMLDivElement | null
+  if (el) el.style.display = 'none'
+  window.removeEventListener('resize', updateDimensionsOverlay)
+}
+
 function runDebugAction(action: string, payload?: unknown) {
   const ambient = useAmbientStore.getState()
   const session = useSessionStore.getState()
@@ -44,6 +100,16 @@ function runDebugAction(action: string, payload?: unknown) {
       ambient.addToast('OpenF1 rate limit reached. Requests are being throttled.', 'YELLOW')
       log.addEntry('WARN', 'Simulated OpenF1 429 rate-limit warning.', 'devtools')
       break
+    case 'show-window-dimensions': {
+      const nextVisible = !dimensionsOverlayVisible
+      setDimensionsOverlayVisible(nextVisible)
+      const message = nextVisible
+        ? `Window dimensions overlay enabled: ${getDimensionsText()}`
+        : 'Window dimensions overlay disabled.'
+      ambient.addToast(message, nextVisible ? 'GREEN' : 'YELLOW')
+      log.addEntry('DBG', `${message} from Developer Menu.`, 'devtools')
+      break
+    }
     case 'simulate-invalid-api-key':
       session.clearApiKey()
       session.setMode('onboarding')

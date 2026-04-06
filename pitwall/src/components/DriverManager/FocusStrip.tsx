@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useDriverStore } from '../../store/driverStore'
 import { usePositions } from '../../hooks/usePositions'
 import { DriverManagerPanel } from './DriverManagerPanel'
+import { useWorkspaceStore, type DriverContext } from '../../store/workspaceStore'
+import { useFocusEditorStore } from '../../store/focusEditorStore'
 
 function Chip({
   label,
@@ -68,6 +70,17 @@ const FOCUS_SELECTOR_OPTIONS = [
   { key: 'GAP-1', label: 'GAP-1' },
 ] as const
 
+const WIDGET_FOCUS_SELECTOR_OPTIONS = [
+  { key: 'FOCUS', label: 'Inherit' },
+  { key: 'P1', label: 'P1' },
+  { key: 'P2', label: 'P2' },
+  { key: 'P3', label: 'P3' },
+  { key: 'P4', label: 'P4' },
+  { key: 'P5', label: 'P5' },
+  { key: 'GAP+1', label: 'GAP+1' },
+  { key: 'GAP-1', label: 'GAP-1' },
+] as const
+
 const FOCUS_SELECTOR_LABEL_BY_KEY = Object.fromEntries(
   FOCUS_SELECTOR_OPTIONS.map((option) => [option.key, option.label])
 ) as Record<typeof FOCUS_SELECTOR_OPTIONS[number]['key'], string>
@@ -84,6 +97,10 @@ export function FocusStrip() {
     setWindowFocusSelector,
     getTeamColor,
   } = useDriverStore()
+  const tabs = useWorkspaceStore((s) => s.tabs)
+  const updateWidgetConfig = useWorkspaceStore((s) => s.updateWidgetConfig)
+  const editingWidgetId = useFocusEditorStore((s) => s.editingWidgetId)
+  const setEditingWidgetId = useFocusEditorStore((s) => s.setEditingWidgetId)
   const { data: positions } = usePositions()
   const [panelOpen, setPanelOpen] = useState(false)
   const selectorTrackRef = useRef<HTMLDivElement | null>(null)
@@ -96,6 +113,56 @@ export function FocusStrip() {
   const [exitingStarred, setExitingStarred] = useState<number[]>([])
   const [enteringStarred, setEnteringStarred] = useState<number[]>([])
   const [displayOrder, setDisplayOrder] = useState<number[]>(starred)
+
+  const editingWidgetEntry = useMemo(() => {
+    if (!editingWidgetId) return null
+
+    for (const tab of tabs) {
+      const widget = tab.widgets[editingWidgetId]
+      if (widget) {
+        return { tabId: tab.id, widget }
+      }
+    }
+
+    return null
+  }, [editingWidgetId, tabs])
+
+  const isWidgetFocusMode = editingWidgetEntry != null
+  const focusSelectorOptions = isWidgetFocusMode ? WIDGET_FOCUS_SELECTOR_OPTIONS : FOCUS_SELECTOR_OPTIONS
+  const selectorMinWidth = isWidgetFocusMode ? 68 : 52
+
+  const activeSelectorKey = isWidgetFocusMode
+    ? editingWidgetEntry.widget.driverContext === 'FOCUS'
+      ? 'FOCUS'
+      : editingWidgetEntry.widget.driverContext.startsWith('PINNED:')
+        ? null
+        : editingWidgetEntry.widget.driverContext
+    : windowFocusSelector === 'FOCUS' && canvasFocus != null
+      ? null
+      : windowFocusSelector
+
+  useEffect(() => {
+    if (editingWidgetId && !editingWidgetEntry) {
+      setEditingWidgetId(null)
+    }
+  }, [editingWidgetEntry, editingWidgetId, setEditingWidgetId])
+
+  useEffect(() => {
+    if (!editingWidgetId) return
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as HTMLElement | null
+      if (!target) return
+
+      if (target.closest('[data-focus-strip]')) return
+      if (target.closest(`[data-widget-id="${editingWidgetId}"]`)) return
+
+      setEditingWidgetId(null)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [editingWidgetId, setEditingWidgetId])
 
   useEffect(() => {
     const removed = prevStarredRef.current.filter((num) => !starred.includes(num))
@@ -185,16 +252,66 @@ export function FocusStrip() {
     return null
   }
 
-  const selectedDriverNumber = resolveWindowFocusDriver()
-  const selectedFocusLabel = FOCUS_SELECTOR_LABEL_BY_KEY[windowFocusSelector]
+  function resolveContextDriver(context: DriverContext): number | null {
+    if (context === 'FOCUS') {
+      return resolveWindowFocusDriver()
+    }
+
+    if (context.startsWith('PINNED:')) {
+      const parsed = Number.parseInt(context.slice(7), 10)
+      return Number.isFinite(parsed) ? parsed : null
+    }
+
+    if (!positions) return null
+    if (context === 'P1') return positions.find((p) => p.position === 1)?.driver_number ?? null
+    if (context === 'P2') return positions.find((p) => p.position === 2)?.driver_number ?? null
+    if (context === 'P3') return positions.find((p) => p.position === 3)?.driver_number ?? null
+    if (context === 'P4') return positions.find((p) => p.position === 4)?.driver_number ?? null
+    if (context === 'P5') return positions.find((p) => p.position === 5)?.driver_number ?? null
+    if (context === 'GAP+1') {
+      const focusPos = positions.find((p) => p.driver_number === canvasFocus)?.position
+      if (focusPos && focusPos > 1) {
+        return positions.find((p) => p.position === focusPos - 1)?.driver_number ?? null
+      }
+      return null
+    }
+
+    const focusPos = positions.find((p) => p.driver_number === canvasFocus)?.position
+    if (focusPos) {
+      return positions.find((p) => p.position === focusPos + 1)?.driver_number ?? null
+    }
+    return null
+  }
+
+  const selectedDriverNumber = isWidgetFocusMode
+    ? resolveContextDriver(editingWidgetEntry.widget.driverContext)
+    : resolveWindowFocusDriver()
+  const selectedFocusLabel = isWidgetFocusMode
+    ? editingWidgetEntry.widget.driverContext === 'FOCUS'
+      ? 'Inherit'
+      : editingWidgetEntry.widget.driverContext
+    : windowFocusSelector === 'FOCUS' && canvasFocus == null
+      ? 'All'
+      : windowFocusSelector === 'FOCUS'
+        ? 'Driver'
+        : FOCUS_SELECTOR_LABEL_BY_KEY[windowFocusSelector]
   const selectedDriver = selectedDriverNumber == null
     ? null
     : drivers.find((d) => d.driver_number === selectedDriverNumber)
   const selectedPos = selectedDriverNumber == null ? null : getPosition(selectedDriverNumber)
   const selectedColor = selectedDriverNumber == null ? 'var(--border2)' : getTeamColor(selectedDriverNumber)
+  const selectedStatusText = !isWidgetFocusMode && windowFocusSelector === 'FOCUS' && canvasFocus == null
+    ? 'FOCUS • ALL'
+    : `${selectedFocusLabel}${selectedDriver
+      ? ` • ${selectedDriver.name_acronym}${selectedPos ? ` P${selectedPos}` : ''}`
+      : ' • None'}`
 
   useLayoutEffect(() => {
-    const key = windowFocusSelector
+    const key = activeSelectorKey
+    if (!key) {
+      setSelectorIndicator((prev) => ({ ...prev, ready: false }))
+      return
+    }
     const track = selectorTrackRef.current
     const button = selectorButtonRefs.current[key]
     if (!track || !button) return
@@ -205,7 +322,7 @@ export function FocusStrip() {
       width: buttonRect.width,
       ready: true,
     })
-  }, [windowFocusSelector])
+  }, [activeSelectorKey])
 
   useLayoutEffect(() => {
     if (exitingStarred.length > 0) return
@@ -242,11 +359,38 @@ export function FocusStrip() {
     setStatusPulsing(true)
     const timer = setTimeout(() => setStatusPulsing(false), 260)
     return () => clearTimeout(timer)
-  }, [windowFocusSelector, selectedDriverNumber, selectedPos])
+  }, [windowFocusSelector, selectedDriverNumber, selectedPos, isWidgetFocusMode, editingWidgetEntry?.widget.driverContext])
+
+  function handleSelectorClick(key: typeof FOCUS_SELECTOR_OPTIONS[number]['key']) {
+    if (isWidgetFocusMode) {
+      updateWidgetConfig(editingWidgetEntry.tabId, editingWidgetEntry.widget.id, {
+        driverContext: key,
+      })
+      return
+    }
+
+    setWindowFocusSelector(key)
+    if (key === 'FOCUS') {
+      setCanvasFocus(null)
+    }
+  }
+
+  function handleStarClick(driverNumber: number, isActive: boolean) {
+    if (isWidgetFocusMode) {
+      const nextContext: DriverContext = isActive ? 'FOCUS' : `PINNED:${driverNumber}`
+      updateWidgetConfig(editingWidgetEntry.tabId, editingWidgetEntry.widget.id, {
+        driverContext: nextContext,
+      })
+      return
+    }
+
+    setWindowFocusSelector('FOCUS')
+    setCanvasFocus(isActive ? null : driverNumber)
+  }
 
   return (
     <>
-      <div className="animated-slide-down" style={{
+      <div data-focus-strip="true" className="animated-slide-down" style={{
         height: 32,
         background: 'transparent',
         borderBottom: 'none',
@@ -266,8 +410,37 @@ export function FocusStrip() {
           color: 'var(--muted2)',
           flexShrink: 0,
         }}>
-          Focus
+          {isWidgetFocusMode ? 'Widget focus' : 'Focus'}
         </span>
+
+        {isWidgetFocusMode && (
+          <button
+            onClick={() => setEditingWidgetId(null)}
+            className="interactive-button"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 18,
+              boxSizing: 'border-box',
+              padding: '2px 8px',
+              borderRadius: 3,
+              border: '0.5px solid var(--border2)',
+              background: 'transparent',
+              fontFamily: 'var(--mono)',
+              fontSize: 8,
+              lineHeight: 1,
+              letterSpacing: '0.1em',
+              color: 'var(--muted)',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            Exit widget edit
+          </button>
+        )}
 
         <div
           ref={selectorTrackRef}
@@ -300,14 +473,14 @@ export function FocusStrip() {
             }}
           />
 
-          {FOCUS_SELECTOR_OPTIONS.map((option) => {
-            const isActive = windowFocusSelector === option.key
+          {focusSelectorOptions.map((option) => {
+            const isActive = activeSelectorKey === option.key
             return (
               <button
                 key={option.key}
                 ref={(el) => { selectorButtonRefs.current[option.key] = el }}
                 className="interactive-chip"
-                onClick={() => setWindowFocusSelector(option.key)}
+                onClick={() => handleSelectorClick(option.key)}
                 style={{
                   position: 'relative',
                   zIndex: 1,
@@ -316,7 +489,7 @@ export function FocusStrip() {
                   justifyContent: 'center',
                   height: 18,
                   boxSizing: 'border-box',
-                  minWidth: 52,
+                  minWidth: option.key === 'FOCUS' ? selectorMinWidth : 52,
                   padding: '2px 8px',
                   borderRadius: 3,
                   border: '0.5px solid transparent',
@@ -344,7 +517,9 @@ export function FocusStrip() {
         {starredDrivers.map(({ driver, exiting }) => {
           const pos = getPosition(driver.driver_number)
           const color = getTeamColor(driver.driver_number)
-          const isFocused = canvasFocus === driver.driver_number
+          const isFocused = isWidgetFocusMode
+            ? editingWidgetEntry.widget.driverContext === `PINNED:${driver.driver_number}`
+            : canvasFocus === driver.driver_number
           const entering = !exiting && enteringStarred.includes(driver.driver_number)
 
           return (
@@ -366,7 +541,7 @@ export function FocusStrip() {
                 }}
                 onClick={() => {
                   if (exiting) return
-                  setCanvasFocus(isFocused ? null : driver.driver_number)
+                  handleStarClick(driver.driver_number, isFocused)
                 }}
                 className={[
                   'interactive-chip',
@@ -470,6 +645,7 @@ export function FocusStrip() {
             style={{
               fontFamily: 'var(--mono)',
               fontSize: 8,
+              lineHeight: 1,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: 'var(--muted2)',
@@ -481,16 +657,14 @@ export function FocusStrip() {
             style={{
               fontFamily: 'var(--mono)',
               fontSize: 9,
+              lineHeight: 2,
               letterSpacing: '0.08em',
               color: selectedDriverNumber == null ? 'var(--muted2)' : 'var(--white)',
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
             }}
           >
-            {selectedFocusLabel}
-            {selectedDriver
-              ? ` • ${selectedDriver.name_acronym}${selectedPos ? ` P${selectedPos}` : ''}`
-              : ' • None'}
+            {selectedStatusText}
           </span>
         </div>
 
