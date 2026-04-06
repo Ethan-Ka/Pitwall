@@ -63,9 +63,11 @@ Multiple instances of the same widget can target different drivers in parallel.
 |---|---|
 | ![Driver Manager](plan/demo/driverManager.png) | ![Driver Select and Individual](plan/demo/driverSelectAndIndividual.png) |
 
-### Export/import layout system
+### Export/import system
 
 Pitwall layouts can be exported and imported so users can move setups between devices and share race dashboards.
+
+Season updates and changes will be released through season `.pitwall` files and bundled with the latest updates.
 
 ![Export and import layouts](plan/demo/exportimport.png)
 

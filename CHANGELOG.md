@@ -8,6 +8,21 @@ Version delta from previous release: `alpha v0.1.5` -> `alpha v0.1.8` (`+0.03`).
 
 ### Feature Summary
 
+- Added a local database cache (IndexedDB) for interval/gap timeline data in intervalCache.ts.
+    - Refactored interval hooks in useIntervals.ts into:
+    - useIntervalHistory: full timeline data (chart-ready).
+    - useIntervals: current/latest-per-driver data (existing widget behavior preserved).
+
+#### what the local database changes:
+- Historical mode: cache-first.
+    - If interval history for a session is already stored, it returns cached data and skips API calls.
+- Live mode: fetch + merge + persist.
+    - New API interval points are merged with existing cached points (deduped by driver_number + date) and saved.
+- Failure fallback:
+  - If API fetch fails and cached history exists, it returns cached history instead of throwing immediately.
+
+**the local database is not fully implemented yet. This entry into the changelog was to clarify the reason and the roadmap for the db**
+
 - Added true widget pop-out windows with dock-back support.
 	- Widgets can open in dedicated Electron pop-out windows.
 	- Pop-outs can be docked back into the main workspace (including drag-to-dock behavior).
