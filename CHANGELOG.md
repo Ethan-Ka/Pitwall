@@ -1,5 +1,30 @@
 # Changelog
 
+
+### To Do
+[ ] Add national anthem and track specific color functionality to the ambient race bar
+[ ] Implement database
+[ ] Develop the widgets
+[ ] User setup flow
+[ ] Link separate 'main' windows
+[ ] Layout export and sharing
+[ ] Plugins for custom widgets and or functionality
+[ ] Weather
+[ ] Special focus on audio/comms
+[ ] Championship and driver/team standings
+[ ] Car and track custom svgs for map widget and car widget
+[ ] F1TV/Stream overlay with driver/different camera detection
+[ ] switch between live and historical mode
+[ ] Hide log behind menu lol
+[ ] Better inference engine
+[ ] RGB Bridge
+[ ] Back end
+[ ] Replay stuff?
+[ ] System tray and overlay layout editor
+[ ] Update readme
+[ ] Maybe make this a optional-paid app a little bit cheaper than OpenF1? Fork OpenF1 and run it myself with F1TV key?
+[ ] Features for people watching on their TV
+
 All notable changes to this project are documented in this file.
 
 ## alpha v0.1.8 - 2026-04-05
