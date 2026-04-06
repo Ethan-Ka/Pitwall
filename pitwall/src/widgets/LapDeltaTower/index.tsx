@@ -136,6 +136,7 @@ export function LapDeltaTower({ widgetId: _ }: LapDeltaTowerProps) {
               <div style={{
                 width: 3,
                 height: 16,
+
                 borderRadius: 1,
                 background: teamColor,
                 boxShadow: `0 0 4px ${teamColor}66`,
@@ -146,6 +147,7 @@ export function LapDeltaTower({ widgetId: _ }: LapDeltaTowerProps) {
                 fontFamily: 'var(--cond)',
                 fontSize: 14,
                 fontWeight: 700,
+                paddingLeft: 2,
                 color: 'var(--white)',
                 letterSpacing: '0.02em',
                 display: 'flex',

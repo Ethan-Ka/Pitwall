@@ -129,7 +129,7 @@ export function FocusStrip() {
 
   const isWidgetFocusMode = editingWidgetEntry != null
   const focusSelectorOptions = isWidgetFocusMode ? WIDGET_FOCUS_SELECTOR_OPTIONS : FOCUS_SELECTOR_OPTIONS
-  const selectorMinWidth = isWidgetFocusMode ? 68 : 52
+  const selectorMinWidth = isWidgetFocusMode ? 68 : 62
 
   const activeSelectorKey = isWidgetFocusMode
     ? editingWidgetEntry.widget.driverContext === 'FOCUS'
@@ -554,7 +554,7 @@ export function FocusStrip() {
                   gap: 5,
                   height: 18,
                   boxSizing: 'border-box',
-                  padding: '2px 7px',
+                  padding: '2px 8px',
                   borderRadius: 3,
                   border: `0.5px solid ${isFocused ? color : `${color}44`}`,
                   background: isFocused ? `${color}22` : 'transparent',
