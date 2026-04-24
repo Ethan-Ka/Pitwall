@@ -8,7 +8,7 @@ interface SessionBrowserModalProps {
   onClose: () => void
 }
 
-const YEARS = [2023, 2024, 2025]
+const YEARS = [2023, 2024, 2025, 2026]
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -158,7 +158,7 @@ function CircuitGroup({
 
 export function SessionBrowserModal({ onClose }: SessionBrowserModalProps) {
   const EXIT_MS = 220
-  const [selectedYear, setSelectedYear] = useState<number>(2025)
+  const [selectedYear, setSelectedYear] = useState<number>(2026)
   const [isClosing, setIsClosing] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { data: sessions, isLoading } = useSessions(selectedYear)

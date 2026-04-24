@@ -4,6 +4,7 @@ import { useDriverStore } from '../../store/driverStore'
 import { resolveTeamPalette } from '../../lib/teamPalette'
 import { FLAG_COLORS, getFlagLabel, getTransitionDuration } from './flagStateMachine'
 import { ToastQueue } from './ToastQueue'
+import { NextRaceDisplay } from './NextRaceDisplay'
 
 // Inject keyframe animations once
 const STYLE_ID = 'ambient-bar-keyframes-v3'
@@ -253,6 +254,8 @@ export function AmbientBar({ embedded = false, toolbar = false, transparentBackg
         pointerEvents: 'none',
       }}
     >
+      {/* Next Race Display */}
+      {!compact && <NextRaceDisplay year={2026} />}
       {!hideFlagBadge && (
         <>
           {/* Flag swatch */}
