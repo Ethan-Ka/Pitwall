@@ -380,7 +380,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
   function handleModeChange(nextMode: 'historical' | 'live') {
     if (nextMode === 'live') {
-      if (!hasApiKey) return
+      if (!hasApiKey && !f1tvAuthenticated) return
       setMode('live')
       return
     }
@@ -613,7 +613,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           <Section>
             <SectionLabel>Account &amp; Mode</SectionLabel>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+            {/* Data mode toggle */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
               <span style={{
                 fontFamily: 'var(--mono)',
                 fontSize: 9,
@@ -634,7 +635,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
               }}>
                 {([
                   { value: 'historical', label: 'Historical', disabled: false },
-                  { value: 'live', label: 'Live', disabled: !hasApiKey },
+                  { value: 'live', label: 'Live', disabled: !hasApiKey && !f1tvAuthenticated },
                 ] as const).map((option) => {
                   const active = mode === option.value
                   return (
@@ -669,7 +670,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   )
                 })}
               </div>
-              {!hasApiKey && (
+              {!hasApiKey && !f1tvAuthenticated && (
                 <span style={{
                   fontFamily: 'var(--mono)',
                   fontSize: 8,
@@ -677,85 +678,191 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   color: 'var(--muted2)',
                   textTransform: 'uppercase',
                 }}>
-                  Live mode requires an API key
+                  Live mode requires an OpenF1 key or F1TV sign-in
                 </span>
               )}
             </div>
 
-            {hasApiKey ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Data source switcher */}
+            <div style={{ marginBottom: 14 }}>
+              <span style={{
+                fontFamily: 'var(--mono)',
+                fontSize: 9,
+                color: 'var(--white)',
+                letterSpacing: '0.06em',
+                display: 'block',
+                marginBottom: 6,
+              }}>
+                Active data source
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                {(['openf1', 'fastf1'] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setDataSource(s)}
+                    style={{
+                      background: dataSource === s ? 'var(--bg4)' : 'transparent',
+                      border: `0.5px solid ${dataSource === s ? 'var(--red)' : 'var(--border)'}`,
+                      borderRadius: 3,
+                      padding: '7px 0',
+                      fontFamily: 'var(--mono)',
+                      fontSize: 9,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: dataSource === s ? 'var(--white)' : 'var(--muted)',
+                      cursor: 'pointer',
+                      transition: 'all 0.12s',
+                    }}
+                  >
+                    {s === 'openf1' ? 'OpenF1' : 'FastF1'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* OpenF1: API key management */}
+            {dataSource === 'openf1' && (
+              hasApiKey ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      fontFamily: 'var(--mono)',
+                      fontSize: 9,
+                      color: 'var(--white)',
+                      letterSpacing: '0.06em',
+                    }}>
+                      API key
+                    </span>
+                    <span style={{
+                      fontFamily: 'var(--mono)',
+                      fontSize: 9,
+                      color: 'var(--white)',
+                      letterSpacing: '0.08em',
+                    }}>
+                      {maskedKey(apiKey!)}
+                    </span>
+                  </div>
+                  <ActionButton variant="danger" onClick={clearApiKey}>
+                    Remove API key
+                  </ActionButton>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <span style={{
                     fontFamily: 'var(--mono)',
                     fontSize: 9,
                     color: 'var(--white)',
                     letterSpacing: '0.06em',
                   }}>
-                    API key
+                    Historical mode — no live data
                   </span>
+
+                  {!apiKeyInputOpen ? (
+                    <ActionButton onClick={openApiKeyInput}>
+                      Add API key for live mode
+                    </ActionButton>
+                  ) : (
+                    <div
+                      className={apiKeyInputClosing ? 'animated-slide-down-exit' : 'reveal-grow'}
+                      style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                    >
+                      <input
+                        type="text"
+                        value={apiKeyDraft}
+                        onChange={(e) => setApiKeyDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddApiKey()
+                          if (e.key === 'Escape') closeApiKeyInput()
+                        }}
+                        placeholder="Enter OpenF1 API key..."
+                        autoFocus
+                        style={{
+                          background: 'var(--bg4)',
+                          border: '0.5px solid var(--border2)',
+                          borderRadius: 3,
+                          padding: '6px 10px',
+                          fontFamily: 'var(--mono)',
+                          fontSize: 9,
+                          color: 'var(--white)',
+                          outline: 'none',
+                          letterSpacing: '0.06em',
+                        }}
+                      />
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <ActionButton onClick={handleAddApiKey}>Save key</ActionButton>
+                        <ActionButton onClick={() => closeApiKeyInput()}>Cancel</ActionButton>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            )}
+
+            {/* FastF1: bridge status + F1TV auth */}
+            {dataSource === 'fastf1' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                    background: fastf1ServerAvailable ? '#00c864' : 'var(--muted2)',
+                  }} />
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 8, letterSpacing: '0.06em', color: 'var(--muted)' }}>
+                    {fastf1ServerAvailable ? 'Python bridge running' : 'Python bridge not running'}
+                  </span>
+                </div>
+
+                <div>
                   <span style={{
                     fontFamily: 'var(--mono)',
                     fontSize: 9,
                     color: 'var(--white)',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.06em',
+                    display: 'block',
+                    marginBottom: 6,
                   }}>
-                    {maskedKey(apiKey!)}
+                    F1TV authentication
                   </span>
-                </div>
-                <ActionButton variant="danger" onClick={clearApiKey}>
-                  Remove API key
-                </ActionButton>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <span style={{
-                  fontFamily: 'var(--mono)',
-                  fontSize: 9,
-                  color: 'var(--white)',
-                  letterSpacing: '0.06em',
-                }}>
-                  Historical mode — no live data
-                </span>
 
-                {!apiKeyInputOpen ? (
-                  <ActionButton onClick={openApiKeyInput}>
-                    Add API key for live mode
-                  </ActionButton>
-                ) : (
-                  <div
-                    className={apiKeyInputClosing ? 'animated-slide-down-exit' : 'reveal-grow'}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-                  >
-                    <input
-                      type="text"
-                      value={apiKeyDraft}
-                      onChange={(e) => setApiKeyDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleAddApiKey()
-                        if (e.key === 'Escape') closeApiKeyInput()
-                      }}
-                      placeholder="Enter OpenF1 API key..."
-                      autoFocus
-                      style={{
-                        background: 'var(--bg4)',
-                        border: '0.5px solid var(--border2)',
-                        borderRadius: 3,
-                        padding: '6px 10px',
-                        fontFamily: 'var(--mono)',
-                        fontSize: 9,
-                        color: 'var(--white)',
-                        outline: 'none',
-                        letterSpacing: '0.06em',
-                      }}
-                    />
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <ActionButton onClick={handleAddApiKey}>Save key</ActionButton>
-                      <ActionButton onClick={() => closeApiKeyInput()}>
-                        Cancel
-                      </ActionButton>
+                  {f1tvAuthenticated ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--green)', letterSpacing: '0.06em' }}>
+                        ✓ {f1tvEmail ? f1tvEmail : 'Authenticated'}
+                      </span>
+                      <button
+                        onClick={handleF1TVSignOut}
+                        style={{ background: 'none', border: 'none', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted)', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2, letterSpacing: '0.06em', padding: 0 }}
+                      >
+                        Sign out
+                      </button>
                     </div>
-                  </div>
-                )}
+                  ) : f1tvAuthPending ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted)', letterSpacing: '0.06em' }}>
+                        Waiting for browser sign-in…
+                      </span>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {f1tvAuthLoginUrl && (
+                          <button
+                            onClick={() => window.electronAPI?.openExternal(f1tvAuthLoginUrl)}
+                            style={{ background: 'none', border: 'none', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--white)', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2, letterSpacing: '0.06em', padding: 0 }}
+                          >
+                            Reopen
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setF1tvAuthPending(false)}
+                          style={{ background: 'none', border: 'none', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted)', cursor: 'pointer', letterSpacing: '0.06em', padding: 0 }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <ActionButton onClick={handleF1TVSignIn} disabled={!fastf1ServerAvailable}>
+                      Sign in with F1TV
+                    </ActionButton>
+                  )}
+                </div>
               </div>
             )}
           </Section>
@@ -944,103 +1051,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   ? 'Polling active. Live and historical fetch hooks can request new data.'
                   : 'Polling paused. Existing cached data remains visible until re-enabled.'}
               </span>
-            </div>
-          </Section>
-
-          {/* FastF1 */}
-          <Section>
-            <SectionLabel>FastF1</SectionLabel>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-              {/* Data source selector */}
-              <div>
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--white)', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
-                  Active data source
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
-                  {(['openf1', 'fastf1'] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setDataSource(s)}
-                      style={{
-                        background: dataSource === s ? 'var(--bg4)' : 'transparent',
-                        border: `0.5px solid ${dataSource === s ? 'var(--red)' : 'var(--border)'}`,
-                        borderRadius: 3,
-                        padding: '7px 0',
-                        fontFamily: 'var(--mono)',
-                        fontSize: 9,
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        color: dataSource === s ? 'var(--white)' : 'var(--muted)',
-                        cursor: 'pointer',
-                        transition: 'all 0.12s',
-                      }}
-                    >
-                      {s === 'openf1' ? 'OpenF1' : 'FastF1'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Bridge status */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                  background: fastf1ServerAvailable ? '#00c864' : 'var(--muted2)',
-                }} />
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 8, letterSpacing: '0.06em', color: 'var(--muted)' }}>
-                  {fastf1ServerAvailable ? 'Python bridge running' : 'Python bridge not running'}
-                </span>
-              </div>
-
-              {/* F1TV auth */}
-              <div>
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--white)', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
-                  F1TV authentication
-                </span>
-
-                {f1tvAuthenticated ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--green)', letterSpacing: '0.06em' }}>
-                      ✓ {f1tvEmail ? f1tvEmail : 'Authenticated'}
-                    </span>
-                    <button
-                      onClick={handleF1TVSignOut}
-                      style={{ background: 'none', border: 'none', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted)', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2, letterSpacing: '0.06em', padding: 0 }}
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                ) : f1tvAuthPending ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted)', letterSpacing: '0.06em' }}>
-                      Waiting for browser sign-in…
-                    </span>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {f1tvAuthLoginUrl && (
-                        <button
-                          onClick={() => window.electronAPI?.openExternal(f1tvAuthLoginUrl)}
-                          style={{ background: 'none', border: 'none', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--white)', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2, letterSpacing: '0.06em', padding: 0 }}
-                        >
-                          Reopen
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setF1tvAuthPending(false)}
-                        style={{ background: 'none', border: 'none', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted)', cursor: 'pointer', letterSpacing: '0.06em', padding: 0 }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <ActionButton onClick={handleF1TVSignIn} disabled={!fastf1ServerAvailable}>
-                    Sign in with F1TV
-                  </ActionButton>
-                )}
-              </div>
-
             </div>
           </Section>
 

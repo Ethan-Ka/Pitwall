@@ -340,19 +340,16 @@ function DataLayer({ onStartupProgressChange }: DataLayerProps) {
   const nextRaceYear = activeSession?.year ?? new Date().getFullYear()
   const { proximity: raceProximity, session: nextRaceSession } = useNextRace(nextRaceYear)
 
-  // --- Credential gating: only OpenF1 users without a key should see onboarding ---
+  // --- Credential gating: advance out of onboarding, never force back into it ---
+  // Toggling data sources from Settings must not re-open onboarding.
   useEffect(() => {
-    if (dataSource === 'openf1' && !apiKey) {
-      if (mode !== 'onboarding') setMode('onboarding')
-      return
-    }
-    // OpenF1 key arrived (e.g. restored from storage) while in onboarding — go to historical
-    if (dataSource === 'openf1' && mode === 'onboarding' && apiKey) {
+    // FastF1 needs no key — skip onboarding
+    if (dataSource === 'fastf1' && mode === 'onboarding') {
       setMode('historical')
       return
     }
-    // FastF1: onboarding only clears when data source is switched; no key required
-    if (dataSource === 'fastf1' && mode === 'onboarding') {
+    // OpenF1 key arrived while still on onboarding screen — advance
+    if (dataSource === 'openf1' && mode === 'onboarding' && apiKey) {
       setMode('historical')
       return
     }

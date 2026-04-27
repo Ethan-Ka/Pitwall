@@ -12,12 +12,14 @@ interface SessionStore {
   mode: AppMode
   activeSession: OpenF1Session | null
   apiRequestsEnabled: boolean
+  onboardingComplete: boolean
   setApiKey: (key: string) => void
   clearApiKey: () => void
   setMode: (mode: AppMode) => void
   setActiveSession: (session: OpenF1Session) => void
   setApiRequestsEnabled: (enabled: boolean) => void
   toggleApiRequestsEnabled: () => void
+  setOnboardingComplete: (done: boolean) => void
 
   // FastF1 bridge
   dataSource: DataSource
@@ -39,12 +41,14 @@ export const useSessionStore = create<SessionStore>()(
       mode: 'onboarding',
       activeSession: null,
       apiRequestsEnabled: true,
-      setApiKey: (key) => set({ apiKey: key, mode: 'historical' }),
+      onboardingComplete: false,
+      setApiKey: (key) => set({ apiKey: key, mode: 'historical', onboardingComplete: true }),
       clearApiKey: () => set({ apiKey: null, mode: 'historical' }),
       setMode: (mode) => set({ mode }),
       setActiveSession: (session) => set({ activeSession: session }),
       setApiRequestsEnabled: (enabled) => set({ apiRequestsEnabled: enabled }),
       toggleApiRequestsEnabled: () => set((state) => ({ apiRequestsEnabled: !state.apiRequestsEnabled })),
+      setOnboardingComplete: (done) => set({ onboardingComplete: done }),
 
       // FastF1 bridge
       dataSource: 'openf1',
@@ -63,6 +67,7 @@ export const useSessionStore = create<SessionStore>()(
         apiKey: s.apiKey,
         mode: s.mode,
         apiRequestsEnabled: s.apiRequestsEnabled,
+        onboardingComplete: s.onboardingComplete,
         dataSource: s.dataSource,
         activeFastF1Session: s.activeFastF1Session,
         f1tvAuthenticated: s.f1tvAuthenticated,

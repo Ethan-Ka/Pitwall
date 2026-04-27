@@ -1,15 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   checkFastF1Server,
   getFastF1AuthStatus,
   signOutFastF1,
   startFastF1Auth,
 } from '../api/fastf1Bridge'
-import { validateApiKey } from '../api/openf1'
+import { fetchSessions, validateApiKey } from '../api/openf1'
 import { useSessionStore, type DataSource } from '../store/sessionStore'
 
 export function ApiKeyOnboarding() {
-  const { setApiKey, setMode, setDataSource, setF1TVAuth, setFastF1ServerAvailable } =
+  const { setApiKey, setMode, setDataSource, setF1TVAuth, setFastF1ServerAvailable, setOnboardingComplete } =
     useSessionStore()
 
   // Which source tab is previewed (not yet committed to store)
@@ -81,24 +82,67 @@ export function ApiKeyOnboarding() {
     }
   }, [authPending, setF1TVAuth])
 
+  // ── Race proximity (public endpoint, no key needed) ───────────────────────
+  const { data: onboardingSessions } = useQuery({
+    queryKey: ['sessions-onboarding', new Date().getFullYear()],
+    queryFn: () => fetchSessions({ year: new Date().getFullYear() }),
+    staleTime: 5 * 60_000,
+    retry: false,
+  })
+
+  const raceIsImminent = useMemo(() => {
+    if (!onboardingSessions) return false
+    const now = Date.now()
+    const HOUR = 60 * 60 * 1000
+    const next = onboardingSessions
+      .filter(s => s.session_type === 'Race' && new Date(s.date_end).getTime() > now - 30 * 60_000)
+      .sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime())[0]
+    if (!next) return false
+    const start = new Date(next.date_start).getTime()
+    const end = new Date(next.date_end).getTime()
+    const msToStart = start - now
+    return (now >= start && now <= end) || msToStart <= HOUR
+  }, [onboardingSessions])
+
   // ── Handlers ──────────────────────────────────────────────────────────────
 
-  async function handleOpenF1Validate() {
+  async function handleOpenF1GetStarted() {
+    if (key.trim()) {
+      setKeyStatus('loading')
+      const result = await validateApiKey(key.trim())
+      if (result === 'valid') {
+        setDataSource('openf1')
+        setApiKey(key.trim()) // sets mode:'historical', onboardingComplete:true
+        if (raceIsImminent) setMode('live')
+      } else if (result === 'invalid') setKeyStatus('error_invalid')
+      else if (result === 'forbidden') setKeyStatus('error_forbidden')
+      else if (result === 'rate_limited') setKeyStatus('error_rate')
+      else setKeyStatus('error_network')
+    } else {
+      setDataSource('openf1')
+      setOnboardingComplete(true)
+      setMode('historical')
+    }
+  }
+
+  function handleOpenF1Historical() {
+    setDataSource('openf1')
+    setOnboardingComplete(true)
+    setMode('historical')
+  }
+
+  async function handleOpenF1CardLive() {
     if (!key.trim()) return
     setKeyStatus('loading')
     const result = await validateApiKey(key.trim())
     if (result === 'valid') {
       setDataSource('openf1')
       setApiKey(key.trim())
+      setMode('live')
     } else if (result === 'invalid') setKeyStatus('error_invalid')
     else if (result === 'forbidden') setKeyStatus('error_forbidden')
     else if (result === 'rate_limited') setKeyStatus('error_rate')
     else setKeyStatus('error_network')
-  }
-
-  function handleOpenF1Historical() {
-    setDataSource('openf1')
-    setMode('historical')
   }
 
   async function handleF1TVSignIn() {
@@ -132,12 +176,20 @@ export function ApiKeyOnboarding() {
 
   function handleFastF1Historical() {
     setDataSource('fastf1')
+    setOnboardingComplete(true)
     setMode('historical')
   }
 
   function handleFastF1Live() {
     setDataSource('fastf1')
+    setOnboardingComplete(true)
     setMode('live')
+  }
+
+  function handleFastF1GetStarted() {
+    setDataSource('fastf1')
+    setOnboardingComplete(true)
+    setMode(f1tvStatus === 'authenticated' && raceIsImminent ? 'live' : 'historical')
   }
 
   // ── Styles ────────────────────────────────────────────────────────────────
@@ -155,36 +207,6 @@ export function ApiKeyOnboarding() {
     border: '0.5px solid var(--border)',
     borderRadius: 4,
     padding: '16px 18px',
-  }
-
-  const primaryBtn = (active: boolean): React.CSSProperties => ({
-    width: '100%',
-    background: active ? 'var(--red)' : 'rgba(232,19,43,0.2)',
-    border: 'none',
-    borderRadius: 3,
-    padding: '11px',
-    fontFamily: 'var(--mono)',
-    fontSize: 10,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-    color: 'var(--white)',
-    cursor: active ? 'pointer' : 'not-allowed',
-    marginBottom: 8,
-    transition: 'background 0.15s',
-  })
-
-  const ghostBtn: React.CSSProperties = {
-    width: '100%',
-    background: 'transparent',
-    border: '0.5px solid var(--border)',
-    borderRadius: 3,
-    padding: '10px',
-    fontFamily: 'var(--mono)',
-    fontSize: 10,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-    color: 'var(--muted)',
-    cursor: 'pointer',
   }
 
   const errorBox = (color: string, bg: string, border: string): React.CSSProperties => ({
@@ -381,18 +403,81 @@ export function ApiKeyOnboarding() {
               </div>
             )}
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+              <button
+                onClick={handleOpenF1CardLive}
+                disabled={!key.trim() || keyStatus === 'loading'}
+                className="interactive-button"
+                style={{
+                  background: 'transparent',
+                  border: `0.5px solid ${!!key.trim() && keyStatus !== 'loading' ? 'rgba(232,19,43,0.5)' : 'var(--border)'}`,
+                  borderRadius: 3,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: !!key.trim() && keyStatus !== 'loading' ? 'pointer' : 'not-allowed',
+                  opacity: !!key.trim() && keyStatus !== 'loading' ? 1 : 0.45,
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--red)', flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)' }}>
+                    {keyStatus === 'loading' ? 'Validating…' : 'With live access'}
+                  </span>
+                </div>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', lineHeight: 1.6 }}>
+                  Unlocks real-time data during active race sessions
+                </div>
+              </button>
+
+              <button
+                onClick={handleOpenF1Historical}
+                className="interactive-button"
+                style={{
+                  background: 'transparent',
+                  border: '0.5px solid var(--border)',
+                  borderRadius: 3,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>
+                  Historical only
+                </div>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted2)', lineHeight: 1.6 }}>
+                  Browse all sessions from 2023–present
+                </div>
+              </button>
+            </div>
+
             <button
-              onClick={handleOpenF1Validate}
-              disabled={!key.trim() || keyStatus === 'loading'}
+              onClick={handleOpenF1GetStarted}
+              disabled={keyStatus === 'loading'}
               className="interactive-button"
-              style={primaryBtn(!!key.trim() && keyStatus !== 'loading')}
+              style={{
+                width: '100%',
+                background: 'var(--red)',
+                border: 'none',
+                borderRadius: 3,
+                padding: '11px',
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'var(--white)',
+                cursor: keyStatus === 'loading' ? 'not-allowed' : 'pointer',
+                marginBottom: 10,
+                transition: 'background 0.15s',
+              }}
             >
-              {keyStatus === 'loading' ? 'Validating…' : 'Enable live mode'}
+              {keyStatus === 'loading' ? 'Validating…' : 'Get started'}
             </button>
 
-            <button onClick={handleOpenF1Historical} className="interactive-button" style={ghostBtn}>
-              Continue with historical data
-            </button>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted2)', letterSpacing: '0.04em' }}>
+              Live mode can be toggled anytime from the toolbar
+            </div>
           </>
         )}
 
@@ -621,18 +706,80 @@ export function ApiKeyOnboarding() {
               )}
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+              <button
+                onClick={handleFastF1Live}
+                disabled={f1tvStatus !== 'authenticated'}
+                className="interactive-button"
+                style={{
+                  background: 'transparent',
+                  border: `0.5px solid ${f1tvStatus === 'authenticated' ? 'rgba(232,19,43,0.5)' : 'var(--border)'}`,
+                  borderRadius: 3,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: f1tvStatus === 'authenticated' ? 'pointer' : 'not-allowed',
+                  opacity: f1tvStatus === 'authenticated' ? 1 : 0.45,
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--red)', flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)' }}>
+                    Live timing
+                  </span>
+                </div>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', lineHeight: 1.6 }}>
+                  Direct SignalR feed during active race sessions
+                </div>
+              </button>
+
+              <button
+                onClick={handleFastF1Historical}
+                className="interactive-button"
+                style={{
+                  background: 'transparent',
+                  border: '0.5px solid var(--border)',
+                  borderRadius: 3,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5 }}>
+                  Historical only
+                </div>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted2)', lineHeight: 1.6 }}>
+                  Rich telemetry data from 2018–present
+                </div>
+              </button>
+            </div>
+
             <button
-              onClick={handleFastF1Live}
-              disabled={f1tvStatus !== 'authenticated'}
+              onClick={handleFastF1GetStarted}
               className="interactive-button"
-              style={primaryBtn(f1tvStatus === 'authenticated')}
+              style={{
+                width: '100%',
+                background: 'var(--red)',
+                border: 'none',
+                borderRadius: 3,
+                padding: '11px',
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'var(--white)',
+                cursor: 'pointer',
+                marginBottom: 10,
+                transition: 'background 0.15s',
+              }}
             >
-              Enable live timing
+              Get started
             </button>
 
-            <button onClick={handleFastF1Historical} className="interactive-button" style={ghostBtn}>
-              Continue with historical data
-            </button>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted2)', letterSpacing: '0.04em' }}>
+              Live timing only has data when a session is active · switch modes anytime from the toolbar
+            </div>
           </>
         )}
 

@@ -1,22 +1,9 @@
 
 # Urgent To Do 
 
-The onboarding srceen comes up every time
-
 Also fix the multiple window system
 
 Consolidate a bunch of methods and everything to make plugins/widgets as simple as possible to implement
-
-
-i messed up the settings page
-
-Live mode is allowed only if OpenF1 API key is present
-
-When toggling between the fastf1/openf1 switcher, don't re-open the onboarding screen
-
-Move FastF1/OpenF1 switcher and the fastF1 settings to the account area: The FastF1 authentication and server status UI will be moved into the "Account & Mode" section at the top of the settings panel, under the dedicated switch for the switcher.
-Move OpenF1 API key under the FastF1/OpenF1 switchers: The API key input and display will be grouped under the data source switchers, making it clear which key is used for which mode.
-Live mode checks should be satisfied by F1TV sign-in: The "Live" mode button will be enabled if either an OpenF1 API key is present or the user is authenticated with F1TV (FastF1).
 
 # To Do
 
