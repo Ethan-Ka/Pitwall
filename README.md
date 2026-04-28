@@ -19,10 +19,6 @@
 
 > Not affiliated with Formula 1, FIA, or Formula One Management.
 
-## Contributing
-
-For contributing, see [CONTRIBUTING.MD](https://github.com/Ethan-Ka/Pitwall/blob/main/CONTRIBUTING.MD)
-
 ---
 
 ## Intro
@@ -30,6 +26,12 @@ For contributing, see [CONTRIBUTING.MD](https://github.com/Ethan-Ka/Pitwall/blob
 Pitwall is built for fans who want team-style race context in one place: timing, telemetry, strategy, weather, radio events, and inferred signals that OpenF1 does not expose directly.
 
 The goal is to make race intelligence configurable, shareable, and useful in real time.
+
+---
+
+## Contributing
+
+For contributing, see [CONTRIBUTING.MD](https://github.com/Ethan-Ka/Pitwall/blob/main/CONTRIBUTING.MD)
 
 ---
 
