@@ -13,6 +13,7 @@
   <img alt="Status" src="https://img.shields.io/badge/status-alpha_v0.2.0-E8132B" />
   <img alt="Stack" src="https://img.shields.io/badge/stack-React%20%7C%20TypeScript%20%7C%20Vite-1AACB8" />
   <img alt="Data" src="https://img.shields.io/badge/data-OpenF1-3671C6" />
+  <img alt="Data" src="https://img.shields.io/badge/data-FastF1-3671C6" />
   <img alt="Desktop" src="https://img.shields.io/badge/desktop-Electron%20Phase%204-6B6B70" />
 </p>
 
