@@ -1,54 +1,63 @@
 import { useRef, useEffect, useMemo, useState } from 'react'
-import { usePositions } from '../../hooks/usePositions'
-import { useIntervals } from '../../hooks/useIntervals'
+import { useLocation } from '../../hooks/useLocation'
+import { useCircuitMap } from '../../hooks/useCircuitMap'
 import { useDriverStore } from '../../store/driverStore'
+import { useSessionStore } from '../../store/sessionStore'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
 
-interface FullTrackMapProps {
-  widgetId: string
+// ---------------------------------------------------------------------------
+// Coordinate helpers (module scope — stable across renders)
+// ---------------------------------------------------------------------------
+
+function makeNormalizer(
+  bbox: { minX: number; maxX: number; minY: number; maxY: number },
+  svgW: number,
+  svgH: number,
+  pad = 20,
+) {
+  const rangeX = bbox.maxX - bbox.minX || 1
+  const rangeY = bbox.maxY - bbox.minY || 1
+  const scale = Math.min((svgW - pad * 2) / rangeX, (svgH - pad * 2) / rangeY)
+  const offX = pad + ((svgW - pad * 2) - rangeX * scale) / 2
+  const offY = pad + ((svgH - pad * 2) - rangeY * scale) / 2
+  return {
+    toSVG: (x: number, y: number) => ({
+      svgX: offX + (x - bbox.minX) * scale,
+      // Flip Y axis: FastF1 Y increases upward, SVG Y increases downward
+      svgY: svgH - (offY + (y - bbox.minY) * scale),
+    }),
+    scale,
+  }
 }
 
-interface DriverDot {
-  driverNumber: number
-  abbr: string
-  color: string
-  cx: number
-  cy: number
-  gapToLeader: number | null
+function bboxFromPoints(pts: { x: number; y: number }[]) {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+  for (const p of pts) {
+    if (p.x < minX) minX = p.x
+    if (p.x > maxX) maxX = p.x
+    if (p.y < minY) minY = p.y
+    if (p.y > maxY) maxY = p.y
+  }
+  return { minX, maxX, minY, maxY }
 }
 
-// Simple oval track path — a placeholder closed bezier
-function buildTrackPath(cx: number, cy: number, rx: number, ry: number): string {
-  // Approximate circuit shape with a squircle-like closed bezier
-  const k = 0.55 // bezier control point factor
-  return [
-    `M ${cx} ${cy - ry}`,
-    `C ${cx + rx * k} ${cy - ry}, ${cx + rx} ${cy - ry * k}, ${cx + rx} ${cy}`,
-    `C ${cx + rx} ${cy + ry * k}, ${cx + rx * k} ${cy + ry}, ${cx} ${cy + ry}`,
-    `C ${cx - rx * k} ${cy + ry}, ${cx - rx} ${cy + ry * k}, ${cx - rx} ${cy}`,
-    `C ${cx - rx} ${cy - ry * k}, ${cx - rx * k} ${cy - ry}, ${cx} ${cy - ry}`,
-    'Z',
-  ].join(' ')
-}
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
-// Map gap_to_leader (seconds) to a 0–1 progress around the track
-// Leader is at 0, 90s behind ≈ full lap behind
-function gapToAngle(gap: number | null, totalGap: number): number {
-  if (gap === null) return 0
-  // Simple heuristic: spread drivers based on normalized gap
-  return (gap / Math.max(totalGap, 1)) * (Math.PI * 2)
-}
-
-export function FullTrackMap({ widgetId: _ }: FullTrackMapProps) {
+export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [size, setSize] = useState({ width: 300, height: 240 })
+  const [size, setSize] = useState({ width: 300, height: 260 })
   const [hoveredDriver, setHoveredDriver] = useState<number | null>(null)
 
-  const { data: positions } = usePositions()
-  const { data: intervals } = useIntervals()
-  const { getDriver, getTeamColor } = useDriverStore()
-  const refreshFade = useRefreshFade([positions, intervals])
+  const f1Ref = useSessionStore((s) => s.activeFastF1Session)
+  const { data: driverPositions, trackPoints } = useLocation()
+  const { data: circuitMap } = useCircuitMap(f1Ref)
+  const getDriver = useDriverStore((s) => s.getDriver)
+  const getTeamColor = useDriverStore((s) => s.getTeamColor)
+  const refreshFade = useRefreshFade([driverPositions])
 
+  // Observe container size changes
   useEffect(() => {
     if (!containerRef.current) return
     const ro = new ResizeObserver((entries) => {
@@ -59,56 +68,66 @@ export function FullTrackMap({ widgetId: _ }: FullTrackMapProps) {
     return () => ro.disconnect()
   }, [])
 
-  const intervalMap = new Map(intervals?.map((i) => [i.driver_number, i]) ?? [])
+  // Decide which track data source to use for normalization bbox
+  const bbox = useMemo(() => {
+    if (circuitMap) return circuitMap.bbox
+    if (trackPoints.length > 50) return bboxFromPoints(trackPoints)
+    return null
+  }, [circuitMap, trackPoints])
 
-  const maxGap = intervals
-    ? Math.max(...intervals.map((i) => i.gap_to_leader ?? 0), 90)
-    : 90
+  const normalizer = useMemo(
+    () => (bbox ? makeNormalizer(bbox, size.width, size.height) : null),
+    [bbox, size],
+  )
 
-  const cx = size.width / 2
-  const cy = size.height / 2
-  const rx = size.width * 0.38
-  const ry = size.height * 0.36
-  const trackPath = buildTrackPath(cx, cy, rx, ry)
+  // Build SVG polyline string for the circuit outline
+  const trackPolyline = useMemo(() => {
+    if (!normalizer) return ''
+    const pts = circuitMap
+      ? circuitMap.x.map((x, i) => normalizer.toSVG(x, circuitMap.y[i]))
+      : trackPoints.map((p) => normalizer.toSVG(p.x, p.y))
+    return pts.map((p) => `${p.svgX.toFixed(1)},${p.svgY.toFixed(1)}`).join(' ')
+  }, [circuitMap, trackPoints, normalizer])
 
-  // Place drivers around the track ellipse based on position/gap
-  const sorted = positions ? [...positions].sort((a, b) => a.position - b.position) : []
+  // Project driver dots into SVG space
+  const dots = useMemo(() => {
+    if (!normalizer || !driverPositions) return []
+    return driverPositions.map((dp) => {
+      const { svgX, svgY } = normalizer.toSVG(dp.x, dp.y)
+      const driver = getDriver(dp.driverNumber)
+      return {
+        driverNumber: dp.driverNumber,
+        abbr: driver?.name_acronym ?? `${dp.driverNumber}`,
+        color: getTeamColor(dp.driverNumber),
+        svgX,
+        svgY,
+        metricX: dp.x,
+        metricY: dp.y,
+      }
+    })
+  }, [driverPositions, normalizer, getDriver, getTeamColor])
 
-  const dots: DriverDot[] = sorted.map((pos) => {
-    const interval = intervalMap.get(pos.driver_number)
-    const gap = interval?.gap_to_leader ?? null
-    const angle = gapToAngle(gap, maxGap)
-    // Start at top of oval (−π/2), go clockwise
-    const theta = -Math.PI / 2 + angle
-    return {
-      driverNumber: pos.driver_number,
-      abbr: getDriver(pos.driver_number)?.name_acronym ?? `${pos.driver_number}`,
-      color: getTeamColor(pos.driver_number),
-      cx: cx + rx * Math.cos(theta),
-      cy: cy + ry * Math.sin(theta),
-      gapToLeader: gap,
-    }
-  })
-
-  // Battle proximity: pairs within 1s of each other.
-  // Memoized so the O(n²) scan does not run on every render tick caused by
-  // the 2s intervals poll or 3s positions poll.
-  const battlePairs = useMemo(() => {
-    const pairs = new Set<number>()
+  // Battle proximity — Euclidean distance in metric space < 30 m
+  const battleSet = useMemo(() => {
+    const set = new Set<number>()
     for (let i = 0; i < dots.length; i++) {
       for (let j = i + 1; j < dots.length; j++) {
-        const gi = dots[i].gapToLeader ?? 0
-        const gj = dots[j].gapToLeader ?? 0
-        if (Math.abs(gi - gj) < 1) {
-          pairs.add(dots[i].driverNumber)
-          pairs.add(dots[j].driverNumber)
+        const dist = Math.hypot(
+          dots[i].metricX - dots[j].metricX,
+          dots[i].metricY - dots[j].metricY,
+        )
+        if (dist < 30) {
+          set.add(dots[i].driverNumber)
+          set.add(dots[j].driverNumber)
         }
       }
     }
-    return pairs
-  // dots is recomputed from positions+intervals so using it as the dep is correct
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [positions, intervals])
+    return set
+  }, [dots])
+
+  const hasData = dots.length > 0
+  const hasOutline = trackPolyline.length > 0
+  const buildingTrack = !hasOutline && !circuitMap
 
   return (
     <div
@@ -116,32 +135,36 @@ export function FullTrackMap({ widgetId: _ }: FullTrackMapProps) {
       className={refreshFade ? 'data-refresh-fade' : undefined}
       style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}
     >
-      <svg
-        width={size.width}
-        height={size.height}
-        style={{ display: 'block' }}
-      >
-        {/* Track outline — outer */}
-        <path
-          d={buildTrackPath(cx, cy, rx + 8, ry + 6)}
-          fill="none"
-          stroke="var(--border2)"
-          strokeWidth={10}
-        />
-        {/* Track outline — inner line */}
-        <path
-          d={trackPath}
-          fill="none"
-          stroke="var(--border3)"
-          strokeWidth={2}
-        />
+      <svg width={size.width} height={size.height} style={{ display: 'block' }}>
+        {/* Track outline — thick band for road surface feel */}
+        {hasOutline && (
+          <polyline
+            points={trackPolyline}
+            fill="none"
+            stroke="var(--border2)"
+            strokeWidth={14}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+        {/* Track outline — thin centre line for definition */}
+        {hasOutline && (
+          <polyline
+            points={trackPolyline}
+            fill="none"
+            stroke="var(--border3)"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
 
         {/* Battle proximity rings */}
-        {dots.filter((d) => battlePairs.has(d.driverNumber)).map((d) => (
+        {dots.filter((d) => battleSet.has(d.driverNumber)).map((d) => (
           <circle
             key={`battle-${d.driverNumber}`}
-            cx={d.cx}
-            cy={d.cy}
+            cx={d.svgX}
+            cy={d.svgY}
             r={10}
             fill="none"
             stroke="var(--amber)"
@@ -151,14 +174,14 @@ export function FullTrackMap({ widgetId: _ }: FullTrackMapProps) {
           />
         ))}
 
-        {/* Driver dots */}
+        {/* Driver dots + abbreviation labels */}
         {dots.map((d) => {
           const isHovered = hoveredDriver === d.driverNumber
           return (
             <g key={d.driverNumber}>
               <circle
-                cx={d.cx}
-                cy={d.cy}
+                cx={d.svgX}
+                cy={d.svgY}
                 r={isHovered ? 8 : 5}
                 fill={d.color}
                 style={{
@@ -169,37 +192,39 @@ export function FullTrackMap({ widgetId: _ }: FullTrackMapProps) {
                 onMouseEnter={() => setHoveredDriver(d.driverNumber)}
                 onMouseLeave={() => setHoveredDriver(null)}
               />
-              {isHovered && (
-                <text
-                  x={d.cx}
-                  y={d.cy - 12}
-                  textAnchor="middle"
-                  fontFamily="var(--mono)"
-                  fontSize={8}
-                  fill="var(--white)"
-                  letterSpacing="0.06em"
-                >
-                  {d.abbr}
-                </text>
-              )}
+              {/* Labels always visible; full opacity on hover */}
+              <text
+                x={d.svgX}
+                y={d.svgY - 9}
+                textAnchor="middle"
+                fontFamily="var(--mono)"
+                fontSize={7}
+                fill={isHovered ? 'var(--white)' : `${d.color}cc`}
+                letterSpacing="0.06em"
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
+              >
+                {d.abbr}
+              </text>
             </g>
           )
         })}
       </svg>
 
-      {/* No data overlay */}
-      {sorted.length === 0 && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'var(--mono)',
-          fontSize: 9,
-          color: 'var(--muted2)',
-        }}>
-          Waiting for position data…
+      {/* Overlay when no position data yet */}
+      {!hasData && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'var(--mono)',
+            fontSize: 9,
+            color: 'var(--muted2)',
+          }}
+        >
+          {buildingTrack ? 'Building track map…' : 'Waiting for position data…'}
         </div>
       )}
     </div>

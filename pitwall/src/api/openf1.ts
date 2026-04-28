@@ -213,8 +213,12 @@ export function fetchStints(sessionKey: number, driverNumber?: number, apiKey?: 
 }
 
 // --- Location ---
-export function fetchLocations(sessionKey: number, driverNumber?: number, apiKey?: string) {
-  return openf1Fetch<OpenF1Location>('/location', { session_key: sessionKey, driver_number: driverNumber }, apiKey)
+export function fetchLocations(sessionKey: number, driverNumber?: number, apiKey?: string, date_gt?: string) {
+  return openf1Fetch<OpenF1Location>('/location', {
+    session_key: sessionKey,
+    driver_number: driverNumber,
+    ...(date_gt ? { 'date>': date_gt } : {}),
+  }, apiKey)
 }
 
 // --- Car Data ---
@@ -225,6 +229,19 @@ export function fetchCarData(sessionKey: number, driverNumber?: number, apiKey?:
 // --- Meetings ---
 export function fetchMeetings(params?: { year?: number }, apiKey?: string) {
   return openf1Fetch<OpenF1Meeting>('/meetings', params ?? {}, apiKey)
+}
+
+// --- Team Radio ---
+export interface OpenF1TeamRadio {
+  date: string
+  driver_number: number
+  meeting_key: number
+  recording_url: string
+  session_key: number
+}
+
+export function fetchTeamRadio(sessionKey: number, driverNumber?: number, apiKey?: string) {
+  return openf1Fetch<OpenF1TeamRadio>('/team_radio', { session_key: sessionKey, driver_number: driverNumber }, apiKey)
 }
 
 // Validate an API key by probing /sessions?session_key=latest

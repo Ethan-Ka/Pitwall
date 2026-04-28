@@ -8,7 +8,9 @@ interface RunningOrderStripProps {
 
 export function RunningOrderStrip({ widgetId: _ }: RunningOrderStripProps) {
   const { data: positions } = usePositions()
-  const { getDriver, getTeamColor, getTeamLogo } = useDriverStore()
+  const getDriver = useDriverStore((s) => s.getDriver)
+  const getTeamColor = useDriverStore((s) => s.getTeamColor)
+  const getTeamLogo = useDriverStore((s) => s.getTeamLogo)
   const refreshFade = useRefreshFade([positions])
 
   const sorted = positions ?? []

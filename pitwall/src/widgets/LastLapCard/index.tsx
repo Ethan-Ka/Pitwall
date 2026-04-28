@@ -16,7 +16,8 @@ export function LastLapCard({ widgetId }: LastLapCardProps) {
   const config = useWidgetConfig(widgetId)
   const units: UnitMode = (config?.settings?.units as UnitMode) ?? 's'
   const { driverNumber, badgeLabel } = useWidgetDriver(config?.driverContext ?? 'FOCUS')
-  const { getDriver, getTeamColor } = useDriverStore()
+  const getDriver = useDriverStore((s) => s.getDriver)
+  const getTeamColor = useDriverStore((s) => s.getTeamColor)
   const mode = useSessionStore((s) => s.mode)
   const { data: laps } = useLaps(driverNumber ?? undefined, {
     refetchIntervalMs: mode === 'live' ? 60_000 : 15_000,
@@ -91,7 +92,7 @@ export function LastLapCard({ widgetId }: LastLapCardProps) {
                 color: 'var(--muted2)',
               }}
             >
-              Last lap card
+              Last lap
             </span>
             <span
               style={{

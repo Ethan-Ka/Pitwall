@@ -123,6 +123,13 @@ export interface FastF1SessionRef {
   session: string                 // 'R' | 'Q' | 'FP1' | 'FP2' | 'FP3' | 'S' | 'SQ'
 }
 
+export interface FastF1CircuitMap {
+  x: number[]
+  y: number[]
+  bbox: { minX: number; maxX: number; minY: number; maxY: number }
+  count: number
+}
+
 // ---------------------------------------------------------------------------
 // Core fetch
 // ---------------------------------------------------------------------------
@@ -214,6 +221,14 @@ export function fetchFastF1RaceControl(ref: FastF1SessionRef) {
 
 export function fetchFastF1Results(ref: FastF1SessionRef) {
   return f1Fetch<FastF1Result[]>('/results', {
+    year: ref.year,
+    round: ref.round,
+    session: ref.session,
+  })
+}
+
+export function fetchCircuitMap(ref: FastF1SessionRef) {
+  return f1Fetch<FastF1CircuitMap>('/circuit_map', {
     year: ref.year,
     round: ref.round,
     session: ref.session,

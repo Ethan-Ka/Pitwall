@@ -89,12 +89,6 @@ function createSpecWidget(meta: SpecWidgetMeta) {
   }
 }
 
-export const GapEvolutionChart = createSpecWidget({
-  title: 'Gap Evolution',
-  subtitle: 'Session-long gap trend for two selectable drivers.',
-  accent: 'var(--red)',
-})
-
 export const HeadToHeadDelta = createSpecWidget({
   title: 'Head-to-Head Delta',
   subtitle: 'Direct two-driver metric comparison card.',
@@ -185,28 +179,10 @@ export const OvertakeReplay = createSpecWidget({
   accent: 'var(--green)',
 })
 
-export const TrackTempEvolution = createSpecWidget({
-  title: 'Track Temp Evolution',
-  subtitle: 'Track temperature timeline with inferred overlays.',
-  accent: 'var(--blue)',
-})
-
 export const WindDirection = createSpecWidget({
   title: 'Wind Direction',
   subtitle: 'Compass-oriented wind indicator and directional trend.',
   accent: 'var(--blue)',
-})
-
-export const RadioScanner = createSpecWidget({
-  title: 'Radio Scanner',
-  subtitle: 'Live team-radio channel monitor and activity queue.',
-  accent: 'var(--pink)',
-})
-
-export const RadioFeedText = createSpecWidget({
-  title: 'Radio Feed (Text)',
-  subtitle: 'Text timeline of transcribed radio messages.',
-  accent: 'var(--pink)',
 })
 
 export const StandingsTable = createSpecWidget({

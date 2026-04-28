@@ -13,7 +13,8 @@ export function LapDeltaTower({ widgetId: _ }: LapDeltaTowerProps) {
   const { data: positions } = usePositions()
   const { data: intervals } = useIntervals()
   const { data: laps } = useLaps()
-  const { getDriver, getTeamColor } = useDriverStore()
+  const getDriver = useDriverStore((s) => s.getDriver)
+  const getTeamColor = useDriverStore((s) => s.getTeamColor)
   const refreshFade = useRefreshFade([positions, intervals, laps])
 
   // Build interval map

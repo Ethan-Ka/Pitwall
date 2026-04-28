@@ -421,16 +421,29 @@ function PreviewStandingsBoard() {
   )
 }
 
-function PreviewLapTimeCard() {
+function PreviewLastLapCard() {
   return (
     <div style={{ height: '100%', padding: '7px 9px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.1em' }}>LAST LAP</span>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.1em' }}>LAST LAP (L47)</span>
       <span style={{ fontFamily: 'var(--cond)', fontSize: 18, fontWeight: 700, color: 'var(--white)', lineHeight: 1 }}>1:28.642</span>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
         {['S1 28.4', 'S2 31.1', 'S3 29.1'].map((v) => (
           <span key={v} style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted)', textAlign: 'center' }}>{v}</span>
         ))}
       </div>
+    </div>
+  )
+}
+
+function PreviewLiveLapTimeCard() {
+  return (
+    <div style={{ height: '100%', padding: '7px 9px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.1em' }}>LIVE LAP (L48)</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontFamily: 'var(--cond)', fontSize: 8, color: 'var(--muted2)', opacity: 0.4, lineHeight: 1 }}>1:28.642</span>
+        <span style={{ fontFamily: 'var(--cond)', fontSize: 22, fontWeight: 700, color: '#e8002d', lineHeight: 1, textShadow: '0 0 8px #e8002d44' }}>1:14.3__</span>
+      </div>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.1em' }}>LIVE TIMER</span>
     </div>
   )
 }
@@ -784,7 +797,8 @@ function PreviewCarVisualization() {
 
 const PREVIEW_MAP: Record<string, () => React.ReactElement> = {
   LapDeltaTower: PreviewLapDeltaTower,
-  LapTimeCard: PreviewLapTimeCard,
+  LastLapCard: PreviewLastLapCard,
+  LiveLapTimeCard: PreviewLiveLapTimeCard,
   GapEvolutionChart: PreviewGapEvolutionChart,
   StintPaceComparison: PreviewStintPaceComparison,
   HeadToHeadDelta: PreviewHeadToHeadDelta,

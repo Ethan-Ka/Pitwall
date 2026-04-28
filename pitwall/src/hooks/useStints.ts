@@ -24,7 +24,10 @@ export function useStints(driverNumber?: number, options?: { preload?: boolean }
       void writeSessionData('stints', key, data, mode === 'historical', driverNumber)
       return data
     },
-    enabled: !!sessionKey,
+    // Only enable when a session is selected AND either a driverNumber is provided
+    // or the caller explicitly requested preloading. Prevents accidental full-session
+    // fetches when driverNumber is undefined (widget not configured yet).
+    enabled: !!sessionKey && (driverNumber !== undefined || options?.preload === true),
     ...queryModePolicy(mode, {
       staleTime: 10_000,
       refetchInterval: liveRefetchInterval,

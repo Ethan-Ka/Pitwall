@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
+import { useMemo, useEffect, useRef } from 'react'
 import { fetchRaceControl } from '../api/openf1'
 import { useSessionStore } from '../store/sessionStore'
 import { useAmbientStore } from '../store/ambientStore'
-import { useEffect, useRef } from 'react'
 import type { FlagState } from '../store/ambientStore'
 import { queryModePolicy } from './queryModePolicy'
 import { readSessionData, writeSessionData, isSessionDataComplete } from '../lib/f1PersistentStore'
 import type { OpenF1RaceControl } from '../api/openf1'
+import type { FastF1RaceControlMessage } from '../api/fastf1Bridge'
+import { useFastF1RaceControl } from './useFastF1'
 
 function mapFlagToState(flag: string | null, message: string): FlagState | null {
   const msg = message.toUpperCase()
@@ -33,14 +35,33 @@ function mapFlagToState(flag: string | null, message: string): FlagState | null 
   return null
 }
 
+function normalizeFastF1(msg: FastF1RaceControlMessage): OpenF1RaceControl {
+  return {
+    flag: msg.Flag ?? null,
+    message: msg.Message,
+    category: msg.Category,
+    driver_number: msg.RacingNumber ? parseInt(msg.RacingNumber, 10) || null : null,
+    date: msg.UTC ?? '',
+    session_key: 0,
+    scope: msg.Scope ?? undefined,
+    sector: msg.Sector ?? undefined,
+    lap_number: msg.Lap ?? undefined,
+  }
+}
+
 export function useRaceControl() {
   const apiKey = useSessionStore((s) => s.apiKey) ?? undefined
   const sessionKey = useSessionStore((s) => s.activeSession?.session_key)
   const mode = useSessionStore((s) => s.mode)
+  const dataSource = useSessionStore((s) => s.dataSource)
+  const fastf1Available = useSessionStore((s) => s.fastf1ServerAvailable)
+  const activeFastF1Session = useSessionStore((s) => s.activeFastF1Session)
   const setFlagState = useAmbientStore((s) => s.setFlagState)
   const lastProcessedRef = useRef<string>('')
 
-  const query = useQuery({
+  const usingFastF1 = dataSource === 'fastf1' && fastf1Available && !!activeFastF1Session
+
+  const openF1Query = useQuery({
     queryKey: ['race_control', sessionKey],
     queryFn: async () => {
       const key = sessionKey!
@@ -53,7 +74,7 @@ export function useRaceControl() {
       void writeSessionData('race_control', key, data, mode === 'historical')
       return data
     },
-    enabled: !!sessionKey,
+    enabled: !!sessionKey && !usingFastF1,
     ...queryModePolicy(mode, {
       staleTime: 10_000,
       refetchInterval: 10_000,
@@ -61,16 +82,30 @@ export function useRaceControl() {
     retry: (failureCount, error) => (error as any)?.status !== 429 && failureCount < 2,
   })
 
+  const fastf1Query = useFastF1RaceControl(usingFastF1 ? activeFastF1Session : null)
+
+  const fastf1Data = useMemo(
+    () => fastf1Query.data?.map(normalizeFastF1),
+    [fastf1Query.data]
+  )
+
+  const data = usingFastF1 ? fastf1Data : openF1Query.data
+
   useEffect(() => {
-    if (!query.data || query.data.length === 0) return
-    const latest = query.data[query.data.length - 1]
+    if (!data?.length) return
+    const latest = data[data.length - 1]
     const key = `${latest.date}-${latest.message}`
     if (key === lastProcessedRef.current) return
     lastProcessedRef.current = key
 
     const state = mapFlagToState(latest.flag, latest.message)
     if (state) setFlagState(state, latest.message)
-  }, [query.data, setFlagState])
+  }, [data, setFlagState])
 
-  return query
+  return {
+    data,
+    isLoading: usingFastF1 ? fastf1Query.isLoading : openF1Query.isLoading,
+    isFetching: usingFastF1 ? fastf1Query.isFetching : openF1Query.isFetching,
+    error: usingFastF1 ? fastf1Query.error : openF1Query.error,
+  }
 }

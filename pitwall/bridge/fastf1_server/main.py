@@ -323,6 +323,63 @@ async def get_results(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# GET /circuit_map?year=&round=&session=
+# Returns decimated X/Y coordinates from the fastest lap's telemetry, suitable
+# for rendering a circuit outline. Coordinates are circuit-relative metric
+# values from car position sensors — NOT geographic lat/lon.
+# Response: { x: float[], y: float[], bbox: { minX, maxX, minY, maxY }, count: int }
+@app.get("/circuit_map")
+async def get_circuit_map(
+    year: int = Query(...),
+    round: int = Query(...),
+    session: str = Query(...),
+):
+    try:
+        sess = await _get_session(year, round, session)
+
+        def _extract():
+            # Prefer the single overall fastest lap; fall back to shortest valid lap
+            try:
+                fastest_lap = sess.laps.pick_fastest()
+                tel = fastest_lap.get_telemetry()
+            except Exception:
+                valid_laps = sess.laps.dropna(subset=["LapTime"]).sort_values("LapTime")
+                if len(valid_laps) == 0:
+                    return None
+                tel = valid_laps.iloc[0].get_telemetry()
+
+            if tel is None or len(tel) == 0:
+                return None
+
+            # Decimate to ~400 evenly-spaced points
+            step = max(1, len(tel) // 400)
+            tel = tel.iloc[::step]
+
+            x_arr = tel["X"].to_numpy()
+            y_arr = tel["Y"].to_numpy()
+
+            return {
+                "x": [float(v) for v in x_arr],
+                "y": [float(v) for v in y_arr],
+                "bbox": {
+                    "minX": _cv(x_arr.min()),
+                    "maxX": _cv(x_arr.max()),
+                    "minY": _cv(y_arr.min()),
+                    "maxY": _cv(y_arr.max()),
+                },
+                "count": len(x_arr),
+            }
+
+        result = await asyncio.to_thread(_extract)
+        if result is None:
+            raise HTTPException(status_code=404, detail="no telemetry available")
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ---------------------------------------------------------------------------
 # F1TV Authentication
 # FastF1 3.x uses a local HTTP server on a random port. The browser extension

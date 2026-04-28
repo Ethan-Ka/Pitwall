@@ -5,6 +5,7 @@ import { useWorkspaceStore } from '../../store/workspaceStore'
 import { useDriverStore } from '../../store/driverStore'
 import { useWidgetConfig } from '../../hooks/useWidgetConfig'
 import { formatLap, formatDelta, type UnitMode } from '../widgetUtils'
+import { DriverChipPicker } from '../../components/DriverChipPicker'
 
 interface StintPaceComparisonProps {
   widgetId: string
@@ -140,7 +141,9 @@ export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
   const rightDriverNumber = parseDriverNumber(config?.settings?.rightDriverNumber)
   const leftStintSelection = normalizeStintSelection(config?.settings?.leftStintSelection)
   const rightStintSelection = normalizeStintSelection(config?.settings?.rightStintSelection)
-  const { drivers, getDriver, getTeamColor } = useDriverStore()
+  const drivers = useDriverStore((s) => s.drivers)
+  const getDriver = useDriverStore((s) => s.getDriver)
+  const getTeamColor = useDriverStore((s) => s.getTeamColor)
 
   function updateSetting(
     key: 'leftDriverNumber' | 'rightDriverNumber' | 'leftStintSelection' | 'rightStintSelection',
@@ -162,7 +165,9 @@ export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
     })
   }
 
-  const driverOptions = [...drivers].sort((a, b) => a.driver_number - b.driver_number)
+  const driverOptions = [...drivers]
+    .sort((a, b) => a.driver_number - b.driver_number)
+    .map((d) => ({ driver_number: d.driver_number, name_acronym: d.name_acronym, teamColor: getTeamColor(d.driver_number) }))
 
   const { data: leftStints } = useStints(leftDriverNumber ?? undefined)
   const { data: rightStints } = useStints(rightDriverNumber ?? undefined)
@@ -269,34 +274,51 @@ export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
         gap: 8,
       }}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <DriverSelector
-          label="Driver A"
-          value={leftDriverNumber}
-          options={driverOptions}
-          onChange={(nextValue) => updateSetting('leftDriverNumber', nextValue)}
-        />
-        <DriverSelector
-          label="Driver B"
-          value={rightDriverNumber}
-          options={driverOptions}
-          onChange={(nextValue) => updateSetting('rightDriverNumber', nextValue)}
-        />
-      </div>
+      {/* Comparison header: Driver A [vs] Driver B with stint selectors */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'start', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <DriverChipPicker
+            value={leftDriverNumber}
+            options={driverOptions}
+            onChange={(n) => updateSetting('leftDriverNumber', n == null ? '' : String(n))}
+            align="left"
+            placeholder="Driver A"
+          />
+          <StintSelector
+            value={leftStintSelection}
+            options={leftStintOptions}
+            onChange={(nextValue) => updateSetting('leftStintSelection', nextValue)}
+          />
+        </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <StintSelector
-          label="Stint A"
-          value={leftStintSelection}
-          options={leftStintOptions}
-          onChange={(nextValue) => updateSetting('leftStintSelection', nextValue)}
-        />
-        <StintSelector
-          label="Stint B"
-          value={rightStintSelection}
-          options={rightStintOptions}
-          onChange={(nextValue) => updateSetting('rightStintSelection', nextValue)}
-        />
+        <div
+          style={{
+            fontFamily: 'var(--mono)',
+            fontSize: 7,
+            color: 'var(--muted2)',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            paddingTop: 7,
+          }}
+        >
+          vs
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <DriverChipPicker
+            value={rightDriverNumber}
+            options={driverOptions}
+            onChange={(n) => updateSetting('rightDriverNumber', n == null ? '' : String(n))}
+            align="right"
+            placeholder="Driver B"
+          />
+          <StintSelector
+            value={rightStintSelection}
+            options={rightStintOptions}
+            onChange={(nextValue) => updateSetting('rightStintSelection', nextValue)}
+          />
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'end', gap: 10 }}>
@@ -316,9 +338,7 @@ export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
             textAlign: 'center',
             paddingBottom: 2,
           }}
-        >
-          vs
-        </div>
+        />
         <DriverPill
           name={rightName}
           color={rightColor}
@@ -464,104 +484,39 @@ export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
   )
 }
 
-function DriverSelector({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string
-  value: number | null
-  options: { driver_number: number; name_acronym: string }[]
-  onChange: (value: string) => void
-}) {
-  return (
-    <label style={{ display: 'grid', gap: 4 }}>
-      <span
-        style={{
-          fontFamily: 'var(--mono)',
-          fontSize: 7,
-          color: 'var(--muted2)',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-        }}
-      >
-        {label}
-      </span>
-      <select
-        value={value ?? ''}
-        onChange={(event) => onChange(event.target.value)}
-        style={{
-          width: '100%',
-          background: 'var(--bg4)',
-          color: 'var(--white)',
-          border: '0.5px solid var(--border)',
-          borderRadius: 3,
-          height: 24,
-          padding: '0 6px',
-          fontFamily: 'var(--mono)',
-          fontSize: 10,
-        }}
-      >
-        <option value="">Select driver</option>
-        {options.map((driver) => (
-          <option key={driver.driver_number} value={driver.driver_number}>
-            {driver.name_acronym} #{driver.driver_number}
-          </option>
-        ))}
-      </select>
-    </label>
-  )
-}
-
 function StintSelector({
-  label,
   value,
   options,
   onChange,
 }: {
-  label: string
   value: StintSelection
   options: number[]
   onChange: (value: string) => void
 }) {
   return (
-    <label style={{ display: 'grid', gap: 4 }}>
-      <span
-        style={{
-          fontFamily: 'var(--mono)',
-          fontSize: 7,
-          color: 'var(--muted2)',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-        }}
-      >
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        style={{
-          width: '100%',
-          background: 'var(--bg4)',
-          color: 'var(--white)',
-          border: '0.5px solid var(--border)',
-          borderRadius: 3,
-          height: 24,
-          padding: '0 6px',
-          fontFamily: 'var(--mono)',
-          fontSize: 10,
-        }}
-      >
-        <option value="current">Current stint</option>
-        <option value="all">All stints</option>
-        {options.map((stintNumber) => (
-          <option key={stintNumber} value={stintNumber}>
-            Stint {stintNumber}
-          </option>
-        ))}
-      </select>
-    </label>
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      style={{
+        width: '100%',
+        background: 'var(--bg4)',
+        color: 'var(--muted)',
+        border: '0.5px solid var(--border)',
+        borderRadius: 3,
+        height: 20,
+        padding: '0 6px',
+        fontFamily: 'var(--mono)',
+        fontSize: 9,
+      }}
+    >
+      <option value="current">Current stint</option>
+      <option value="all">All stints</option>
+      {options.map((stintNumber) => (
+        <option key={stintNumber} value={stintNumber}>
+          Stint {stintNumber}
+        </option>
+      ))}
+    </select>
   )
 }
 

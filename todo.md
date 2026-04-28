@@ -3,7 +3,8 @@
 
 Also fix the multiple window system
 
-Consolidate a bunch of methods and everything to make plugins/widgets as simple as possible to implement
+StintPaceComparison widget causes crashing
+
 
 # To Do
 

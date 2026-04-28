@@ -32,7 +32,8 @@ function getProjectedPoints(position: number): number {
 
 export function StandingsBoard({ widgetId: _ }: StandingsBoardProps) {
   const { data: positions } = usePositions()
-  const { getDriver, getTeamColor } = useDriverStore()
+  const getDriver = useDriverStore((s) => s.getDriver)
+  const getTeamColor = useDriverStore((s) => s.getTeamColor)
   const refreshFade = useRefreshFade([positions])
 
   const data = useMemo(() => {

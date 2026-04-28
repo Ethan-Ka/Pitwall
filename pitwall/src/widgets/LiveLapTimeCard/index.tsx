@@ -5,7 +5,7 @@ import { useWidgetDriver } from '../../hooks/useWidgetDriver'
 import { useWidgetConfig } from '../../hooks/useWidgetConfig'
 import { useDriverStore } from '../../store/driverStore'
 import { useSessionStore } from '../../store/sessionStore'
-import { formatLap, EmptyState } from '../widgetUtils'
+import { formatLap, formatDelta, EmptyState } from '../widgetUtils'
 import type { UnitMode } from '../widgetUtils'
 
 interface LiveLapTimeCardProps {
@@ -23,7 +23,9 @@ export function LiveLapTimeCard({ widgetId }: LiveLapTimeCardProps) {
   const config = useWidgetConfig(widgetId)
   const units: UnitMode = (config?.settings?.units as UnitMode) ?? 's'
   const { driverNumber, badgeLabel } = useWidgetDriver(config?.driverContext ?? 'FOCUS')
-  const { getDriver, getTeamColor } = useDriverStore()
+  const getDriver = useDriverStore((s) => s.getDriver)
+  const getTeamColor = useDriverStore((s) => s.getTeamColor)
+  // live mode gate: historical mode never shows a running timer even with a known active lap
   const mode = useSessionStore((s) => s.mode)
   const { data: laps } = useLaps(driverNumber ?? undefined, {
     refetchIntervalMs: mode === 'live' ? 60_000 : 15_000,
@@ -36,24 +38,25 @@ export function LiveLapTimeCard({ widgetId }: LiveLapTimeCardProps) {
     () => [...(laps ?? [])].sort((a, b) => b.lap_number - a.lap_number),
     [laps]
   )
+  const timedLaps = allLaps.filter((lap) => lap.lap_duration != null)
   const activeLap = allLaps[0]
 
-  const activeLapStartedAtMs =
+  const activeLapStartFromApiMs =
     activeLap?.date_start != null
-      ? Date.parse(activeLap.date_start)
-      : Number.NaN
-  const activeLapStartFromApiMs = Number.isFinite(activeLapStartedAtMs) ? activeLapStartedAtMs : null
+      ? (() => {
+          const t = Date.parse(activeLap.date_start)
+          return Number.isFinite(t) ? t : null
+        })()
+      : null
 
   const resolvedLiveLapStartMs =
-    webhookLapStartMs != null
-      ? webhookLapStartMs
-      : activeLapStartFromApiMs
+    webhookLapStartMs != null ? webhookLapStartMs : activeLapStartFromApiMs
 
   const isLiveLapRunning =
-    mode === 'live'
-    && activeLap != null
-    && activeLap.lap_duration == null
-    && resolvedLiveLapStartMs != null
+    mode === 'live' &&
+    activeLap != null &&
+    activeLap.lap_duration == null &&
+    resolvedLiveLapStartMs != null
 
   useEffect(() => {
     setWebhookLapStartMs(null)
@@ -84,9 +87,7 @@ export function LiveLapTimeCard({ widgetId }: LiveLapTimeCardProps) {
 
   useEffect(() => {
     if (!isLiveLapRunning) return
-    const timer = window.setInterval(() => {
-      setNowMs(Date.now())
-    }, 200)
+    const timer = window.setInterval(() => setNowMs(Date.now()), 200)
     return () => window.clearInterval(timer)
   }, [isLiveLapRunning])
 
@@ -97,11 +98,37 @@ export function LiveLapTimeCard({ widgetId }: LiveLapTimeCardProps) {
   const driver = getDriver(driverNumber)
   const teamColor = getTeamColor(driverNumber)
 
-  if (!isLiveLapRunning) {
-    return <EmptyState message="No lap in progress" subMessage="Waiting for a live lap to start." />
+  if (timedLaps.length === 0 && !isLiveLapRunning) {
+    return <EmptyState message="No lap timings yet" subMessage="Waiting for a completed lap." />
   }
 
-  const liveLapDurationSeconds = Math.max(0, (nowMs - resolvedLiveLapStartMs!) / 1000)
+  const liveLapDurationSeconds = isLiveLapRunning
+    ? Math.max(0, (nowMs - resolvedLiveLapStartMs!) / 1000)
+    : null
+
+  const latestLap = timedLaps[0] ?? null
+  const bestLap =
+    timedLaps.length > 0
+      ? timedLaps.reduce((best, lap) => {
+          if (lap.lap_duration == null) return best
+          if (!best || (best.lap_duration != null && lap.lap_duration < best.lap_duration)) return lap
+          return best
+        }, timedLaps[0])
+      : null
+
+  const lastLap = latestLap?.lap_duration ?? null
+  const pbLap = bestLap?.lap_duration ?? null
+  const deltaToPb = lastLap != null && pbLap != null ? lastLap - pbLap : null
+  const isLapPb = lastLap != null && pbLap != null && Math.abs(lastLap - pbLap) < 0.0005
+
+  const headerLabel = isLiveLapRunning
+    ? `Live lap (L${activeLap!.lap_number})`
+    : latestLap
+      ? `Last lap (L${latestLap.lap_number})`
+      : 'Lap time'
+
+  const heroValue = isLiveLapRunning ? liveLapDurationSeconds : lastLap
+  const heroColor = isLiveLapRunning ? teamColor : isLapPb ? 'var(--green)' : 'var(--white)'
 
   return (
     <div
@@ -137,7 +164,7 @@ export function LiveLapTimeCard({ widgetId }: LiveLapTimeCardProps) {
                 color: 'var(--muted2)',
               }}
             >
-              Live lap timer
+              Lap time
             </span>
             <span
               style={{
@@ -164,31 +191,96 @@ export function LiveLapTimeCard({ widgetId }: LiveLapTimeCardProps) {
           {badgeLabel}
         </span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 18, flex: 1, justifyContent: 'center' }}>
-        <span
-          style={{
-            fontFamily: 'var(--mono)',
-            fontSize: 7,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: 'var(--muted2)',
-            marginBottom: 2,
-          }}
-        >
-          Live lap time
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--cond)',
-            fontSize: 38,
-            lineHeight: 1,
-            fontWeight: 700,
-            color: teamColor,
-            textShadow: `0 0 10px ${teamColor}44`,
-          }}
-        >
-          {formatLap(liveLapDurationSeconds, units)}
-        </span>
+
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, position: 'relative' }}>
+          <span
+            style={{
+              fontFamily: 'var(--mono)',
+              fontSize: 7,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--muted2)',
+            }}
+          >
+            {headerLabel}
+          </span>
+          {isLiveLapRunning && latestLap && (
+            <span
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 16,
+                fontFamily: 'var(--cond)',
+                fontSize: 23,
+                lineHeight: 1,
+                fontWeight: 700,
+                color: 'var(--muted2)',
+                opacity: 0.32,
+                pointerEvents: 'none',
+              }}
+            >
+              {formatLap(lastLap, units)}
+            </span>
+          )}
+          {isLiveLapRunning && latestLap && (
+            <span
+              style={{
+                fontFamily: 'var(--mono)',
+                fontSize: 7,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--muted2)',
+              }}
+            >
+              Last lap (L{latestLap.lap_number})
+            </span>
+          )}
+          <span
+            style={{
+              fontFamily: 'var(--cond)',
+              fontSize: isLiveLapRunning ? 38 : 30,
+              lineHeight: 0.95,
+              fontWeight: 700,
+              color: heroColor,
+              textShadow: isLiveLapRunning ? `0 0 10px ${teamColor}44` : undefined,
+            }}
+          >
+            {formatLap(heroValue, units)}
+          </span>
+        </div>
+
+        {!isLiveLapRunning && latestLap && (
+          <div style={{ textAlign: 'right' }}>
+            <div
+              style={{
+                fontFamily: 'var(--mono)',
+                fontSize: 7,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'var(--muted2)',
+                marginBottom: 2,
+              }}
+            >
+              Delta to PB
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--cond)',
+                fontSize: 18,
+                fontWeight: 700,
+                lineHeight: 1,
+                color: isLapPb
+                  ? 'var(--green)'
+                  : deltaToPb != null && deltaToPb > 0
+                    ? 'var(--amber)'
+                    : 'var(--white)',
+              }}
+            >
+              {isLapPb ? 'PB' : formatDelta(deltaToPb, units)}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

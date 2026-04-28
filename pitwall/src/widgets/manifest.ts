@@ -11,8 +11,11 @@ import { LiveLapTimeCard } from './LiveLapTimeCard'
 import { LastLapCard } from './LastLapCard'
 import { StintPaceComparison } from './StintPaceComparison'
 import { SectorMiniCards } from './SectorMiniCards'
+import { GapEvolutionChart } from './GapEvolutionChart'
+import { TrackTempEvolution } from './TrackTempEvolution'
+import { RadioScanner } from './RadioScanner'
+import { RadioFeedText } from './RadioFeedText'
 import {
-  GapEvolutionChart,
   HeadToHeadDelta,
   SpeedGauge,
   ThrottleBrakeTrace,
@@ -28,10 +31,7 @@ import {
   UndercutSimulator,
   SectorMap,
   OvertakeReplay,
-  TrackTempEvolution,
   WindDirection,
-  RadioScanner,
-  RadioFeedText,
   StandingsTable,
   ChampionshipCalculator,
   PointsDeltaTracker,
@@ -89,8 +89,8 @@ export const WIDGET_MANIFEST: WidgetManifestEntry[] = [
     description: 'Shows the live running lap timer for the focused driver (no completed lap fallback)',
     category: 'Timing',
     color: 'var(--red)',
-    defaultSize: { w: 4, h: 5 },
-    minH: 3,
+    defaultSize: { w: 4, h: 2 },
+    minH: 2,
     component: LiveLapTimeCard,
   },
   {
@@ -99,8 +99,8 @@ export const WIDGET_MANIFEST: WidgetManifestEntry[] = [
     description: 'Gap history chart between two selected drivers',
     category: 'Timing',
     color: 'var(--red)',
-    defaultSize: { w: 8, h: 4 },
-    minH: 3,
+    defaultSize: { w: 8, h: 7 },
+    minH: 6,
     component: GapEvolutionChart,
   },
   {
@@ -311,8 +311,8 @@ export const WIDGET_MANIFEST: WidgetManifestEntry[] = [
     description: 'Track temperature chart with inferred overlays',
     category: 'Weather',
     color: 'var(--blue)',
-    defaultSize: { w: 8, h: 4 },
-    minH: 3,
+    defaultSize: { w: 8, h: 5 },
+    minH: 5,
     component: TrackTempEvolution,
   },
   {
