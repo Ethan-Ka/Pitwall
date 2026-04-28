@@ -101,12 +101,6 @@ export const HeadToHeadDelta = createSpecWidget({
   accent: 'var(--red)',
 })
 
-export const SectorMiniCards = createSpecWidget({
-  title: 'Sector Mini-Cards',
-  subtitle: 'Compact S1/S2/S3 status and deltas for focused driver.',
-  accent: 'var(--red)',
-})
-
 export const SpeedGauge = createSpecWidget({
   title: 'Speed Gauge',
   subtitle: 'Live telemetry speed, gear, and rpm display.',

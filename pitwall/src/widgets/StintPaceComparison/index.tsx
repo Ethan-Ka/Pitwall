@@ -3,12 +3,12 @@ import { useRefreshFade } from '../../hooks/useRefreshFade'
 import { useStints } from '../../hooks/useStints'
 import { useWorkspaceStore } from '../../store/workspaceStore'
 import { useDriverStore } from '../../store/driverStore'
+import { useWidgetConfig } from '../../hooks/useWidgetConfig'
+import { formatLap, formatDelta, type UnitMode } from '../widgetUtils'
 
 interface StintPaceComparisonProps {
   widgetId: string
 }
-
-type UnitMode = 's' | 'ms'
 const LIGHT_MUTED = 'color-mix(in srgb, var(--muted) 72%, white)'
 
 interface PacePoint {
@@ -27,23 +27,6 @@ function parseDriverNumber(value: unknown): number | null {
   const parsed = Number(value)
   if (!Number.isInteger(parsed) || parsed <= 0) return null
   return parsed
-}
-
-function formatDuration(seconds: number, units: UnitMode): string {
-  if (units === 'ms') return `${Math.round(seconds * 1000)} ms`
-  if (seconds >= 60) {
-    const minutes = Math.floor(seconds / 60)
-    const remainder = (seconds % 60).toFixed(3).padStart(6, '0')
-    return `${minutes}:${remainder}`
-  }
-  return seconds.toFixed(3)
-}
-
-function formatDelta(seconds: number, units: UnitMode): string {
-  const sign = seconds > 0 ? '+' : '-'
-  const abs = Math.abs(seconds)
-  if (units === 'ms') return `${sign}${Math.round(abs * 1000)} ms`
-  return `${sign}${abs.toFixed(3)}`
 }
 
 function formatDeltaMagnitude(seconds: number, units: UnitMode): string {
@@ -143,18 +126,14 @@ function buildDriverPaceProfile(
 }
 
 export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
-  const tabs = useWorkspaceStore((s) => s.tabs)
-  const updateWidgetConfig = useWorkspaceStore((s) => s.updateWidgetConfig)
-
-  let tabId: string | null = null
-  let config = undefined as ReturnType<typeof useWorkspaceStore.getState>['tabs'][0]['widgets'][string] | undefined
-  for (const tab of tabs) {
-    if (tab.widgets[widgetId]) {
-      tabId = tab.id
-      config = tab.widgets[widgetId]
-      break
+  const tabId = useWorkspaceStore((s) => {
+    for (const tab of s.tabs) {
+      if (tab.widgets[widgetId]) return tab.id
     }
-  }
+    return null
+  })
+  const updateWidgetConfig = useWorkspaceStore((s) => s.updateWidgetConfig)
+  const config = useWidgetConfig(widgetId)
 
   const units: UnitMode = (config?.settings?.units as UnitMode) ?? 's'
   const leftDriverNumber = parseDriverNumber(config?.settings?.leftDriverNumber)
@@ -361,7 +340,7 @@ export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
         }}
       >
         <span style={{ fontFamily: 'var(--cond)', fontSize: 18, color: leftColor, lineHeight: 1 }}>
-          {ready ? formatDuration(leftAvg!, units) : '—'}
+          {ready ? formatLap(leftAvg!, units) : '—'}
         </span>
         <div style={{ textAlign: 'center' }}>
           <div
@@ -387,7 +366,7 @@ export function StintPaceComparison({ widgetId }: StintPaceComparisonProps) {
           </div>
         </div>
         <span style={{ fontFamily: 'var(--cond)', fontSize: 18, color: rightColor, lineHeight: 1, textAlign: 'right' }}>
-          {ready ? formatDuration(rightAvg!, units) : '—'}
+          {ready ? formatLap(rightAvg!, units) : '—'}
         </span>
       </div>
 
@@ -640,7 +619,7 @@ function BarCell({
         />
       </div>
       <span style={{ fontFamily: 'var(--mono)', fontSize: 8, color: highlight ? 'var(--white)' : LIGHT_MUTED, textAlign: align }}>
-        {formatDuration(value, units)}
+        {formatLap(value, units)}
       </span>
     </div>
   )

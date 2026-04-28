@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDraggingStore } from '../../store/draggingStore'
 import { WIDGET_DEFAULTS } from '../../widgets/registry'
+import { WIDGET_PICKER_LIST, WIDGET_CATEGORY_MAP as MANIFEST_CATEGORY_MAP } from '../../widgets/manifest'
+import type { WidgetCategory as ManifestWidgetCategory } from '../../widgets/manifest'
 
 const GRID_COLS = 24
 const GRID_ROW_HEIGHT = 40
@@ -20,15 +22,7 @@ interface WidgetDef {
   color: string
 }
 
-type WidgetCategory =
-  | 'Timing'
-  | 'Telemetry'
-  | 'Race Control'
-  | 'Strategy'
-  | 'Weather'
-  | 'Track'
-  | 'Radio'
-  | 'Standings'
+type WidgetCategory = ManifestWidgetCategory
 
 const CATEGORY_ORDER: WidgetCategory[] = [
   'Timing',
@@ -52,43 +46,7 @@ const CATEGORY_COLORS: Record<WidgetCategory, string> = {
   Standings: 'var(--green)',
 }
 
-const WIDGET_CATEGORY_MAP: Record<string, WidgetCategory> = {
-  LapDeltaTower: 'Timing',
-  LapTimeCard: 'Timing',
-  GapEvolutionChart: 'Timing',
-  HeadToHeadDelta: 'Timing',
-  SectorMiniCards: 'Timing',
-  RunningOrderStrip: 'Race Control',
-  RaceControlFeed: 'Race Control',
-  SpeedGauge: 'Telemetry',
-  ThrottleBrakeTrace: 'Telemetry',
-  GearTrace: 'Telemetry',
-  ThrottleHeatmap: 'Telemetry',
-  ERSMicroSectors: 'Telemetry',
-  DRSEfficiency: 'Telemetry',
-  EngineModeTracker: 'Telemetry',
-  CarVisualization: 'Telemetry',
-  StintPaceComparison: 'Strategy',
-  StrategyTimeline: 'Strategy',
-  DegRateGraph: 'Strategy',
-  PitWindowUrgency: 'Strategy',
-  PitStopLog: 'Strategy',
-  UndercutSimulator: 'Strategy',
-  TyreIntelligence: 'Strategy',
-  WeatherDashboard: 'Weather',
-  TrackTempEvolution: 'Weather',
-  WindDirection: 'Weather',
-  WeatherRadar: 'Weather',
-  FullTrackMap: 'Track',
-  SectorMap: 'Track',
-  OvertakeReplay: 'Track',
-  RadioScanner: 'Radio',
-  RadioFeedText: 'Radio',
-  StandingsBoard: 'Standings',
-  StandingsTable: 'Standings',
-  ChampionshipCalculator: 'Standings',
-  PointsDeltaTracker: 'Standings',
-}
+const WIDGET_CATEGORY_MAP: Record<string, WidgetCategory> = MANIFEST_CATEGORY_MAP
 
 function getWidgetCategory(type: string): WidgetCategory {
   return WIDGET_CATEGORY_MAP[type] ?? 'Telemetry'
@@ -185,218 +143,7 @@ function createCanvasDragImage(label: string, color: string, width: number, heig
   return canvas
 }
 
-const WIDGETS: WidgetDef[] = [
-  {
-    type: 'LapDeltaTower',
-    label: 'Lap Delta Tower',
-    description: 'Full ranking table with gap, interval, sector times',
-    color: 'var(--red)',
-  },
-  {
-    type: 'LapTimeCard',
-    label: 'Lap Time Card',
-    description: 'Single-driver lap card with live split context',
-    color: 'var(--red)',
-  },
-  {
-    type: 'GapEvolutionChart',
-    label: 'Gap Evolution Chart',
-    description: 'Gap history chart between two selected drivers',
-    color: 'var(--red)',
-  },
-  {
-    type: 'StintPaceComparison',
-    label: 'Stint Pace Comparison',
-    description: 'Compares pace in a matched tyre age window',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'HeadToHeadDelta',
-    label: 'Head-to-Head Delta',
-    description: 'Direct comparison card for two driver targets',
-    color: 'var(--red)',
-  },
-  {
-    type: 'SectorMiniCards',
-    label: 'Sector Mini-Cards',
-    description: 'Compact S1/S2/S3 performance cards',
-    color: 'var(--red)',
-  },
-  {
-    type: 'SpeedGauge',
-    label: 'Speed Gauge',
-    description: 'Live speed telemetry with gear/rpm view',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'ThrottleBrakeTrace',
-    label: 'Throttle / Brake Trace',
-    description: 'Pedal input timeline for focused driver',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'GearTrace',
-    label: 'Gear Trace',
-    description: 'Rolling gear selection trace over time',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'ThrottleHeatmap',
-    label: 'Throttle Heatmap',
-    description: 'Lap segment throttle intensity heatmap',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'ERSMicroSectors',
-    label: 'ERS Micro-Sectors',
-    description: 'Inferred ERS deployment by micro-sector',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'DRSEfficiency',
-    label: 'DRS Efficiency',
-    description: 'Inferred open-vs-closed DRS delta metric',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'EngineModeTracker',
-    label: 'Engine Mode Tracker',
-    description: 'Inferred power mode behavior tracker',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'RunningOrderStrip',
-    label: 'Running Order Strip',
-    description: 'Horizontal dot row of all 20 drivers by position',
-    color: 'var(--orange)',
-  },
-  {
-    type: 'RaceControlFeed',
-    label: 'Race Control Feed',
-    description: 'Timestamped flag and incident log',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'StrategyTimeline',
-    label: 'Strategy Timeline',
-    description: 'All-driver stint timeline with pit markers',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'DegRateGraph',
-    label: 'Deg Rate Graph',
-    description: 'Inferred tyre degradation curve by stint',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'PitWindowUrgency',
-    label: 'Pit Window Urgency',
-    description: 'Inferred urgency signal for next stop window',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'PitStopLog',
-    label: 'Pit Stop Log',
-    description: 'Chronological pit stop history list',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'UndercutSimulator',
-    label: 'Undercut Simulator',
-    description: 'Scenario calculator for undercut outcomes',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'TyreIntelligence',
-    label: 'Tyre Intelligence',
-    description: 'Cliff lap prediction with editable formula ~EST',
-    color: 'var(--green)',
-  },
-  {
-    type: 'WeatherDashboard',
-    label: 'Weather Dashboard',
-    description: '6 live weather metrics with trend arrows',
-    color: 'var(--cyan)',
-  },
-  {
-    type: 'TrackTempEvolution',
-    label: 'Track Temp Evolution',
-    description: 'Track temperature chart with inferred overlays',
-    color: 'var(--blue)',
-  },
-  {
-    type: 'WindDirection',
-    label: 'Wind Direction',
-    description: 'Wind direction and drift changes by heading',
-    color: 'var(--blue)',
-  },
-  {
-    type: 'WeatherRadar',
-    label: 'Weather Radar',
-    description: 'Windy embed centered on circuit',
-    color: 'var(--blue)',
-  },
-  {
-    type: 'FullTrackMap',
-    label: 'Full Track Map',
-    description: 'Live driver positions on SVG circuit outline',
-    color: 'var(--purple)',
-  },
-  {
-    type: 'SectorMap',
-    label: 'Sector Map',
-    description: 'Track sectors with driver position context',
-    color: 'var(--green)',
-  },
-  {
-    type: 'OvertakeReplay',
-    label: 'Overtake Replay',
-    description: 'Historic overtake events and replay timeline',
-    color: 'var(--green)',
-  },
-  {
-    type: 'RadioScanner',
-    label: 'Radio Scanner',
-    description: 'Live team radio channel scanner',
-    color: 'var(--pink)',
-  },
-  {
-    type: 'RadioFeedText',
-    label: 'Radio Feed (Text)',
-    description: 'Text feed of transcribed radio messages',
-    color: 'var(--pink)',
-  },
-  {
-    type: 'StandingsBoard',
-    label: 'Standings Board',
-    description: 'Projected driver + constructor points board',
-    color: 'var(--green)',
-  },
-  {
-    type: 'StandingsTable',
-    label: 'Standings Table',
-    description: 'Live driver and constructor championship table',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'ChampionshipCalculator',
-    label: 'Championship Calculator',
-    description: 'What-if points outcomes and title scenarios',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'PointsDeltaTracker',
-    label: 'Points Delta Tracker',
-    description: 'Historic points swing between contenders',
-    color: 'var(--gold)',
-  },
-  {
-    type: 'CarVisualization',
-    label: 'Car Visualization',
-    description: '2026 car profile with telemetry overlays',
-    color: 'var(--purple)',
-  },
-]
+const WIDGETS: WidgetDef[] = WIDGET_PICKER_LIST
 
 // --- Mini preview components ---
 

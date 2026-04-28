@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useLaps } from '../../hooks/useLaps'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
 import { useWidgetDriver } from '../../hooks/useWidgetDriver'
@@ -8,92 +8,29 @@ import { useSessionStore } from '../../store/sessionStore'
 import { formatLap, formatDelta, EmptyState } from '../widgetUtils'
 import type { UnitMode } from '../widgetUtils'
 
-interface LapTimeCardProps {
+interface LastLapCardProps {
   widgetId: string
 }
 
-type LiveLapStartPayload = {
-  driverNumber: number
-  lapNumber?: number
-  startTimeIso?: string
-  startTimeMs?: number
-}
-
-export function LapTimeCard({ widgetId }: LapTimeCardProps) {
+export function LastLapCard({ widgetId }: LastLapCardProps) {
   const config = useWidgetConfig(widgetId)
   const units: UnitMode = (config?.settings?.units as UnitMode) ?? 's'
   const { driverNumber, badgeLabel } = useWidgetDriver(config?.driverContext ?? 'FOCUS')
   const { getDriver, getTeamColor } = useDriverStore()
   const mode = useSessionStore((s) => s.mode)
   const { data: laps } = useLaps(driverNumber ?? undefined, {
-    // Webhook-first in live mode; keep API as low-frequency fallback only.
     refetchIntervalMs: mode === 'live' ? 60_000 : 15_000,
   })
   const refreshFade = useRefreshFade([driverNumber, laps])
-  const [nowMs, setNowMs] = useState(() => Date.now())
-  const [webhookLapStartMs, setWebhookLapStartMs] = useState<number | null>(null)
 
-  const allLaps = useMemo(
-    () => [...(laps ?? [])].sort((a, b) => b.lap_number - a.lap_number),
+  const timedLaps = useMemo(
+    () =>
+      [...(laps ?? [])]
+        .sort((a, b) => b.lap_number - a.lap_number)
+        .filter((lap) => lap.lap_duration != null),
     [laps]
   )
-  const timedLaps = allLaps.filter((lap) => lap.lap_duration != null)
-  const activeLap = allLaps[0]
 
-  const activeLapStartedAtMs =
-    activeLap?.date_start != null
-      ? Date.parse(activeLap.date_start)
-      : Number.NaN
-  const activeLapStartFromApiMs = Number.isFinite(activeLapStartedAtMs) ? activeLapStartedAtMs : null
-
-  const resolvedLiveLapStartMs =
-    webhookLapStartMs != null
-      ? webhookLapStartMs
-      : activeLapStartFromApiMs
-
-  const isLiveLapRunning =
-    mode === 'live'
-    && activeLap != null
-    && activeLap.lap_duration == null
-    && resolvedLiveLapStartMs != null
-
-  // All useEffects must run unconditionally before any early returns
-  useEffect(() => {
-    setWebhookLapStartMs(null)
-  }, [driverNumber])
-
-  useEffect(() => {
-    function onWebhookLapStart(event: Event) {
-      const customEvent = event as CustomEvent<LiveLapStartPayload>
-      const payload = customEvent.detail
-      if (!payload || payload.driverNumber !== driverNumber) return
-
-      const startFromMs =
-        typeof payload.startTimeMs === 'number' && Number.isFinite(payload.startTimeMs)
-          ? payload.startTimeMs
-          : payload.startTimeIso
-            ? Date.parse(payload.startTimeIso)
-            : Number.NaN
-
-      if (!Number.isFinite(startFromMs)) return
-      setWebhookLapStartMs(startFromMs)
-    }
-
-    window.addEventListener('pitwall-live-lap-start', onWebhookLapStart as EventListener)
-    return () => {
-      window.removeEventListener('pitwall-live-lap-start', onWebhookLapStart as EventListener)
-    }
-  }, [driverNumber])
-
-  useEffect(() => {
-    if (!isLiveLapRunning) return
-    const timer = window.setInterval(() => {
-      setNowMs(Date.now())
-    }, 200)
-    return () => window.clearInterval(timer)
-  }, [isLiveLapRunning])
-
-  // Early returns are now safe — all hooks have already been called above
   if (!driverNumber) {
     return <EmptyState message="No driver selected" subMessage="Assign a driver context in widget settings." />
   }
@@ -105,14 +42,9 @@ export function LapTimeCard({ widgetId }: LapTimeCardProps) {
     return <EmptyState message="No lap timings yet" subMessage="Waiting for a completed lap." />
   }
 
-  const liveLapDurationSeconds = isLiveLapRunning
-    ? Math.max(0, (nowMs - resolvedLiveLapStartMs!) / 1000)
-    : null
-
   const latestLap = timedLaps[0]
   const bestLap = timedLaps.reduce((best, lap) => {
-    if (lap.lap_duration == null) return best
-    if (!best || (best.lap_duration != null && lap.lap_duration < best.lap_duration)) return lap
+    if (!best || (best.lap_duration != null && lap.lap_duration! < best.lap_duration!)) return lap
     return best
   }, timedLaps[0])
 
@@ -124,10 +56,6 @@ export function LapTimeCard({ widgetId }: LapTimeCardProps) {
   const pbLap = bestLap.lap_duration
   const deltaToPb = lastLap != null && pbLap != null ? lastLap - pbLap : null
   const isLapPb = lastLap != null && pbLap != null && Math.abs(lastLap - pbLap) < 0.0005
-  const headerLabel = isLiveLapRunning
-    ? `Live lap (L${activeLap.lap_number})`
-    : `Last lap (L${latestLap.lap_number})`
-  const heroLapValue = isLiveLapRunning ? liveLapDurationSeconds : lastLap
 
   return (
     <div
@@ -163,7 +91,7 @@ export function LapTimeCard({ widgetId }: LapTimeCardProps) {
                 color: 'var(--muted2)',
               }}
             >
-              Lap time card
+              Last lap card
             </span>
             <span
               style={{
@@ -193,7 +121,7 @@ export function LapTimeCard({ widgetId }: LapTimeCardProps) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 2 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, position: 'relative' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <span
             style={{
               fontFamily: 'var(--mono)',
@@ -203,50 +131,18 @@ export function LapTimeCard({ widgetId }: LapTimeCardProps) {
               color: 'var(--muted2)',
             }}
           >
-            {headerLabel}
+            Last lap (L{latestLap.lap_number})
           </span>
-          {isLiveLapRunning && (
-            <span
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 16,
-                fontFamily: 'var(--cond)',
-                fontSize: 23,
-                lineHeight: 1,
-                fontWeight: 700,
-                color: 'var(--muted2)',
-                opacity: 0.32,
-                pointerEvents: 'none',
-              }}
-            >
-              {formatLap(lastLap, units)}
-            </span>
-          )}
-          {isLiveLapRunning && (
-            <span
-              style={{
-                fontFamily: 'var(--mono)',
-                fontSize: 7,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--muted2)',
-              }}
-            >
-              Last lap (L{latestLap.lap_number})
-            </span>
-          )}
           <span
             style={{
               fontFamily: 'var(--cond)',
               fontSize: 30,
               lineHeight: 0.95,
               fontWeight: 700,
-              color: isLiveLapRunning ? teamColor : isLapPb ? 'var(--green)' : 'var(--white)',
-              textShadow: isLiveLapRunning ? `0 0 10px ${teamColor}44` : undefined,
+              color: isLapPb ? 'var(--green)' : 'var(--white)',
             }}
           >
-            {formatLap(heroLapValue, units)}
+            {formatLap(lastLap, units)}
           </span>
         </div>
 
@@ -353,4 +249,3 @@ function SectorTile({
     </div>
   )
 }
-

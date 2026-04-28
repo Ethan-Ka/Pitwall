@@ -2,7 +2,7 @@ import { useStints } from '../../hooks/useStints'
 import { useLaps } from '../../hooks/useLaps'
 import { useWeather } from '../../hooks/useWeather'
 import { useWidgetDriver } from '../../hooks/useWidgetDriver'
-import { useWorkspaceStore } from '../../store/workspaceStore'
+import { useWidgetConfig } from '../../hooks/useWidgetConfig'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
 
 interface TyreIntelligenceProps {
@@ -47,11 +47,7 @@ function getLapCount(laps: { lap_number: number }[] | undefined, driverNumber: n
 }
 
 export function TyreIntelligence({ widgetId }: TyreIntelligenceProps) {
-  const tabs = useWorkspaceStore((s) => s.tabs)
-  let config = undefined as ReturnType<typeof useWorkspaceStore.getState>['tabs'][0]['widgets'][string] | undefined
-  for (const tab of tabs) {
-    if (tab.widgets[widgetId]) { config = tab.widgets[widgetId]; break }
-  }
+  const config = useWidgetConfig(widgetId)
 
   const { driverNumber } = useWidgetDriver(config?.driverContext ?? 'FOCUS')
   const { data: stints } = useStints(driverNumber ?? undefined)

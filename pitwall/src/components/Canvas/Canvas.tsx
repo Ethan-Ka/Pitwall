@@ -97,30 +97,27 @@ export function Canvas({ tabId, hideAddWidget = false }: CanvasProps) {
   const tabIdRef = useRef(tabId)
   useEffect(() => { tabIdRef.current = tabId }, [tabId])
 
-  // Apply targeted layout migrations for legacy persisted widget sizes.
+  // Apply layout migrations for legacy persisted widget sizes.
   useEffect(() => {
     if (!tab) return
     let changed = false
     const nextLayout = tab.layout.map((item) => {
       const widget = tab.widgets[item.i]
-      if (
-        widget?.type === 'RunningOrderStrip'
-        && item.h === 4
-        && item.minH === 3
-      ) {
+      if (!widget) return item
+
+      // Legacy fix: RunningOrderStrip was previously placed at h=4, minH=3
+      if (widget.type === 'RunningOrderStrip' && item.h === 4 && item.minH === 3) {
         changed = true
         return { ...item, h: 2, minH: 1 }
       }
 
-      if (widget?.type === 'LapDeltaTower') {
-        const minHeight = getMinHeightForWidget('LapDeltaTower')
-        if ((item.minH ?? 0) < minHeight || item.h < minHeight) {
-          changed = true
-          return {
-            ...item,
-            minH: Math.max(item.minH ?? 0, minHeight),
-            h: Math.max(item.h, minHeight),
-          }
+      const minHeight = getMinHeightForWidget(widget.type)
+      if ((item.minH ?? 0) < minHeight || item.h < minHeight) {
+        changed = true
+        return {
+          ...item,
+          minH: Math.max(item.minH ?? 0, minHeight),
+          h: Math.max(item.h, minHeight),
         }
       }
 

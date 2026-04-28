@@ -3,32 +3,10 @@ import { useIntervals } from '../../hooks/useIntervals'
 import { useLaps } from '../../hooks/useLaps'
 import { useDriverStore } from '../../store/driverStore'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
+import { formatTime, formatGap, formatInterval } from '../widgetUtils'
 
 interface LapDeltaTowerProps {
   widgetId: string
-}
-
-function formatTime(seconds: number | null | undefined): string {
-  if (seconds == null) return '—'
-  if (seconds >= 60) {
-    const m = Math.floor(seconds / 60)
-    const s = (seconds % 60).toFixed(3).padStart(6, '0')
-    return `${m}:${s}`
-  }
-  return seconds.toFixed(3)
-}
-
-function formatGap(gap: number | string | null | undefined): string {
-  if (gap == null) return '—'
-  if (typeof gap === 'string') return gap // e.g. "+1 LAP" for lapped cars
-  if (gap === 0) return 'LEADER'
-  return `+${gap.toFixed(3)}`
-}
-
-function formatInterval(interval: number | string | null | undefined): string {
-  if (interval == null) return '—'
-  if (typeof interval === 'string') return interval
-  return `+${interval.toFixed(3)}`
 }
 
 export function LapDeltaTower({ widgetId: _ }: LapDeltaTowerProps) {
