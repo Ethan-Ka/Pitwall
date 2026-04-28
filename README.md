@@ -20,7 +20,7 @@
 
 ## Contributing
 
-For contributing, see (CONTRIBUTING.MD)[https://github.com/Ethan-Ka/Pitwall/blob/main/CONTRIBUTING.MD]
+For contributing, see [CONTRIBUTING.MD](https://github.com/Ethan-Ka/Pitwall/blob/main/CONTRIBUTING.MD)
 
 ---
 
