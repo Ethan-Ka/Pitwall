@@ -6,7 +6,7 @@ All contributions to the project are welcome, including major refactoring, logic
 
 No feature is too large or too small to be added. If it's quality and a good improvement, create a PR!
 
-If you want to contribute, but don't know where to start, check out (todo.md)[https://github.com/Ethan-Ka/Pitwall/blob/main/todo.md]
+If you want to contribute, but don't know where to start, check out [todo.md](https://github.com/Ethan-Ka/Pitwall/blob/main/todo.md)
 
 This project is meant to be accessible to those who want to use it, so electron has been elected for its cross platform support.
 
