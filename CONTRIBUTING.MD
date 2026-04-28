@@ -18,6 +18,13 @@ This project is meant to be accessible to those who want to use it, so electron 
 
 The project is structured as such
 ```
+/pitwall/
+    /bridge - items related to the FastF1 & Python bridge
+    /electron - electron stuff and devtools
+    /public - season data and branding that is shipped with pitwall(to be downloaded with installer process later)
+    /scripts - scripts
+```
+```
 /pitwall/src
     /assets - app icons etc
     /components - reused and larger components of the app
