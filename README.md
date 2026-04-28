@@ -110,7 +110,9 @@ The following roadmap items are pulled from [plan/pitwall_master_final.html](pla
 
 ## Data source
 
-All race data comes from OpenF1.
+There are two sources, OpenF1 and FastF1. OpenF1 requires a paid subscription for live
+
+### OpenF1
 
 | Tier | Cost | Access |
 |---|---|---|
@@ -118,6 +120,12 @@ All race data comes from OpenF1.
 | Live | $10/month (your own key) | Real-time updates and authenticated endpoints |
 
 Pitwall does not proxy live OpenF1 traffic. Users provide their own API key and calls go directly to OpenF1.
+
+### FastF1
+
+FastF1 relies on the FastF1 companion and logging into F1TV. This is usually the easiest option for users.
+
+Pitwall uses data from FastF1, and doesn't store your credentials outside of the client locally
 
 ---
 
