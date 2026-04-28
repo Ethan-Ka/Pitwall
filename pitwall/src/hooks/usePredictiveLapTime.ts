@@ -39,8 +39,7 @@ export function usePredictiveLapTime(
       setDisplay(anchor + (Date.now() - anchorTime.current) / 1000)
     }, tickMs)
     return () => clearInterval(id)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, tickMs, polledValue != null])
+  }, [enabled, tickMs, polledValue])
 
   return enabled ? display : polledValue
 }
