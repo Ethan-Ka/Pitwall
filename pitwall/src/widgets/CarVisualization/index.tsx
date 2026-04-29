@@ -25,6 +25,7 @@ const TEAM_CAR_ASSETS: Record<string, string> = {
   'Racing Bulls': '2026racingbullscarright.avif',
   'Red Bull': '2026redbullracingcarright.avif',
   Williams: '2026williamscarright.avif',
+  Ferrari: '2026ferraricarright.avif',
   // Ferrari has no 2026 side profile — falls through to masked fallback
 }
 
