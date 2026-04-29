@@ -6,6 +6,7 @@ import { useWidgetConfig } from '../../hooks/useWidgetConfig'
 import { useDriverStore } from '../../store/driverStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
+import { useStints } from '../../hooks/useStints'
 import { EmptyState } from '../widgetUtils'
 
 const DRS_OPEN_THRESHOLD = 10
@@ -29,6 +30,24 @@ const TEAM_CAR_ASSETS: Record<string, string> = {
 
 const FALLBACK_CAR_URL = `${SIDE_PROFILE_BASE}2026mercedescarright.avif`
 
+const COMPOUND_COLORS: Record<string, string> = {
+  SOFT: 'var(--red)',
+  MEDIUM: '#FFD600',
+  HARD: 'var(--white)',
+  INTERMEDIATE: 'var(--green)',
+  INTER: 'var(--green)',
+  WET: '#4488FF',
+}
+
+const COMPOUND_ABBR: Record<string, string> = {
+  SOFT: 'S',
+  MEDIUM: 'M',
+  HARD: 'H',
+  INTERMEDIATE: 'I',
+  INTER: 'I',
+  WET: 'W',
+}
+
 interface NormalizedSample {
   speed: number
   gear: number
@@ -43,36 +62,6 @@ function resolveCarAsset(teamName: string | null | undefined): { url: string; ha
   const file = TEAM_CAR_ASSETS[teamName]
   if (file) return { url: `${SIDE_PROFILE_BASE}${file}`, hasLivery: true }
   return { url: FALLBACK_CAR_URL, hasLivery: false }
-}
-
-function TelemetryBar({
-  label, value, pct, color,
-}: { label: string; value: string; pct: number; color: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{
-        fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted2)',
-        letterSpacing: '0.1em', width: 24, flexShrink: 0,
-      }}>
-        {label}
-      </span>
-      <div style={{
-        flex: 1, height: 3, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden',
-      }}>
-        <div style={{
-          width: `${Math.min(Math.max(pct * 100, 0), 100)}%`,
-          height: '100%', background: color, borderRadius: 2,
-          transition: 'width 0.3s ease',
-        }} />
-      </div>
-      <span style={{
-        fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--white)',
-        textAlign: 'right', minWidth: 38, flexShrink: 0,
-      }}>
-        {value}
-      </span>
-    </div>
-  )
 }
 
 export function CarVisualization({ widgetId }: { widgetId: string }) {
@@ -90,6 +79,17 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
   const teamName = driver?.team_name ?? null
 
   const { url: carUrl, hasLivery } = useMemo(() => resolveCarAsset(teamName), [teamName])
+
+  // Stints for tyre compound
+  const { data: stints } = useStints(driverNumber ?? undefined)
+  const currentStint = useMemo(() => {
+    if (!stints?.length) return undefined
+    return [...stints].sort((a, b) => b.stint_number - a.stint_number)[0]
+  }, [stints])
+  const compound = (currentStint?.compound ?? '').toUpperCase()
+  const compoundColor = COMPOUND_COLORS[compound] ?? 'var(--muted)'
+  const compoundAbbr = COMPOUND_ABBR[compound] ?? '?'
+  const compoundName = compound || null
 
   // Live path: OpenF1 car_data with incremental date_gt polling
   const { data: liveData } = useCarData(mode === 'live' ? driverNumber : null)
@@ -155,7 +155,9 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
     )
   }
 
-  const rpmPct = sample.rpm / MAX_RPM
+  const rpmPct = Math.min(Math.max(sample.rpm / MAX_RPM, 0), 1)
+  const throttlePct = Math.min(Math.max(sample.throttle / 100, 0), 1)
+  const brakePct = Math.min(Math.max(sample.brake / 100, 0), 1)
 
   return (
     <div
@@ -208,31 +210,33 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
         </span>
       </div>
 
-      {/* Main row: speed + gear / car image / DRS */}
+      {/* Main row: speed + gear + rpm / car image / tyre */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0, gap: 10, alignItems: 'stretch' }}>
 
-        {/* Left column: Speed + Gear */}
+        {/* Left column: Speed, Gear, RPM */}
         <div style={{
           display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          gap: 6, flexShrink: 0, width: 68,
+          gap: 6, flexShrink: 0, width: 80,
         }}>
-          <div>
-            <div style={{
+          {/* Speed */}
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end' }}>
+            <span style={{
               fontFamily: 'var(--cond)', fontSize: 46, fontWeight: 800,
               lineHeight: 0.88, color: 'var(--white)', letterSpacing: '-0.02em',
             }}>
               {Math.round(sample.speed)}
-            </div>
-            <div style={{
-              fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted2)',
-              letterSpacing: '0.14em', marginTop: 3,
+            </span>
+            <span style={{
+              fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted2)',
+              letterSpacing: '0.14em', marginLeft: 6, marginBottom: 2,
             }}>
               KM/H
-            </div>
+            </span>
           </div>
 
           <div style={{ width: '80%', height: 0.5, background: 'var(--border)' }} />
 
+          {/* Gear */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
             <span style={{
               fontFamily: 'var(--cond)', fontSize: 34, fontWeight: 800,
@@ -247,9 +251,41 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
               GEAR
             </span>
           </div>
+
+          <div style={{ width: '80%', height: 0.5, background: 'var(--border)' }} />
+
+          {/* RPM number */}
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end' }}>
+            <span style={{
+              fontFamily: 'var(--cond)', fontSize: 28, fontWeight: 800,
+              lineHeight: 1, color: teamColor, letterSpacing: '-0.01em',
+            }}>
+              {Math.round(sample.rpm).toLocaleString()}
+            </span>
+            <span style={{
+              fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted2)',
+              letterSpacing: '0.14em', marginLeft: 6, marginBottom: 2,
+            }}>
+              RPM
+            </span>
+          </div>
+
+          {/* RPM bar */}
+          <div style={{
+            width: '100%', height: 3, background: 'var(--bg3)',
+            borderRadius: 2, overflow: 'hidden',
+          }}>
+            <div style={{
+              width: `${rpmPct * 100}%`,
+              height: '100%',
+              background: teamColor,
+              borderRadius: 2,
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
         </div>
 
-        {/* Center: Car image */}
+        {/* Center: Car image with DRS overlay and pedal bars */}
         <div style={{
           flex: 1, minWidth: 0, display: 'flex', alignItems: 'center',
           justifyContent: 'center', position: 'relative',
@@ -277,65 +313,117 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
               pointerEvents: 'none',
             }} />
           )}
+
+          {/* DRS badge — overlaid on rear wing (left of right-facing car), pushed lower */}
+          <div style={{
+            position: 'absolute', top: '42%', left: '8%',
+            background: sample.drsOpen ? 'rgba(29,184,106,0.9)' : 'rgba(255,255,255,0.06)',
+            color: sample.drsOpen ? 'var(--white)' : 'var(--muted)',
+            fontFamily: 'var(--mono)',
+            fontSize: 7,
+            fontWeight: 700,
+            padding: '2px 6px',
+            borderRadius: 3,
+            letterSpacing: '0.1em',
+            boxShadow: sample.drsOpen ? '0 0 8px rgba(29,184,106,0.7)' : 'none',
+            border: sample.drsOpen ? 'none' : '0.5px solid var(--border2)',
+            transition: 'all 0.25s ease',
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}>
+            DRS
+          </div>
+
+          {/* Brake bar — left side, fills from bottom */}
+          <div style={{
+            position: 'absolute', left: 0, top: '5%',
+            width: 6, height: '90%',
+            background: 'var(--bg3)', borderRadius: 3,
+            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              width: '100%',
+              height: `${brakePct * 100}%`,
+              background: 'var(--red)',
+              borderRadius: 3,
+              transition: 'height 0.3s ease',
+            }} />
+          </div>
+          <span style={{
+            position: 'absolute', left: 0, bottom: 0,
+            width: 6,
+            fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
+            textAlign: 'center', letterSpacing: '0.04em',
+            lineHeight: 1, pointerEvents: 'none',
+          }}>
+            BRK
+          </span>
+
+          {/* Throttle bar — right side, fills from bottom */}
+          <div style={{
+            position: 'absolute', right: 0, top: '5%',
+            width: 6, height: '90%',
+            background: 'var(--bg3)', borderRadius: 3,
+            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              width: '100%',
+              height: `${throttlePct * 100}%`,
+              background: 'var(--green)',
+              borderRadius: 3,
+              transition: 'height 0.3s ease',
+            }} />
+          </div>
+          <span style={{
+            position: 'absolute', right: 0, bottom: 0,
+            width: 6,
+            fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
+            textAlign: 'center', letterSpacing: '0.04em',
+            lineHeight: 1, pointerEvents: 'none',
+          }}>
+            THR
+          </span>
         </div>
 
-        {/* Right column: DRS indicator */}
+        {/* Right column: Tyre indicator */}
         <div style={{
           flexShrink: 0, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', gap: 4, width: 34,
         }}>
+          {/* Compound circle */}
           <div style={{
-            width: 22, height: 22, borderRadius: '50%',
-            background: sample.drsOpen ? 'rgba(74,222,128,0.15)' : 'transparent',
-            border: `1.5px solid ${sample.drsOpen ? 'var(--green)' : 'var(--border2)'}`,
+            width: 28, height: 28, borderRadius: '50%',
+            border: `2px solid ${compoundColor}`,
+            background: compoundName
+              ? `color-mix(in srgb, ${compoundColor} 12%, transparent)`
+              : 'transparent',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.25s ease',
+            flexShrink: 0,
           }}>
             <span style={{
-              fontSize: 7, lineHeight: 1,
-              color: sample.drsOpen ? 'var(--green)' : 'var(--muted2)',
+              fontFamily: 'var(--cond)', fontSize: 16, fontWeight: 700,
+              color: compoundColor, lineHeight: 1,
             }}>
-              ●
+              {compoundAbbr}
             </span>
           </div>
           <span style={{
-            fontFamily: 'var(--mono)', fontSize: 6, letterSpacing: '0.1em',
-            color: sample.drsOpen ? 'var(--green)' : 'var(--muted2)',
-            textAlign: 'center', transition: 'color 0.25s ease',
+            fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
+            letterSpacing: '0.1em', textAlign: 'center',
           }}>
-            DRS
+            TYRE
           </span>
-          <span style={{
-            fontFamily: 'var(--mono)', fontSize: 6, letterSpacing: '0.08em',
-            color: sample.drsOpen ? 'var(--green)' : 'var(--muted2)',
-            textAlign: 'center', transition: 'color 0.25s ease',
-          }}>
-            {sample.drsOpen ? 'OPEN' : 'CLSD'}
-          </span>
+          {compoundName && (
+            <span style={{
+              fontFamily: 'var(--mono)', fontSize: 6,
+              color: compoundColor, letterSpacing: '0.06em', textAlign: 'center',
+            }}>
+              {compoundName}
+            </span>
+          )}
         </div>
-      </div>
-
-      {/* Bottom: Telemetry bars */}
-      <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ height: 0.5, background: 'var(--border)', marginBottom: 1 }} />
-        <TelemetryBar
-          label="THR"
-          value={`${Math.round(sample.throttle)}%`}
-          pct={sample.throttle / 100}
-          color="var(--green)"
-        />
-        <TelemetryBar
-          label="BRK"
-          value={`${Math.round(sample.brake)}%`}
-          pct={sample.brake / 100}
-          color="var(--red)"
-        />
-        <TelemetryBar
-          label="RPM"
-          value={sample.rpm.toLocaleString()}
-          pct={rpmPct}
-          color={teamColor}
-        />
       </div>
     </div>
   )

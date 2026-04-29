@@ -1,6 +1,7 @@
 import { useAmbientStore } from '../store/ambientStore'
 import { useLogStore } from '../store/logStore'
 import { useSessionStore } from '../store/sessionStore'
+import { useFakeTelemetryStore } from '../store/fakeTelemetryStore'
 
 type DebugActionMessage = {
   action: string
@@ -298,6 +299,16 @@ function runDebugAction(action: string, payload?: unknown) {
     case 'toggle-log-panel':
       window.dispatchEvent(new Event('pitwall-toggle-log-panel'))
       log.addEntry('DBG', 'Toggled Diagnostic Log from menu action.', 'devtools')
+      break
+    case 'fake-telemetry-enable':
+      useFakeTelemetryStore.getState().enable()
+      ambient.addToast('Fake telemetry enabled — widgets show static demo data.', 'YELLOW')
+      log.addEntry('DBG', 'Fake telemetry enabled from Developer Menu.', 'devtools')
+      break
+    case 'fake-telemetry-disable':
+      useFakeTelemetryStore.getState().disable()
+      ambient.addToast('Fake telemetry disabled.', 'GREEN')
+      log.addEntry('DBG', 'Fake telemetry disabled from Developer Menu.', 'devtools')
       break
     case 'trigger-live-mode-prompt':
       window.dispatchEvent(new Event('pitwall-trigger-live-mode-prompt'))

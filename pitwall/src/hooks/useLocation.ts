@@ -59,11 +59,15 @@ export function useLocation() {
         cursorRef.current = latest.date
       }
 
-      // Accumulate track outline points (decimate to every 5th sample to reduce noise)
-      const incoming = raw.filter((_, i) => i % 5 === 0)
-      trackPointsRef.current.push(...incoming.map((l) => ({ x: l.x, y: l.y })))
-      if (trackPointsRef.current.length > MAX_TRACK_POINTS) {
-        trackPointsRef.current = trackPointsRef.current.slice(-MAX_TRACK_POINTS)
+      // Accumulate track outline points (decimate to every 5th sample to reduce noise).
+      // Always reassign (never mutate in-place) so useMemo deps that watch this ref see a
+      // new reference and recompute the bbox as the track outline grows.
+      const incoming = raw.filter((_, i) => i % 5 === 0).map((l) => ({ x: l.x, y: l.y }))
+      if (incoming.length > 0) {
+        const merged = [...trackPointsRef.current, ...incoming]
+        trackPointsRef.current = merged.length > MAX_TRACK_POINTS
+          ? merged.slice(-MAX_TRACK_POINTS)
+          : merged
       }
 
       return Array.from(latestRef.current.values())

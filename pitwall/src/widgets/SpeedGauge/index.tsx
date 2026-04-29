@@ -164,7 +164,7 @@ export function SpeedGauge({ widgetId }: { widgetId: string }) {
       {/* Hero: Speed + Gear */}
       <div style={{ display: 'flex', alignItems: 'center', flex: 1, minHeight: 0 }}>
         {/* Speed */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'left' }}>
           <span style={{
             fontFamily: 'var(--cond)', fontSize: 54, fontWeight: 800, lineHeight: 0.9,
             color: 'var(--white)', letterSpacing: '-0.02em',
@@ -172,8 +172,8 @@ export function SpeedGauge({ widgetId }: { widgetId: string }) {
             {Math.round(sample.speed)}
           </span>
           <span style={{
-            fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted2)',
-            letterSpacing: '0.14em', marginTop: 3,
+            fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted2)',
+            letterSpacing: '0.14em', marginLeft: 6, marginBottom: 2,
           }}>
             KM/H
           </span>

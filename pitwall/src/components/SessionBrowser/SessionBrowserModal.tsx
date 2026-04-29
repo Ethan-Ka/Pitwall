@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useSessions } from '../../hooks/useSession'
+import { useSessions, useFastF1Sessions, type FastF1SessionRow } from '../../hooks/useSession'
 import { useSessionStore } from '../../store/sessionStore'
 import type { OpenF1Session } from '../../api/openf1'
 
@@ -43,11 +43,15 @@ function SessionTypeBadge({ type }: { type: string }) {
 
 /** A single session row inside a circuit group */
 function SessionRow({
-  session,
+  name,
+  type,
+  date,
   onSelect,
   index,
 }: {
-  session: OpenF1Session
+  name: string
+  type: string
+  date: string | null
   onSelect: () => void
   index: number
 }) {
@@ -81,33 +85,43 @@ function SessionRow({
         flex: 1,
         letterSpacing: '0.02em',
       }}>
-        {session.session_name}
+        {name}
       </span>
-      <SessionTypeBadge type={session.session_type} />
-      <span style={{
-        fontFamily: 'var(--mono)',
-        fontSize: 9,
-        color: 'var(--muted2)',
-        letterSpacing: '0.06em',
-        flexShrink: 0,
-        minWidth: 52,
-        textAlign: 'right',
-      }}>
-        {formatDate(session.date_start)}
-      </span>
+      <SessionTypeBadge type={type} />
+      {date && (
+        <span style={{
+          fontFamily: 'var(--mono)',
+          fontSize: 9,
+          color: 'var(--muted2)',
+          letterSpacing: '0.06em',
+          flexShrink: 0,
+          minWidth: 52,
+          textAlign: 'right',
+        }}>
+          {formatDate(date)}
+        </span>
+      )}
     </button>
   )
+}
+
+interface CircuitGroupRow {
+  key: string
+  name: string
+  type: string
+  date: string | null
+  onSelect: () => void
 }
 
 /** Group of sessions under one circuit header */
 function CircuitGroup({
   circuitName,
-  sessions,
-  onSelect,
+  country,
+  rows,
 }: {
   circuitName: string
-  sessions: OpenF1Session[]
-  onSelect: (s: OpenF1Session) => void
+  country?: string
+  rows: CircuitGroupRow[]
 }) {
   return (
     <div style={{ marginBottom: 2 }}>
@@ -131,24 +145,26 @@ function CircuitGroup({
         }}>
           {circuitName}
         </span>
-        {sessions[0]?.country_name && (
+        {country && (
           <span style={{
             fontFamily: 'var(--mono)',
             fontSize: 8,
             color: 'var(--muted2)',
             letterSpacing: '0.08em',
           }}>
-            {sessions[0].country_name}
+            {country}
           </span>
         )}
       </div>
 
       {/* Session rows */}
-      {sessions.map((s, index) => (
+      {rows.map((r, index) => (
         <SessionRow
-          key={s.session_key}
-          session={s}
-          onSelect={() => onSelect(s)}
+          key={r.key}
+          name={r.name}
+          type={r.type}
+          date={r.date}
+          onSelect={r.onSelect}
           index={index}
         />
       ))}
@@ -161,8 +177,18 @@ export function SessionBrowserModal({ onClose }: SessionBrowserModalProps) {
   const [selectedYear, setSelectedYear] = useState<number>(2026)
   const [isClosing, setIsClosing] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const { data: sessions, isLoading } = useSessions(selectedYear)
+
+  const dataSource = useSessionStore((s) => s.dataSource)
   const setActiveSession = useSessionStore((s) => s.setActiveSession)
+  const setActiveFastF1Session = useSessionStore((s) => s.setActiveFastF1Session)
+  const setMode = useSessionStore((s) => s.setMode)
+
+  const { data: openf1Sessions, isLoading: openf1Loading } = useSessions(selectedYear)
+  const { data: fastf1Sessions, isLoading: fastf1Loading } = useFastF1Sessions(
+    dataSource === 'fastf1' ? selectedYear : undefined
+  )
+
+  const isLoading = dataSource === 'fastf1' ? fastf1Loading : openf1Loading
 
   function handleRequestClose() {
     if (isClosing) return
@@ -178,18 +204,56 @@ export function SessionBrowserModal({ onClose }: SessionBrowserModalProps) {
     }
   }, [])
 
-  function handleSelect(session: OpenF1Session) {
+  function handleSelectOpenF1(session: OpenF1Session) {
     setActiveSession(session)
     handleRequestClose()
   }
 
-  // Group sessions by circuit_short_name, preserving order of first appearance
-  const grouped: Map<string, OpenF1Session[]> = new Map()
-  if (sessions) {
-    for (const s of sessions) {
+  function handleSelectFastF1(row: FastF1SessionRow) {
+    setActiveFastF1Session(row.ref)
+    setMode('historical')
+    handleRequestClose()
+  }
+
+  // Build grouped map from whichever source is active
+  const grouped: Map<string, CircuitGroupRow[]> = new Map()
+
+  if (dataSource === 'fastf1' && fastf1Sessions) {
+    for (const row of fastf1Sessions) {
+      const key = row.circuit_name
+      if (!grouped.has(key)) grouped.set(key, [])
+      grouped.get(key)!.push({
+        key: `${row.ref.year}-${row.ref.round}-${row.ref.session}`,
+        name: row.session_name,
+        type: row.session_name,
+        date: row.date,
+        onSelect: () => handleSelectFastF1(row),
+      })
+    }
+  } else if (openf1Sessions) {
+    for (const s of openf1Sessions) {
       const key = s.circuit_short_name ?? 'Unknown'
       if (!grouped.has(key)) grouped.set(key, [])
-      grouped.get(key)!.push(s)
+      grouped.get(key)!.push({
+        key: String(s.session_key),
+        name: s.session_name,
+        type: s.session_type,
+        date: s.date_start,
+        onSelect: () => handleSelectOpenF1(s),
+      })
+    }
+  }
+
+  // Country label per group
+  const groupCountry: Map<string, string | undefined> = new Map()
+  if (dataSource === 'fastf1' && fastf1Sessions) {
+    for (const row of fastf1Sessions) {
+      if (!groupCountry.has(row.circuit_name)) groupCountry.set(row.circuit_name, row.country)
+    }
+  } else if (openf1Sessions) {
+    for (const s of openf1Sessions) {
+      const key = s.circuit_short_name ?? 'Unknown'
+      if (!groupCountry.has(key)) groupCountry.set(key, s.country_name)
     }
   }
 
@@ -315,12 +379,12 @@ export function SessionBrowserModal({ onClose }: SessionBrowserModalProps) {
               No sessions found
             </div>
           ) : (
-            Array.from(grouped.entries()).map(([circuitName, groupSessions]) => (
+            Array.from(grouped.entries()).map(([circuitName, rows]) => (
               <CircuitGroup
                 key={circuitName}
                 circuitName={circuitName}
-                sessions={groupSessions}
-                onSelect={handleSelect}
+                country={groupCountry.get(circuitName)}
+                rows={rows}
               />
             ))
           )}

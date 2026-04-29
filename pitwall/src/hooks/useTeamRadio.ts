@@ -9,11 +9,12 @@ export function useTeamRadio(driverNumber?: number) {
   const apiKey = useSessionStore((s) => s.apiKey) ?? undefined
   const sessionKey = useSessionStore((s) => s.activeSession?.session_key)
   const mode = useSessionStore((s) => s.mode)
+  const dataSource = useSessionStore((s) => s.dataSource)
 
   return useQuery({
     queryKey: ['team_radio', sessionKey, driverNumber],
     queryFn: () => fetchTeamRadio(sessionKey!, driverNumber, apiKey),
-    enabled: !!sessionKey,
+    enabled: dataSource === 'openf1' && !!sessionKey,
     ...queryModePolicy(mode, {
       staleTime: 30_000,
       refetchInterval: 30_000,
