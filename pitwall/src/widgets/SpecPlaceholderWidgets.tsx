@@ -95,12 +95,6 @@ export const HeadToHeadDelta = createSpecWidget({
   accent: 'var(--red)',
 })
 
-export const SpeedGauge = createSpecWidget({
-  title: 'Speed Gauge',
-  subtitle: 'Live telemetry speed, gear, and rpm display.',
-  accent: 'var(--purple)',
-})
-
 export const ThrottleBrakeTrace = createSpecWidget({
   title: 'Throttle / Brake Trace',
   subtitle: 'Live pedal trace timeline for throttle and brake inputs.',
@@ -201,10 +195,4 @@ export const PointsDeltaTracker = createSpecWidget({
   title: 'Points Delta Tracker',
   subtitle: 'Historic points swing timeline between contenders.',
   accent: 'var(--gold)',
-})
-
-export const CarVisualization = createSpecWidget({
-  title: 'Car Visualization',
-  subtitle: '2026 car profile with telemetry and inferred overlays.',
-  accent: 'var(--purple)',
 })

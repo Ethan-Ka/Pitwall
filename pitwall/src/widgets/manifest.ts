@@ -15,9 +15,9 @@ import { GapEvolutionChart } from './GapEvolutionChart'
 import { TrackTempEvolution } from './TrackTempEvolution'
 import { RadioScanner } from './RadioScanner'
 import { RadioFeedText } from './RadioFeedText'
+import { SpeedGauge } from './SpeedGauge'
 import {
   HeadToHeadDelta,
-  SpeedGauge,
   ThrottleBrakeTrace,
   GearTrace,
   ThrottleHeatmap,
@@ -35,8 +35,8 @@ import {
   StandingsTable,
   ChampionshipCalculator,
   PointsDeltaTracker,
-  CarVisualization,
 } from './SpecPlaceholderWidgets'
+import { CarVisualization } from './CarVisualization'
 
 export type WidgetCategory =
   | 'Timing'
@@ -89,7 +89,7 @@ export const WIDGET_MANIFEST: WidgetManifestEntry[] = [
     description: 'Shows the live running lap timer for the focused driver (no completed lap fallback)',
     category: 'Timing',
     color: 'var(--red)',
-    defaultSize: { w: 4, h: 2 },
+    defaultSize: { w: 4, h: 3 },
     minH: 2,
     component: LiveLapTimeCard,
   },

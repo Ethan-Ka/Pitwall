@@ -1,6 +1,7 @@
 import { useRef, useEffect, useMemo, useState } from 'react'
 import { useLocation } from '../../hooks/useLocation'
 import { useCircuitMap } from '../../hooks/useCircuitMap'
+import { useTrackDisplayAsset } from '../../hooks/useTrackDisplayAsset'
 import { useDriverStore } from '../../store/driverStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
@@ -51,8 +52,15 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
   const [hoveredDriver, setHoveredDriver] = useState<number | null>(null)
 
   const f1Ref = useSessionStore((s) => s.activeFastF1Session)
+  const activeSession = useSessionStore((s) => s.activeSession)
   const { data: driverPositions, trackPoints } = useLocation()
   const { data: circuitMap } = useCircuitMap(f1Ref)
+
+  // Resolve year/round/circuit from whichever session source is active
+  const assetYear = f1Ref?.year ?? activeSession?.year ?? null
+  const assetRound = f1Ref?.round ?? null
+  const assetCircuit = assetRound == null ? (activeSession?.circuit_short_name ?? null) : null
+  const { data: staticSvgUrl } = useTrackDisplayAsset(assetYear, assetRound, assetCircuit)
   const getDriver = useDriverStore((s) => s.getDriver)
   const getTeamColor = useDriverStore((s) => s.getTeamColor)
   const refreshFade = useRefreshFade([driverPositions])
@@ -68,10 +76,11 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
     return () => ro.disconnect()
   }, [])
 
-  // Decide which track data source to use for normalization bbox
+  // Separate thresholds: low for bbox (dots appear quickly), higher for outline
+  // (avoids replacing the static SVG with a partial 3-point scribble)
   const bbox = useMemo(() => {
     if (circuitMap) return circuitMap.bbox
-    if (trackPoints.length > 50) return bboxFromPoints(trackPoints)
+    if (trackPoints.length > 3) return bboxFromPoints(trackPoints)
     return null
   }, [circuitMap, trackPoints])
 
@@ -80,9 +89,11 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
     [bbox, size],
   )
 
-  // Build SVG polyline string for the circuit outline
+  // Only draw the live outline once we have enough points for a coherent shape,
+  // or when circuitMap provides the full path.
   const trackPolyline = useMemo(() => {
     if (!normalizer) return ''
+    if (!circuitMap && trackPoints.length < 50) return ''
     const pts = circuitMap
       ? circuitMap.x.map((x, i) => normalizer.toSVG(x, circuitMap.y[i]))
       : trackPoints.map((p) => normalizer.toSVG(p.x, p.y))
@@ -128,6 +139,7 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
   const hasData = dots.length > 0
   const hasOutline = trackPolyline.length > 0
   const buildingTrack = !hasOutline && !circuitMap
+  const showStaticAsset = buildingTrack && !!staticSvgUrl
 
   return (
     <div
@@ -136,6 +148,19 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
       style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}
     >
       <svg width={size.width} height={size.height} style={{ display: 'block' }}>
+        {/* Static circuit asset — shown while FastF1/position data is unavailable */}
+        {showStaticAsset && (
+          <image
+            href={staticSvgUrl!}
+            x={0}
+            y={0}
+            width={size.width}
+            height={size.height}
+            preserveAspectRatio="xMidYMid meet"
+            opacity={0.35}
+          />
+        )}
+
         {/* Track outline — thick band for road surface feel */}
         {hasOutline && (
           <polyline
@@ -211,7 +236,7 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
       </svg>
 
       {/* Overlay when no position data yet */}
-      {!hasData && (
+      {!hasData && !showStaticAsset && (
         <div
           style={{
             position: 'absolute',

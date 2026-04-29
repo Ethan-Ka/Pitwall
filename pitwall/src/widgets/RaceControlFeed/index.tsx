@@ -62,9 +62,9 @@ function RaceControlRow({ entry }: { entry: OpenF1RaceControl }) {
   return (
     <div style={{
       display: 'flex',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       gap: 8,
-      padding: '5px 8px',
+      padding: '7px 10px',
       borderBottom: '0.5px solid var(--border)',
     }}>
       {/* Time */}
@@ -80,20 +80,25 @@ function RaceControlRow({ entry }: { entry: OpenF1RaceControl }) {
       </span>
 
       {/* Flag icon or category badge */}
-      <div style={{ flexShrink: 0, marginTop: 2 }}>
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', height: 16 }}>
         {isFlag
           ? <FlagIcon flag={entry.flag} />
           : badge
             ? (
               <span style={{
                 fontFamily: 'var(--mono)',
-                fontSize: 6,
-                letterSpacing: '0.1em',
+                fontSize: 8,
+                letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 color: badge.color,
                 border: `0.5px solid ${badge.color}55`,
-                borderRadius: 2,
-                padding: '0 3px',
+                borderRadius: 4,
+                padding: '1px 5px',
+                background: 'var(--bg4)',
+                lineHeight: 1.2,
+                display: 'inline-flex',
+                alignItems: 'center',
+                minHeight: 14,
               }}>
                 {badge.label}
               </span>

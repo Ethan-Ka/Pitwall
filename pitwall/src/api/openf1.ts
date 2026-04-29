@@ -222,8 +222,12 @@ export function fetchLocations(sessionKey: number, driverNumber?: number, apiKey
 }
 
 // --- Car Data ---
-export function fetchCarData(sessionKey: number, driverNumber?: number, apiKey?: string) {
-  return openf1Fetch<OpenF1CarData>('/car_data', { session_key: sessionKey, driver_number: driverNumber }, apiKey)
+export function fetchCarData(sessionKey: number, driverNumber?: number, apiKey?: string, date_gt?: string) {
+  return openf1Fetch<OpenF1CarData>('/car_data', {
+    session_key: sessionKey,
+    driver_number: driverNumber,
+    ...(date_gt ? { 'date>': date_gt } : {}),
+  }, apiKey)
 }
 
 // --- Meetings ---
