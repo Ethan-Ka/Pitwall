@@ -1,4 +1,4 @@
-# Pitwall
+# Pitwall - Release Branch
 
 <p align="center">
   <img src="pitwall/public/branding/pitwall-wordmark.svg" alt="Pitwall" width="520" />
@@ -20,6 +20,11 @@
 > Not affiliated with Formula 1, FIA, or Formula One Management.
 
 ---
+**This branch holds the most current - stable - build of the application**
+
+It will include only finished features, so the main version will be ahead of this branch.
+
+---
 
 ## Intro
 
@@ -27,7 +32,6 @@ Pitwall is built for fans who want team-style race context in one place: timing,
 
 The goal is to make race intelligence configurable, shareable, and useful in real time — with 36 fully implemented widgets across 8 categories, a flexible multi-canvas workspace, and a driver targeting system that keeps every widget pointing at the right car automatically.
 
----
 
 ![Full Demo](plan/demo/fullDemo.png)
 *Information is incorrect - testing/demo data*

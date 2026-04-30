@@ -529,11 +529,6 @@ function buildAppMenu() {
     {
       label: 'Window',
       submenu: [
-        {
-          label: 'Open Developer Menu',
-          accelerator: 'CmdOrCtrl+Shift+D',
-          click: () => createDevControlWindow(),
-        },
         { type: 'separator' },
         { role: 'minimize' },
         { role: 'zoom' },
@@ -546,7 +541,7 @@ function buildAppMenu() {
         {
           label: 'Learn More',
           click: async () => {
-            await shell.openExternal('https://www.electronjs.org')
+            await shell.openExternal('https://github.com/Ethan-Ka/Pitwall')
           },
         },
       ],

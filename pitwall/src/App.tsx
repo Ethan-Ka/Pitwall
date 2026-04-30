@@ -1159,28 +1159,7 @@ function MainLayout({ hideCanvasWidgetAdd }: { hideCanvasWidgetAdd: boolean }) {
               WebkitAppRegion: 'no-drag',
             }}
           >
-          {/* New window button — only shown when running inside Electron */}
-          {window.electronAPI && (
-            <button
-              onClick={() => window.electronAPI!.openNewWindow().catch(() => {})}
-              title="Open new window"
-              className="interactive-button"
-              style={{
-                background: 'none',
-                border: '0.5px solid var(--border)',
-                borderRadius: 3,
-                padding: '4px 10px',
-                fontFamily: 'var(--mono)',
-                fontSize: 8,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: 'var(--muted2)',
-                cursor: 'pointer',
-              }}
-            >
-              + Window
-            </button>
-          )}
+          
 
           {/* Mode indicator — click to toggle between live and historical */}
           <button
@@ -1215,25 +1194,6 @@ function MainLayout({ hideCanvasWidgetAdd }: { hideCanvasWidgetAdd: boolean }) {
             {mode === 'live' ? 'Live' : 'Hist'}
           </button>
 
-          {/* LOG button */}
-          <button
-            onClick={() => setLogOpen((v) => !v)}
-            className="interactive-button"
-            style={{
-              background: 'none',
-              border: '0.5px solid var(--border)',
-              borderRadius: 3,
-              padding: '4px 10px',
-              fontFamily: 'var(--mono)',
-              fontSize: 8,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: hasErrors ? 'var(--red)' : 'var(--muted2)',
-              cursor: 'pointer',
-            }}
-          >
-            LOG
-          </button>
 
           {/* Settings button */}
           <button
