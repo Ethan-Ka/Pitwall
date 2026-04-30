@@ -7,7 +7,27 @@ import { useRefreshFade } from '../../hooks/useRefreshFade'
 
 interface TyreIntelligenceProps {
   widgetId: string
-}
+} 
+
+export const HELP = `# Tyre Intelligence
+
+Estimates tyre life and degradation for the selected driver.
+
+- **Compound**: Shows the current tyre compound and stint number.
+- **Tyre life**: Laps completed on current tyres vs. estimated maximum ("cliff").
+- **Degradation**: Percentage of tyre life used, with a visual meter.
+- **Cliff lap**: Predicted lap when tyre performance drops off sharply.
+- **Track temp**: Current track temperature (affects tyre life estimate).
+- **Formula**: Shows the calculation used for cliff prediction.
+
+**Usage:**
+- Select a driver to view their current stint and tyre status.
+- Useful for pit strategy and stint planning.
+
+**Notes:**
+- Estimates are approximate and may vary with race conditions.
+- Degradation and cliff lap are based on simplified models.
+`
 
 const BASE_WINDOW: Record<string, number> = {
   SOFT: 18,

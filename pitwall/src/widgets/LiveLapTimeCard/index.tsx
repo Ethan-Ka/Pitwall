@@ -1,3 +1,19 @@
+export const HELP = `# Lap Time Card
+
+Shows a live running lap timer for the selected driver's current lap.
+
+- **Elapsed time**: Time ticking up from the start of the current lap (live mode only).
+- **Prior lap**: Last completed lap time for reference.
+- **PB**: Personal best lap time for this session.
+- **Delta to PB**: How the current lap is tracking against the personal best.
+
+Unfamiliar terms:
+
+- *PB*: Personal Best — the fastest lap the driver has set this session.
+- *Delta*: Seconds faster (negative) or slower (positive) than the reference time.
+
+Notes: the running timer only appears in live mode. In historical mode the widget falls back to showing the last completed lap. Timer precision depends on when the lap start timestamp was received — early laps may show a brief delay.
+`
 import { useEffect, useMemo, useState } from 'react'
 import { useLaps } from '../../hooks/useLaps'
 import { useRefreshFade } from '../../hooks/useRefreshFade'

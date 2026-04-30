@@ -1,3 +1,21 @@
+export const HELP = `# Speed Gauge
+
+Displays live telemetry for the selected driver: speed, gear, RPM, throttle, and brake.
+
+- **Speed**: Current speed in km/h.
+- **Gear**: Current gear selection (1–8).
+- **RPM**: Engine revolutions per minute, shown as a bar against the maximum (≈15,000 rpm).
+- **Throttle %**: Throttle pedal pressure (0–100%).
+- **Brake %**: Brake pedal pressure (0–100%).
+- **DRS**: Shown when the DRS flap is open (raw value ≥ 10).
+
+Unfamiliar terms:
+
+- *DRS*: Drag Reduction System — a movable rear-wing flap opened on designated straights to reduce drag and increase speed. Indicated by the DRS badge.
+- *RPM*: Revolutions Per Minute — how fast the engine is spinning. F1 engines typically rev to around 15,000 rpm.
+
+Notes: in live mode data streams from OpenF1 car_data. In historical mode the last completed lap's telemetry is fetched via the FastF1 sidecar — FastF1 must be running for historical data to appear.
+`
 import { useMemo } from 'react'
 import { useCarData } from '../../hooks/useCarData'
 import { useFastF1Telemetry, useFastF1Laps } from '../../hooks/useFastF1'

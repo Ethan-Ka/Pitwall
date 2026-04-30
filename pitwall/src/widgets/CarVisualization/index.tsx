@@ -1,3 +1,23 @@
+export const HELP = `# Car Visualization
+
+Displays a graphical side profile of the selected car, with live telemetry overlays.
+
+- **Car image**: Shows the current car model and livery for the selected team.
+- **Telemetry overlays**: May include DRS, RPM, tyre compound, and other live data.
+- **Compound color**: Tyre color matches the selected compound (Soft, Medium, Hard, etc.).
+
+**Tips:**
+- Use to visually confirm car/tyre selection or for broadcast overlays.
+- If a team/car asset is missing, a fallback image is shown.
+
+**Notes:**
+- Telemetry overlays depend on available data and may not show all fields.
+- Car images are based on the current season and may not match historical data.
+
+**Unfamiliar terms:**
+- *DRS*: Drag Reduction System, a device to reduce drag and increase speed on straights.
+- *RPM*: Revolutions per minute, engine speed.
+`
 import { useMemo, useRef } from 'react'
 import { useCarData } from '../../hooks/useCarData'
 import { useFastF1Telemetry, useFastF1Laps } from '../../hooks/useFastF1'
@@ -176,14 +196,14 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
             background: teamColor, display: 'inline-block',
           }} />
           <span style={{
-            fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.12em',
-            color: 'var(--white)', fontWeight: 600,
+            fontFamily: 'var(--mono)', fontSize: 13, letterSpacing: '0.12em',
+            color: 'var(--white)', fontWeight: 700,
           }}>
             {driverAcronym ?? '—'}
           </span>
           <span style={{
-            fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted2)',
-            letterSpacing: '0.08em',
+            fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted2)',
+            letterSpacing: '0.08em', fontWeight: 600,
           }}>
             {teamName ?? '—'}
           </span>
@@ -317,13 +337,13 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
 
           {/* DRS badge — overlaid on rear wing (left of right-facing car), pushed lower */}
           <div style={{
-            position: 'absolute', top: '42%', left: '8%',
+            position: 'absolute', top: '35%', left: '3%',
             background: sample.drsOpen ? 'rgba(29,184,106,0.9)' : 'rgba(255,255,255,0.06)',
             color: sample.drsOpen ? 'var(--white)' : 'var(--muted)',
             fontFamily: 'var(--mono)',
-            fontSize: 7,
+            fontSize: 14,
             fontWeight: 700,
-            padding: '2px 6px',
+            padding: '4px 12px',
             borderRadius: 3,
             letterSpacing: '0.1em',
             boxShadow: sample.drsOpen ? '0 0 8px rgba(29,184,106,0.7)' : 'none',
@@ -335,96 +355,92 @@ export function CarVisualization({ widgetId }: { widgetId: string }) {
             DRS
           </div>
 
-          {/* Brake bar — left side, fills from bottom */}
+          {/* Tyre compound — overlaid above rear wheel (right-facing car: rear wheel lower-right) */}
           <div style={{
-            position: 'absolute', left: 0, top: '5%',
-            width: 6, height: '90%',
-            background: 'var(--bg3)', borderRadius: 3,
-            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-            overflow: 'hidden',
+            position: 'absolute', bottom: '28%', right: '14%',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            pointerEvents: 'none', userSelect: 'none',
           }}>
             <div style={{
-              width: '100%',
-              height: `${brakePct * 100}%`,
-              background: 'var(--red)',
-              borderRadius: 3,
-              transition: 'height 0.3s ease',
-            }} />
+              width: 45, height: 45, borderRadius: '50%',
+              border: `1.5px solid ${compoundColor}`,
+              background: compoundName
+                ? `color-mix(in srgb, ${compoundColor} 15%, rgba(11,11,12,0.85))`
+                : 'rgba(11,11,12,0.7)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{
+                fontFamily: 'var(--cond)', fontSize: 18, fontWeight: 700,
+                color: compoundColor, lineHeight: 1,
+              }}>
+                {compoundAbbr}
+              </span>
+            </div>
+            {compoundName && (
+              <span style={{
+                fontFamily: 'var(--mono)', fontSize: 12,
+                color: compoundColor, letterSpacing: '0.06em',
+              }}>
+                {compoundName}
+              </span>
+            )}
           </div>
-          <span style={{
-            position: 'absolute', left: 0, bottom: 0,
-            width: 6,
-            fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
-            textAlign: 'center', letterSpacing: '0.04em',
-            lineHeight: 1, pointerEvents: 'none',
-          }}>
-            BRK
-          </span>
 
-          {/* Throttle bar — right side, fills from bottom */}
-          <div style={{
-            position: 'absolute', right: 0, top: '5%',
-            width: 6, height: '90%',
-            background: 'var(--bg3)', borderRadius: 3,
-            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              width: '100%',
-              height: `${throttlePct * 100}%`,
-              background: 'var(--green)',
-              borderRadius: 3,
-              transition: 'height 0.3s ease',
-            }} />
-          </div>
-          <span style={{
-            position: 'absolute', right: 0, bottom: 0,
-            width: 6,
-            fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
-            textAlign: 'center', letterSpacing: '0.04em',
-            lineHeight: 1, pointerEvents: 'none',
-          }}>
-            THR
-          </span>
         </div>
 
-        {/* Right column: Tyre indicator */}
+        {/* Pedal bars column */}
         <div style={{
-          flexShrink: 0, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: 4, width: 34,
+          flexShrink: 0, paddingLeft: 6,
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', gap: 4,
         }}>
-          {/* Compound circle */}
-          <div style={{
-            width: 28, height: 28, borderRadius: '50%',
-            border: `2px solid ${compoundColor}`,
-            background: compoundName
-              ? `color-mix(in srgb, ${compoundColor} 12%, transparent)`
-              : 'transparent',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <span style={{
-              fontFamily: 'var(--cond)', fontSize: 16, fontWeight: 700,
-              color: compoundColor, lineHeight: 1,
-            }}>
-              {compoundAbbr}
-            </span>
+          {/* Bar row: BRK left, THR right */}
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: 4, flex: 1, height: '100%' }}>
+            {/* Brake bar */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%' }}>
+              <div style={{
+                flex: 1, width: 8,
+                background: 'var(--bg3)', borderRadius: 3,
+                display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  width: '100%',
+                  height: `${brakePct * 100}%`,
+                  background: 'var(--red)',
+                  borderRadius: 3,
+                  transition: 'height 0.3s ease',
+                }} />
+              </div>
+              <span style={{
+                fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
+                letterSpacing: '0.04em', lineHeight: 1,
+              }}>BRK</span>
+            </div>
+            {/* Throttle bar */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%' }}>
+              <div style={{
+                flex: 1, width: 8,
+                background: 'var(--bg3)', borderRadius: 3,
+                display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  width: '100%',
+                  height: `${throttlePct * 100}%`,
+                  background: 'var(--green)',
+                  borderRadius: 3,
+                  transition: 'height 0.3s ease',
+                }} />
+              </div>
+              <span style={{
+                fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
+                letterSpacing: '0.04em', lineHeight: 1,
+              }}>THR</span>
+            </div>
           </div>
-          <span style={{
-            fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)',
-            letterSpacing: '0.1em', textAlign: 'center',
-          }}>
-            TYRE
-          </span>
-          {compoundName && (
-            <span style={{
-              fontFamily: 'var(--mono)', fontSize: 6,
-              color: compoundColor, letterSpacing: '0.06em', textAlign: 'center',
-            }}>
-              {compoundName}
-            </span>
-          )}
         </div>
+
       </div>
     </div>
   )

@@ -5,11 +5,17 @@ interface TrackMetadataRound {
   file: string | null
   format: string | null
   openf1Names?: string[]
+  displayRotation?: number
 }
 
 interface TrackMetadata {
   season: number
   rounds: TrackMetadataRound[]
+}
+
+export interface TrackDisplayAsset {
+  url: string
+  displayRotation: number
 }
 
 export function useTrackDisplayAsset(
@@ -22,7 +28,7 @@ export function useTrackDisplayAsset(
     enabled: year != null && (round != null || circuitShortName != null),
     staleTime: Infinity,
     retry: false,
-    queryFn: async (): Promise<string | null> => {
+    queryFn: async (): Promise<TrackDisplayAsset | null> => {
       if (year == null) return null
       const res = await fetch(`/seasons/${year}/tracks/metadata.json`)
       if (!res.ok) return null
@@ -40,7 +46,10 @@ export function useTrackDisplayAsset(
       }
 
       if (!entry?.file || !entry.format) return null
-      return `/seasons/${year}/tracks/display/${entry.file}-1.${entry.format}`
+      return {
+        url: `/seasons/${year}/tracks/display/${entry.file}-1.${entry.format}`,
+        displayRotation: entry.displayRotation ?? 0,
+      }
     },
   })
 }

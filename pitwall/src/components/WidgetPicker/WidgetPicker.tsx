@@ -175,19 +175,25 @@ function PreviewLapDeltaTower() {
 }
 
 function PreviewRunningOrderStrip() {
-  const COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#14b8a6','#f59e0b']
+  const drivers = [
+    { abbr: 'NOR', color: '#f97316' },
+    { abbr: 'VER', color: '#3b82f6' },
+    { abbr: 'LEC', color: '#ef4444' },
+    { abbr: 'HAM', color: '#14b8a6' },
+    { abbr: 'SAI', color: '#ef4444' },
+    { abbr: 'RUS', color: '#14b8a6' },
+    { abbr: 'PIA', color: '#f97316' },
+    { abbr: 'ALO', color: '#22c55e' },
+  ]
   return (
-    <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-        {COLORS.map((c, i) => (
-          <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: c }} />
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 5 }}>
-        {COLORS.map((_, i) => (
-          <span key={i} style={{ fontFamily: 'var(--mono)', fontSize: 5, color: 'var(--muted2)', width: 6, textAlign: 'center' }}>
-            P{i + 1}
-          </span>
+    <div style={{ height: '100%', display: 'flex', alignItems: 'center', padding: '4px 6px' }}>
+      <div style={{ width: '100%', display: 'flex', gap: 1 }}>
+        {drivers.map((d, i) => (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 5, color: 'var(--muted2)', lineHeight: 1 }}>P{i + 1}</span>
+            <div style={{ width: 9, height: 9, borderRadius: '50%', background: d.color }} />
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 4.5, color: 'var(--white)', letterSpacing: '-0.02em', lineHeight: 1 }}>{d.abbr}</span>
+          </div>
         ))}
       </div>
     </div>
@@ -196,16 +202,18 @@ function PreviewRunningOrderStrip() {
 
 function PreviewRaceControlFeed() {
   const rows = [
-    { ts: '14:23:01', msg: 'GREEN FLAG — RACING' },
-    { ts: '14:18:44', msg: 'YELLOW FLAG — T12' },
-    { ts: '14:15:02', msg: 'SC DEPLOYED' },
+    { ts: '14:23', msg: 'GREEN FLAG — RACING', dot: '#22c55e' },
+    { ts: '14:18', msg: 'YELLOW — SECTOR 3', dot: '#eab308' },
+    { ts: '14:15', msg: 'SAFETY CAR DEPLOYED', dot: '#f97316' },
+    { ts: '14:08', msg: 'DRS ENABLED — ALL', dot: '#22c55e' },
   ]
   return (
-    <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <div style={{ padding: '5px 7px', display: 'flex', flexDirection: 'column', gap: 4, height: '100%', boxSizing: 'border-box' }}>
       {rows.map((row, i) => (
-        <div key={i} style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted2)', flexShrink: 0 }}>{row.ts}</span>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted)', lineHeight: 1.3 }}>{row.msg}</span>
+        <div key={i} style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+          <div style={{ width: 5, height: 5, borderRadius: '50%', background: row.dot, flexShrink: 0 }} />
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', flexShrink: 0, width: 26 }}>{row.ts}</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted)', lineHeight: 1.2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.msg}</span>
         </div>
       ))}
     </div>
@@ -242,61 +250,60 @@ function PreviewWeatherDashboard() {
 
 function PreviewTyreIntelligence() {
   return (
-    <div style={{
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 5,
-      padding: '6px 10px',
-    }}>
-      <div style={{
-        background: '#eab308',
-        borderRadius: 2,
-        padding: '2px 8px',
-        fontFamily: 'var(--mono)',
-        fontSize: 8,
-        fontWeight: 700,
-        color: '#000',
-        letterSpacing: '0.08em',
-      }}>
-        MEDIUM
+    <div style={{ height: '100%', padding: '7px 9px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#eab308', borderRadius: 2, padding: '2px 6px', fontFamily: 'var(--mono)', fontSize: 7, fontWeight: 700, color: '#000', letterSpacing: '0.08em' }}>
+          MEDIUM
+        </div>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>14 laps</span>
       </div>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted2)' }}>Age 14 laps</span>
-      <div style={{ width: '100%', height: 4, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{ width: '60%', height: '100%', background: '#f59e0b', borderRadius: 2 }} />
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>WEAR</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: '#f59e0b' }}>58%</span>
+        </div>
+        <div style={{ width: '100%', height: 4, background: 'var(--bg2)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ width: '58%', height: '100%', background: 'linear-gradient(90deg, #22c55e, #eab308, #f97316)', borderRadius: 2 }} />
+        </div>
       </div>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--red)', letterSpacing: '0.06em' }}>
-        Cliff: lap 28 ~EST
-      </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>CLIFF ~EST</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: '#ef4444', letterSpacing: '0.04em' }}>LAP 28</span>
+      </div>
     </div>
   )
 }
 
 function PreviewFullTrackMap() {
   const dots = [
-    { cx: 80, cy: 30, color: '#ef4444' },
-    { cx: 135, cy: 22, color: '#f97316' },
-    { cx: 168, cy: 50, color: '#3b82f6' },
-    { cx: 140, cy: 72, color: '#22c55e' },
-    { cx: 55, cy: 62, color: '#8b5cf6' },
+    { cx: 78, cy: 18, color: '#f97316' },
+    { cx: 102, cy: 14, color: '#3b82f6' },
+    { cx: 132, cy: 22, color: '#ef4444' },
+    { cx: 148, cy: 44, color: '#14b8a6' },
+    { cx: 120, cy: 64, color: '#8b5cf6' },
+    { cx: 62, cy: 60, color: '#22c55e' },
   ]
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8 }}>
-      <svg viewBox="0 0 200 90" style={{ width: '100%', height: '100%' }}>
-        {/* Simplified Silverstone-ish oval path */}
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4 }}>
+      <svg viewBox="0 0 190 82" style={{ width: '100%', height: '100%' }}>
+        {/* Circuit outline — Silverstone inspired */}
         <path
-          d="M 30 45 Q 30 15 70 12 L 130 10 Q 170 8 175 30 L 178 55 Q 178 78 145 80 L 60 82 Q 28 80 28 60 Z"
+          d="M 28 42 Q 26 22 42 14 L 68 8 Q 88 4 104 10 L 128 8 Q 148 6 158 18 L 162 30 Q 164 42 158 52 L 152 62 Q 144 72 128 74 L 88 76 Q 60 78 44 70 L 30 58 Q 26 52 28 42 Z"
           fill="none"
           stroke="var(--border2)"
           strokeWidth="5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+        {/* Driver dots with white border */}
         {dots.map((d, i) => (
-          <circle key={i} cx={d.cx} cy={d.cy} r={4} fill={d.color} />
+          <g key={i}>
+            <circle cx={d.cx} cy={d.cy} r={5.5} fill="var(--bg3)" />
+            <circle cx={d.cx} cy={d.cy} r={4} fill={d.color} />
+          </g>
         ))}
+        {/* P1 label */}
+        <text x={78} y={10} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">P1</text>
       </svg>
     </div>
   )
@@ -304,46 +311,30 @@ function PreviewFullTrackMap() {
 
 function PreviewWeatherRadar() {
   return (
-    <div style={{
-      width: '100%',
-      height: '100%',
-      position: 'relative',
-      overflow: 'hidden',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      {/* Grid background */}
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
       <svg viewBox="0 0 120 75" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-        {/* Grid lines */}
-        {[0,1,2,3,4,5].map((i) => (
-          <line key={`h${i}`} x1={0} y1={i * 15} x2={120} y2={i * 15} stroke="var(--border)" strokeWidth="0.5" />
+        {/* Range rings */}
+        {[14, 24, 34].map((r) => (
+          <circle key={r} cx={60} cy={38} r={r} fill="none" stroke="var(--border)" strokeWidth="0.5" />
         ))}
-        {[0,1,2,3,4,5,6,7].map((i) => (
-          <line key={`v${i}`} x1={i * 17} y1={0} x2={i * 17} y2={75} stroke="var(--border)" strokeWidth="0.5" />
-        ))}
-        {/* Radar sweep arc */}
-        <path
-          d="M 60 37 L 60 10 A 27 27 0 0 1 85 50 Z"
-          fill="rgba(34,197,94,0.15)"
-          stroke="rgba(34,197,94,0.4)"
-          strokeWidth="0.5"
-        />
-        {/* Center dot */}
-        <circle cx={60} cy={37} r={2.5} fill="#22c55e" opacity={0.8} />
+        {/* Crosshairs */}
+        <line x1={60} y1={4} x2={60} y2={72} stroke="var(--border)" strokeWidth="0.5" />
+        <line x1={26} y1={38} x2={94} y2={38} stroke="var(--border)" strokeWidth="0.5" />
+        {/* Precipitation blobs */}
+        <ellipse cx={74} cy={28} rx={8} ry={5} fill="rgba(34,197,94,0.35)" />
+        <ellipse cx={82} cy={30} rx={5} ry={3} fill="rgba(34,197,94,0.55)" />
+        <ellipse cx={54} cy={50} rx={4} ry={3} fill="rgba(34,197,94,0.2)" />
+        {/* Radar sweep */}
+        <path d="M 60 38 L 60 4 A 34 34 0 0 1 94 38 Z" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.35)" strokeWidth="0.5" />
+        {/* Center */}
+        <circle cx={60} cy={38} r={3} fill="#22c55e" opacity={0.9} />
+        {/* Cardinal labels */}
+        <text x={60} y={8} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">N</text>
+        <text x={60} y={71} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">S</text>
+        <text x={21} y={40} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">W</text>
+        <text x={99} y={40} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">E</text>
       </svg>
-      {/* Label */}
-      <span style={{
-        position: 'absolute',
-        bottom: 6,
-        left: 0,
-        right: 0,
-        textAlign: 'center',
-        fontFamily: 'var(--mono)',
-        fontSize: 6,
-        color: 'var(--muted2)',
-        letterSpacing: '0.1em',
-      }}>
+      <span style={{ position: 'absolute', bottom: 4, left: 0, right: 0, textAlign: 'center', fontFamily: 'var(--mono)', fontSize: 5.5, color: 'var(--muted2)', letterSpacing: '0.1em' }}>
         SILVERSTONE
       </span>
     </div>
@@ -437,25 +428,52 @@ function PreviewLastLapCard() {
 
 function PreviewLiveLapTimeCard() {
   return (
-    <div style={{ height: '100%', padding: '7px 9px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.1em' }}>LIVE LAP (L48)</span>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ fontFamily: 'var(--cond)', fontSize: 8, color: 'var(--muted2)', opacity: 0.4, lineHeight: 1 }}>1:28.642</span>
-        <span style={{ fontFamily: 'var(--cond)', fontSize: 22, fontWeight: 700, color: '#e8002d', lineHeight: 1, textShadow: '0 0 8px #e8002d44' }}>1:14.3__</span>
+    <div style={{ height: '100%', padding: '6px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.08em' }}>LIVE · L48</span>
+        <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#e8002d' }} />
       </div>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.1em' }}>LIVE TIMER</span>
+      <div>
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted2)', opacity: 0.5, lineHeight: 1, marginBottom: 2 }}>PREV 1:28.642</div>
+        <div style={{ fontFamily: 'var(--cond)', fontSize: 24, fontWeight: 700, color: '#e8002d', lineHeight: 1, textShadow: '0 0 10px #e8002d55', letterSpacing: '-0.01em' }}>1:14.3__</div>
+      </div>
+      <div style={{ display: 'flex', gap: 3 }}>
+        {[{ label: 'S1', color: '#a3e635' }, { label: 'S2', color: '#a3e635' }, { label: 'S3', color: 'var(--muted2)' }].map((s) => (
+          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <div style={{ width: 3, height: 3, borderRadius: '50%', background: s.color }} />
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 5.5, color: s.color }}>{s.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function PreviewGapEvolutionChart() {
   return (
-    <div style={{ height: '100%', padding: '7px' }}>
-      <svg viewBox="0 0 120 72" style={{ width: '100%', height: '100%' }}>
-        {[12, 24, 36, 48, 60].map((y) => (
-          <line key={y} x1={0} y1={y} x2={120} y2={y} stroke="var(--border)" strokeWidth="0.5" />
+    <div style={{ height: '100%', padding: '6px 7px 4px', boxSizing: 'border-box' }}>
+      <svg viewBox="0 0 120 68" style={{ width: '100%', height: '100%' }}>
+        {/* Grid */}
+        {[14, 28, 42, 56].map((y) => (
+          <line key={y} x1={14} y1={y} x2={118} y2={y} stroke="var(--border)" strokeWidth="0.5" />
         ))}
-        <polyline fill="none" stroke="#ef4444" strokeWidth="2" points="2,56 20,50 36,44 52,48 70,36 86,30 102,26 118,20" />
+        {/* Zero baseline */}
+        <line x1={14} y1={34} x2={118} y2={34} stroke="var(--border2)" strokeWidth="1" strokeDasharray="3 2" />
+        {/* Driver gap lines */}
+        <polyline fill="none" stroke="#f97316" strokeWidth="1.8" points="14,52 30,46 46,42 62,44 78,38 94,32 110,26 118,22" />
+        <polyline fill="none" stroke="#3b82f6" strokeWidth="1.8" points="14,28 30,30 46,26 62,28 78,24 94,20 110,18 118,16" />
+        <polyline fill="none" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4 2" points="14,58 30,56 46,54 62,58 78,60 94,58 110,56 118,54" />
+        {/* Y-axis labels */}
+        <text x={12} y={35} textAnchor="end" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">0</text>
+        <text x={12} y={15} textAnchor="end" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">+1</text>
+        <text x={12} y={55} textAnchor="end" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">−1</text>
+        {/* Legend */}
+        <circle cx={16} cy={62} r={2} fill="#f97316" />
+        <text x={20} y={64} fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">NOR</text>
+        <circle cx={40} cy={62} r={2} fill="#3b82f6" />
+        <text x={44} y={64} fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">VER</text>
+        <circle cx={64} cy={62} r={2} fill="#ef4444" />
+        <text x={68} y={64} fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">LEC</text>
       </svg>
     </div>
   )
@@ -517,100 +535,270 @@ function PreviewSectorMiniCards() {
 
 function PreviewSpeedGauge() {
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-      <div style={{ width: 50, height: 28, borderTopLeftRadius: 50, borderTopRightRadius: 50, border: '2px solid var(--border2)', borderBottom: 'none', position: 'relative' }}>
-        <div style={{ position: 'absolute', left: 24, bottom: 0, width: 2, height: 20, background: '#ef4444', transform: 'rotate(35deg)', transformOrigin: 'bottom center' }} />
-      </div>
-      <span style={{ fontFamily: 'var(--cond)', fontSize: 16, fontWeight: 700, color: 'var(--white)', lineHeight: 1 }}>318</span>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', boxSizing: 'border-box' }}>
+      <svg viewBox="0 0 110 68" style={{ width: '100%', flex: 1 }}>
+        {/* Gauge track */}
+        <path d="M 12 58 A 43 43 0 0 1 98 58" fill="none" stroke="var(--border2)" strokeWidth="5" strokeLinecap="round" />
+        {/* Colored arc fill — ~75% of range (318 km/h of max ~360) */}
+        <path d="M 12 58 A 43 43 0 0 1 88 28" fill="none" stroke="#8b5cf6" strokeWidth="5" strokeLinecap="round" opacity={0.8} />
+        {/* Tick marks */}
+        {[0, 0.25, 0.5, 0.75, 1].map((t) => {
+          const angle = -180 + t * 180
+          const rad = (angle * Math.PI) / 180
+          const cx = 55 + 43 * Math.cos(rad)
+          const cy = 58 + 43 * Math.sin(rad)
+          const cx2 = 55 + 36 * Math.cos(rad)
+          const cy2 = 58 + 36 * Math.sin(rad)
+          return <line key={t} x1={cx} y1={cy} x2={cx2} y2={cy2} stroke="var(--border2)" strokeWidth="1.5" />
+        })}
+        {/* Needle */}
+        <line x1={55} y1={58} x2={88} y2={28} stroke="var(--white)" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx={55} cy={58} r={3} fill="var(--white)" />
+        {/* Speed value */}
+        <text x={55} y={50} textAnchor="middle" fill="var(--white)" fontSize={13} fontFamily="var(--cond)" fontWeight="700">318</text>
+        <text x={55} y={58} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">km/h</text>
+        {/* Gear badge */}
+        <rect x={84} y={52} width={16} height={12} rx={2} fill="#8b5cf644" stroke="#8b5cf699" strokeWidth="0.5" />
+        <text x={92} y={61} textAnchor="middle" fill="var(--white)" fontSize={8} fontFamily="var(--mono)" fontWeight="700">7</text>
+      </svg>
     </div>
   )
 }
 
 function PreviewThrottleBrakeTrace() {
   return (
-    <div style={{ height: '100%', padding: '8px' }}>
-      <svg viewBox="0 0 120 72" style={{ width: '100%', height: '100%' }}>
-        <polyline fill="none" stroke="#22c55e" strokeWidth="2" points="2,60 20,20 38,26 56,18 74,34 92,12 118,14" />
-        <polyline fill="none" stroke="#ef4444" strokeWidth="2" points="2,68 24,66 42,52 58,60 76,44 96,58 118,46" />
+    <div style={{ height: '100%', padding: '5px 7px', boxSizing: 'border-box' }}>
+      <svg viewBox="0 0 114 64" style={{ width: '100%', height: '100%' }}>
+        {/* Grid */}
+        {[16, 32, 48].map((y) => (
+          <line key={y} x1={0} y1={y} x2={114} y2={y} stroke="var(--border)" strokeWidth="0.5" />
+        ))}
+        {/* Throttle — filled area (green) */}
+        <polygon fill="rgba(34,197,94,0.18)" points="2,46 2,8 18,12 30,6 44,10 58,4 74,14 90,8 110,10 110,46" />
+        <polyline fill="none" stroke="#22c55e" strokeWidth="1.8" points="2,8 18,12 30,6 44,10 58,4 74,14 90,8 110,10" />
+        {/* Brake — filled area (red), spikes downward from baseline */}
+        <polygon fill="rgba(239,68,68,0.2)" points="2,46 2,58 18,58 30,52 44,58 58,50 74,58 90,54 110,56 110,46" />
+        <polyline fill="none" stroke="#ef4444" strokeWidth="1.8" points="2,58 18,58 30,52 44,58 58,50 74,58 90,54 110,56" />
+        {/* Labels */}
+        <text x={2} y={7} fill="#22c55e" fontSize={5} fontFamily="var(--mono)">THR</text>
+        <text x={2} y={64} fill="#ef4444" fontSize={5} fontFamily="var(--mono)">BRK</text>
       </svg>
     </div>
   )
 }
 
 function PreviewGearTrace() {
+  const steps = [
+    { x1: 2, x2: 18, y: 64, g: '1' },
+    { x1: 18, x2: 34, y: 56, g: '2' },
+    { x1: 34, x2: 52, y: 48, g: '3' },
+    { x1: 52, x2: 68, y: 40, g: '4' },
+    { x1: 68, x2: 84, y: 28, g: '6' },
+    { x1: 84, x2: 96, y: 48, g: '4' },
+    { x1: 96, x2: 114, y: 16, g: '8' },
+  ]
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'flex', alignItems: 'center' }}>
-      <svg viewBox="0 0 120 72" style={{ width: '100%', height: '100%' }}>
-        <polyline fill="none" stroke="#3b82f6" strokeWidth="2" points="2,64 24,64 24,54 48,54 48,40 74,40 74,24 96,24 96,10 118,10" />
+    <div style={{ height: '100%', padding: '5px 7px', boxSizing: 'border-box' }}>
+      <svg viewBox="0 0 116 70" style={{ width: '100%', height: '100%' }}>
+        {/* Y-axis gear labels */}
+        {[1,2,3,4,5,6,7,8].map((g) => {
+          const y = 64 - (g - 1) * 8
+          return <text key={g} x={10} y={y + 2} textAnchor="middle" fill="var(--muted2)" fontSize={4.5} fontFamily="var(--mono)">{g}</text>
+        })}
+        <line x1={14} y1={4} x2={14} y2={68} stroke="var(--border)" strokeWidth="0.5" />
+        {/* Staircase path */}
+        <polyline
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="2"
+          points={steps.flatMap((s) => [`${s.x1 + 2},${s.y}`, `${s.x2 + 2},${s.y}`]).join(' ')}
+        />
+        {/* Vertical connectors */}
+        {steps.slice(0, -1).map((s, i) => (
+          <line key={i} x1={steps[i].x2 + 2} y1={s.y} x2={steps[i].x2 + 2} y2={steps[i + 1].y} stroke="#3b82f6" strokeWidth="2" />
+        ))}
+        {/* Gear labels above each segment */}
+        {steps.map((s) => (
+          <text key={s.g + s.x1} x={(s.x1 + s.x2) / 2 + 2} y={s.y - 3} textAnchor="middle" fill="#3b82f6" fontSize={5} fontFamily="var(--mono)">{s.g}</text>
+        ))}
       </svg>
     </div>
   )
 }
 
 function PreviewThrottleHeatmap() {
+  const sectors = [
+    { label: 'S1', cells: [90,95,85,100,70,40,20,30,60,80] },
+    { label: 'S2', cells: [100,100,90,50,10,5,15,80,95,100] },
+    { label: 'S3', cells: [85,75,100,100,90,60,30,20,70,90] },
+  ]
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2 }}>
-      {Array.from({ length: 40 }).map((_, i) => {
-        const v = (i * 37) % 100
-        const color = v > 75 ? '#f97316' : v > 45 ? '#eab308' : '#22c55e'
-        return <div key={i} style={{ height: 4, borderRadius: 1, background: color, opacity: 0.85 }} />
-      })}
+    <div style={{ height: '100%', padding: '5px 7px', display: 'flex', flexDirection: 'column', gap: 4, boxSizing: 'border-box' }}>
+      {sectors.map((s) => (
+        <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', width: 10, flexShrink: 0 }}>{s.label}</span>
+          <div style={{ flex: 1, display: 'flex', gap: 1.5 }}>
+            {s.cells.map((v, i) => {
+              const color = v > 70 ? '#22c55e' : v > 35 ? '#eab308' : '#ef4444'
+              return <div key={i} style={{ flex: 1, height: 12, borderRadius: 1, background: color, opacity: 0.6 + (v / 100) * 0.4 }} />
+            })}
+          </div>
+        </div>
+      ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+        {[['FULL', '#22c55e'], ['MID', '#eab308'], ['LOW', '#ef4444']].map(([lbl, c]) => (
+          <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <div style={{ width: 5, height: 5, background: c, borderRadius: 1 }} />
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 5, color: 'var(--muted2)' }}>{lbl}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function PreviewERSMicroSectors() {
+  const phases = [
+    { label: 'HARVEST', bars: [40, 60, 50, 45, 55], color: '#facc15' },
+    { label: 'DEPLOY', bars: [80, 100, 95, 70, 85], color: '#22c55e' },
+    { label: 'NEUTRAL', bars: [10, 15, 5, 20, 8], color: '#3b82f6' },
+  ]
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: 2 }}>
-      {Array.from({ length: 30 }).map((_, i) => {
-        const mod = i % 10
-        const color = mod < 3 ? '#22c55e' : mod < 7 ? '#facc15' : '#ef4444'
-        return <div key={i} style={{ height: 5, borderRadius: 2, background: color, opacity: 0.8 }} />
-      })}
+    <div style={{ height: '100%', padding: '5px 7px', display: 'flex', flexDirection: 'column', gap: 4, boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>ERS MICRO-SECTORS</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: '#22c55e' }}>+4.2 MJ</span>
+      </div>
+      {phases.map((p) => (
+        <div key={p.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5, color: p.color, width: 36, flexShrink: 0 }}>{p.label}</span>
+          <div style={{ flex: 1, display: 'flex', gap: 2 }}>
+            {p.bars.map((v, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <div style={{ height: Math.round(v / 100 * 10), background: p.color, borderRadius: 1, opacity: 0.8 }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
 
 function PreviewDRSEfficiency() {
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5 }}>
-      <div style={{ height: 6, background: 'var(--bg2)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: '78%', height: '100%', background: '#22c55e' }} />
+    <div style={{ height: '100%', padding: '6px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.08em' }}>DRS EFFICIENCY</span>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <div style={{ width: '100%', height: 22, background: 'var(--bg2)', borderRadius: 2, display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: '68%', background: '#3b82f644', borderTop: '1px solid #3b82f6' }} />
+          </div>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5.5, color: 'var(--muted2)' }}>CLOSED</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: '#3b82f6' }}>304</span>
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <div style={{ width: '100%', height: 22, background: 'var(--bg2)', borderRadius: 2, display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: '88%', background: '#22c55e44', borderTop: '1px solid #22c55e' }} />
+          </div>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5.5, color: 'var(--muted2)' }}>OPEN</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: '#22c55e' }}>318</span>
+        </div>
       </div>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted)' }}>OPEN +12.4 km/h</span>
+      <div style={{ background: '#22c55e18', border: '0.5px solid #22c55e66', borderRadius: 2, padding: '2px 5px', display: 'flex', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>DELTA</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: '#22c55e' }}>+14.2 km/h</span>
+      </div>
     </div>
   )
 }
 
 function PreviewEngineModeTracker() {
+  const timeline = [
+    { laps: '1–10', mode: 'P2', color: '#3b82f6', w: 30 },
+    { laps: '11–22', mode: 'P4', color: '#ef4444', w: 36 },
+    { laps: '23–35', mode: 'P3', color: '#f97316', w: 38 },
+    { laps: '36–47', mode: 'P2', color: '#3b82f6', w: 34 },
+  ]
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-      {['P1', 'P2', 'P3', 'P4'].map((mode, i) => (
-        <div key={mode} style={{ width: 17, height: 28, borderRadius: 3, border: '0.5px solid var(--border)', background: i === 1 ? '#3b82f644' : 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: i === 1 ? 'var(--white)' : 'var(--muted2)' }}>{mode}</span>
-        </div>
-      ))}
+    <div style={{ height: '100%', padding: '6px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>ENGINE MODE</span>
+        <div style={{ background: '#ef4444', borderRadius: 2, padding: '1px 5px', fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--white)' }}>P4 ACTIVE</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {timeline.map((t) => (
+          <div key={t.laps} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 5, color: 'var(--muted2)', width: 22, flexShrink: 0 }}>L{t.laps}</span>
+            <div style={{ flex: 1, height: 8, background: 'var(--bg2)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ width: `${t.w}%`, height: '100%', background: t.color, opacity: 0.75 }} />
+            </div>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: t.color, width: 12, flexShrink: 0 }}>{t.mode}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function PreviewStrategyTimeline() {
+  const drivers = [
+    { abbr: 'NOR', color: '#f97316', stints: [{ c: '#eab308', w: 28 }, { c: '#dc2626', w: 38 }, { c: '#22c55e', w: 34 }] },
+    { abbr: 'VER', color: '#3b82f6', stints: [{ c: '#dc2626', w: 22 }, { c: '#eab308', w: 40 }, { c: '#eab308', w: 38 }] },
+    { abbr: 'LEC', color: '#ef4444', stints: [{ c: '#eab308', w: 34 }, { c: '#eab308', w: 32 }, { c: '#dc2626', w: 34 }] },
+  ]
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
-      {[['#eab308', '#22c55e', '#ef4444'], ['#ffffff', '#eab308', '#22c55e'], ['#f97316', '#ffffff', '#ef4444']].map((segments, i) => (
-        <div key={i} style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', background: 'var(--bg2)' }}>
-          {segments.map((c, idx) => <div key={idx} style={{ flex: 1, background: c }} />)}
-        </div>
-      ))}
+    <div style={{ height: '100%', padding: '5px 7px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>STRATEGY TIMELINE</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {drivers.map((d) => (
+          <div key={d.abbr} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: 3, height: 10, borderRadius: 1, background: d.color, flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--white)', width: 18, flexShrink: 0 }}>{d.abbr}</span>
+            <div style={{ flex: 1, display: 'flex', height: 8, borderRadius: 2, overflow: 'hidden', gap: 1 }}>
+              {d.stints.map((s, i) => (
+                <div key={i} style={{ width: `${s.w}%`, height: '100%', background: s.c, opacity: 0.85 }} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        {[['MED', '#eab308'], ['SOFT', '#dc2626'], ['HARD', '#ebebeb']].map(([lbl, c]) => (
+          <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <div style={{ width: 5, height: 5, background: c as string, borderRadius: 1 }} />
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 5, color: 'var(--muted2)' }}>{lbl}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function PreviewDegRateGraph() {
   return (
-    <div style={{ height: '100%', padding: '8px' }}>
-      <svg viewBox="0 0 120 72" style={{ width: '100%', height: '100%' }}>
-        <polyline fill="none" stroke="#f97316" strokeWidth="2" points="4,14 24,18 44,24 64,34 84,48 104,58 116,66" />
+    <div style={{ height: '100%', padding: '5px 7px', boxSizing: 'border-box' }}>
+      <svg viewBox="0 0 114 66" style={{ width: '100%', height: '100%' }}>
+        {/* Grid */}
+        {[16, 32, 48].map((y) => (
+          <line key={y} x1={14} y1={y} x2={112} y2={y} stroke="var(--border)" strokeWidth="0.5" />
+        ))}
+        <line x1={14} y1={8} x2={14} y2={60} stroke="var(--border)" strokeWidth="0.5" />
+        {/* Hard — slow degradation */}
+        <polyline fill="none" stroke="#d4d4d8" strokeWidth="1.8" points="14,14 32,16 50,18 68,22 86,28 104,36 112,42" />
+        {/* Medium */}
+        <polyline fill="none" stroke="#eab308" strokeWidth="1.8" points="14,14 32,18 50,24 68,34 86,46 104,56 112,62" />
+        {/* Soft — fast degradation */}
+        <polyline fill="none" stroke="#dc2626" strokeWidth="1.8" points="14,14 28,22 42,34 58,46 72,56 86,62" />
+        {/* Axis labels */}
+        <text x={7} y={16} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">Δt</text>
+        {/* Legend */}
+        <line x1={18} y1={62} x2={28} y2={62} stroke="#d4d4d8" strokeWidth="1.5" />
+        <text x={30} y={64} fill="var(--muted2)" fontSize={4.5} fontFamily="var(--mono)">H</text>
+        <line x1={40} y1={62} x2={50} y2={62} stroke="#eab308" strokeWidth="1.5" />
+        <text x={52} y={64} fill="var(--muted2)" fontSize={4.5} fontFamily="var(--mono)">M</text>
+        <line x1={62} y1={62} x2={72} y2={62} stroke="#dc2626" strokeWidth="1.5" />
+        <text x={74} y={64} fill="var(--muted2)" fontSize={4.5} fontFamily="var(--mono)">S</text>
       </svg>
     </div>
   )
@@ -618,9 +806,30 @@ function PreviewDegRateGraph() {
 
 function PreviewPitWindowUrgency() {
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-      <div style={{ width: 56, height: 56, borderRadius: '50%', border: '5px solid #ef4444', borderTopColor: 'var(--border2)', transform: 'rotate(35deg)' }} />
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: '#ef4444' }}>PIT NOW</span>
+    <div style={{ height: '100%', padding: '5px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.08em', alignSelf: 'flex-start' }}>PIT WINDOW</span>
+      <div style={{ position: 'relative', width: 52, height: 52, flexShrink: 0 }}>
+        <svg viewBox="0 0 52 52" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          {/* Background track */}
+          <circle cx={26} cy={26} r={22} fill="none" stroke="var(--border2)" strokeWidth="5" />
+          {/* Urgency arc — ~80% full in red */}
+          <circle
+            cx={26} cy={26} r={22}
+            fill="none"
+            stroke="#ef4444"
+            strokeWidth="5"
+            strokeDasharray={`${0.8 * 138.2} ${138.2}`}
+            strokeDashoffset="34.6"
+            strokeLinecap="round"
+            transform="rotate(-90 26 26)"
+          />
+          <text x={26} y={24} textAnchor="middle" fill="var(--white)" fontSize={11} fontFamily="var(--cond)" fontWeight="700">28</text>
+          <text x={26} y={32} textAnchor="middle" fill="var(--muted2)" fontSize={5} fontFamily="var(--mono)">LAP</text>
+        </svg>
+      </div>
+      <div style={{ background: '#ef444422', border: '0.5px solid #ef4444aa', borderRadius: 2, padding: '2px 10px', fontFamily: 'var(--mono)', fontSize: 7, color: '#ef4444', letterSpacing: '0.06em' }}>
+        PIT NOW
+      </div>
     </div>
   )
 }
@@ -642,28 +851,53 @@ function PreviewPitStopLog() {
 
 function PreviewUndercutSimulator() {
   return (
-    <div style={{ height: '100%', padding: '8px', display: 'flex', flexDirection: 'column', gap: 5, justifyContent: 'center' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
-        <div style={{ background: 'var(--bg3)', border: '0.5px solid var(--border)', borderRadius: 2, padding: '4px' }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>CURRENT</span>
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--white)' }}>P4</div>
+    <div style={{ height: '100%', padding: '6px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)', letterSpacing: '0.08em' }}>UNDERCUT SIM</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 4, alignItems: 'center' }}>
+        <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 3, padding: '5px 4px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5.5, color: 'var(--muted2)' }}>NOW</span>
+          <span style={{ fontFamily: 'var(--cond)', fontSize: 18, fontWeight: 700, color: 'var(--white)', lineHeight: 1 }}>P4</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5.5, color: 'var(--muted2)' }}>GAP +3.2s</span>
         </div>
-        <div style={{ background: '#22c55e22', border: '0.5px solid #22c55e99', borderRadius: 2, padding: '4px' }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: '#86efac' }}>UNDERCUT</span>
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--white)' }}>P3</div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+          <span style={{ fontSize: 10, color: '#22c55e' }}>→</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5, color: '#22c55e' }}>+1.8s</span>
+        </div>
+        <div style={{ background: '#22c55e14', border: '0.5px solid #22c55e88', borderRadius: 3, padding: '5px 4px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5.5, color: '#86efac' }}>UNDERCUT</span>
+          <span style={{ fontFamily: 'var(--cond)', fontSize: 18, fontWeight: 700, color: '#22c55e', lineHeight: 1 }}>P3</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 5.5, color: '#86efac' }}>AHEAD</span>
         </div>
       </div>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 6, color: 'var(--muted2)' }}>GAIN +1.8s</span>
     </div>
   )
 }
 
 function PreviewTrackTempEvolution() {
   return (
-    <div style={{ height: '100%', padding: '8px' }}>
-      <svg viewBox="0 0 120 72" style={{ width: '100%', height: '100%' }}>
-        <polyline fill="none" stroke="#f97316" strokeWidth="2" points="4,56 22,52 40,46 58,42 76,36 94,30 116,24" />
-        <polyline fill="none" stroke="#38bdf8" strokeWidth="2" points="4,62 22,60 40,56 58,52 76,48 94,44 116,40" />
+    <div style={{ height: '100%', padding: '5px 7px', boxSizing: 'border-box' }}>
+      <svg viewBox="0 0 114 66" style={{ width: '100%', height: '100%' }}>
+        {/* Grid */}
+        {[16, 32, 48].map((y) => (
+          <line key={y} x1={14} y1={y} x2={112} y2={y} stroke="var(--border)" strokeWidth="0.5" />
+        ))}
+        <line x1={14} y1={8} x2={14} y2={60} stroke="var(--border)" strokeWidth="0.5" />
+        {/* Track temp — filled area (orange) */}
+        <polygon
+          fill="rgba(249,115,22,0.15)"
+          points="14,60 14,46 30,42 46,38 62,34 78,28 94,24 112,20 112,60"
+        />
+        <polyline fill="none" stroke="#f97316" strokeWidth="2" points="14,46 30,42 46,38 62,34 78,28 94,24 112,20" />
+        {/* Air temp — line (blue) */}
+        <polyline fill="none" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="4 2" points="14,52 30,50 46,48 62,46 78,44 94,42 112,40" />
+        {/* Labels */}
+        <text x={16} y={44} fill="#f97316" fontSize={5} fontFamily="var(--mono)">38°C</text>
+        <text x={16} y={56} fill="#38bdf8" fontSize={5} fontFamily="var(--mono)">22°C</text>
+        {/* Legend */}
+        <line x1={60} y1={62} x2={70} y2={62} stroke="#f97316" strokeWidth="1.5" />
+        <text x={72} y={64} fill="var(--muted2)" fontSize={4.5} fontFamily="var(--mono)">TRACK</text>
+        <line x1={88} y1={62} x2={98} y2={62} stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="3 1.5" />
+        <text x={100} y={64} fill="var(--muted2)" fontSize={4.5} fontFamily="var(--mono)">AIR</text>
       </svg>
     </div>
   )
@@ -671,23 +905,54 @@ function PreviewTrackTempEvolution() {
 
 function PreviewWindDirection() {
   return (
-    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
-      <div style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--border2)', position: 'relative' }}>
-        <div style={{ position: 'absolute', left: 19, top: 6, width: 2, height: 24, background: '#38bdf8', transform: 'rotate(45deg)', transformOrigin: 'bottom center' }} />
-      </div>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted)' }}>270° / 12kmh</span>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+      <svg viewBox="0 0 72 72" style={{ width: 56, height: 56 }}>
+        {/* Compass rings */}
+        <circle cx={36} cy={36} r={30} fill="none" stroke="var(--border)" strokeWidth="0.5" />
+        <circle cx={36} cy={36} r={22} fill="none" stroke="var(--border)" strokeWidth="0.5" />
+        {/* Cardinal ticks */}
+        {[0, 90, 180, 270].map((deg) => {
+          const rad = (deg - 90) * Math.PI / 180
+          return <line key={deg} x1={36 + 22 * Math.cos(rad)} y1={36 + 22 * Math.sin(rad)} x2={36 + 30 * Math.cos(rad)} y2={36 + 30 * Math.sin(rad)} stroke="var(--border2)" strokeWidth="1" />
+        })}
+        {/* Cardinal labels */}
+        <text x={36} y={8} textAnchor="middle" fill="var(--muted2)" fontSize={6} fontFamily="var(--mono)">N</text>
+        <text x={36} y={68} textAnchor="middle" fill="var(--muted2)" fontSize={6} fontFamily="var(--mono)">S</text>
+        <text x={6} y={38} textAnchor="middle" fill="var(--muted2)" fontSize={6} fontFamily="var(--mono)">W</text>
+        <text x={66} y={38} textAnchor="middle" fill="var(--muted2)" fontSize={6} fontFamily="var(--mono)">E</text>
+        {/* Wind arrow — pointing WSW (250°) */}
+        <line x1={36} y1={36} x2={20} y2={44} stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
+        <polygon points="14,46 24,38 22,50" fill="#38bdf8" />
+        {/* Center dot */}
+        <circle cx={36} cy={36} r={3} fill="var(--bg3)" stroke="var(--border2)" strokeWidth="1" />
+      </svg>
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 7, color: 'var(--muted)' }}>250° · 12 km/h</span>
     </div>
   )
 }
 
 function PreviewSectorMap() {
   return (
-    <div style={{ width: '100%', height: '100%', padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg viewBox="0 0 120 75" style={{ width: '100%', height: '100%' }}>
-        <path d="M16 38 Q16 14 44 12 L86 12 Q104 14 104 30 L104 48 Q104 64 86 64 L32 64 Q16 62 16 48 Z" fill="none" stroke="var(--border2)" strokeWidth="4" />
-        <path d="M22 30 L57 12" stroke="#eab308" strokeWidth="3" />
-        <path d="M58 12 L102 32" stroke="#22c55e" strokeWidth="3" />
-        <path d="M102 33 L66 64" stroke="#ef4444" strokeWidth="3" />
+    <div style={{ width: '100%', height: '100%', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg viewBox="0 0 130 78" style={{ width: '100%', height: '100%' }}>
+        {/* Full track outline (ghost) */}
+        <path
+          d="M20 40 Q20 16 44 12 L84 10 Q106 8 112 24 L114 40 Q114 58 96 64 L46 66 Q22 64 20 50 Z"
+          fill="none" stroke="var(--border)" strokeWidth="3" strokeLinecap="round"
+        />
+        {/* S1 — top-left */}
+        <path d="M20 40 Q20 16 44 12 L70 10" fill="none" stroke="#eab308" strokeWidth="4" strokeLinecap="round" />
+        {/* S2 — top-right + right side */}
+        <path d="M70 10 L84 10 Q106 8 112 24 L114 40" fill="none" stroke="#22c55e" strokeWidth="4" strokeLinecap="round" />
+        {/* S3 — bottom */}
+        <path d="M114 40 Q114 58 96 64 L46 66 Q22 64 20 50 L20 40" fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+        {/* Driver dot */}
+        <circle cx={96} cy={62} r={5} fill="var(--bg3)" />
+        <circle cx={96} cy={62} r={3.5} fill="#f97316" />
+        {/* Sector labels */}
+        <text x={26} y={22} fill="#eab308" fontSize={7} fontFamily="var(--mono)" fontWeight="700">S1</text>
+        <text x={98} y={22} fill="#22c55e" fontSize={7} fontFamily="var(--mono)" fontWeight="700">S2</text>
+        <text x={60} y={74} fill="#ef4444" fontSize={7} fontFamily="var(--mono)" fontWeight="700">S3</text>
       </svg>
     </div>
   )

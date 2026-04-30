@@ -1,3 +1,21 @@
+export const HELP = `# Race Control Feed
+
+Chronological log of official race director messages — flags, safety cars, incidents, and DRS decisions.
+
+- **Timestamp**: UTC time the message was issued.
+- **Category badge**: A short tag classifying the message type: *SC* (Safety Car), *INC* (Incident), *DRS*, *INF* (general information).
+- **Flag indicator**: A color-coded rectangle matching the flag shown: red, yellow, double-yellow, green, safety car orange, chequered, etc.
+- **Message**: The full official race control text.
+
+Unfamiliar terms:
+
+- *SC*: Safety Car — deployed to neutralise the race after an incident. All cars must slow to the safety car's pace.
+- *VSC*: Virtual Safety Car — a slower neutralisation than a full SC; cars maintain a target delta time without bunching behind a physical car.
+- *DRS enabled / disabled*: Race control authorisation to open or close DRS zones, typically after a SC period ends.
+- *Double yellow*: A caution requiring drivers to slow significantly — danger on track, be ready to stop.
+
+Notes: messages arrive in real time from OpenF1. The feed auto-scrolls to the most recent entry.
+`
 import { useRaceControl } from '../../hooks/useRaceControl'
 import type { OpenF1RaceControl } from '../../api/openf1'
 import { useRefreshFade } from '../../hooks/useRefreshFade'

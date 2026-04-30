@@ -1,3 +1,23 @@
+export const HELP = `# Gap Evolution Chart
+
+Plots the time gap between two selected drivers over the course of a session.
+
+- **Gap series**: Line chart showing the gap at regular intervals (e.g., every minute).
+- **Driver selection**: Choose two drivers to compare.
+- **Tooltip**: Hover to see exact gap values at each time point.
+
+**Tips:**
+- Use to analyze how a battle develops, undercut/overcut attempts, or the effect of safety cars.
+- Works best when both drivers are on the same lap.
+
+**Notes:**
+- Gaps are bucketed by time (not lap), so rapid changes may be smoothed.
+- If a driver is lapped or retires, the series may end early or show gaps in data.
+
+**Unfamiliar terms:**
+- *Gap*: Time difference between two cars on track.
+- *Bucket*: Grouping of data points by time interval.
+`
 import { useMemo } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useIntervalHistory } from '../../hooks/useIntervals'

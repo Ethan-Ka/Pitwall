@@ -1,3 +1,23 @@
+export const HELP = `# Full Track Map
+
+Displays a detailed map of the current circuit, including layout and key features.
+
+- **Track outline**: Shows the full circuit layout to scale.
+- **Driver positions**: May overlay live driver locations if data is available.
+- **Zoom/pan**: Some maps support zooming or panning for detail.
+
+**Tips:**
+- Use to understand circuit shape, sector locations, and overtaking zones.
+- Useful for commentary, analysis, or situational awareness.
+
+**Notes:**
+- Map detail and accuracy depend on available circuit data.
+- If no circuit is selected or data is missing, the widget may show an empty state.
+
+**Unfamiliar terms:**
+- *Sector*: A section of the track used for timing splits (S1, S2, S3).
+- *Track outline*: The path of the racing circuit.
+`
 import { useRef, useEffect, useMemo, useState } from 'react'
 import { useLocation } from '../../hooks/useLocation'
 import { useCircuitMap } from '../../hooks/useCircuitMap'
@@ -5,46 +25,9 @@ import { useTrackDisplayAsset } from '../../hooks/useTrackDisplayAsset'
 import { useDriverStore } from '../../store/driverStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
-
-// ---------------------------------------------------------------------------
-// Coordinate helpers (module scope — stable across renders)
-// ---------------------------------------------------------------------------
-
-function makeNormalizer(
-  bbox: { minX: number; maxX: number; minY: number; maxY: number },
-  svgW: number,
-  svgH: number,
-  pad = 20,
-) {
-  const rangeX = bbox.maxX - bbox.minX || 1
-  const rangeY = bbox.maxY - bbox.minY || 1
-  const scale = Math.min((svgW - pad * 2) / rangeX, (svgH - pad * 2) / rangeY)
-  const offX = pad + ((svgW - pad * 2) - rangeX * scale) / 2
-  const offY = pad + ((svgH - pad * 2) - rangeY * scale) / 2
-  return {
-    toSVG: (x: number, y: number) => ({
-      svgX: offX + (x - bbox.minX) * scale,
-      // Flip Y axis: FastF1 Y increases upward, SVG Y increases downward
-      svgY: svgH - (offY + (y - bbox.minY) * scale),
-    }),
-    scale,
-  }
-}
-
-function bboxFromPoints(pts: { x: number; y: number }[]) {
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-  for (const p of pts) {
-    if (p.x < minX) minX = p.x
-    if (p.x > maxX) maxX = p.x
-    if (p.y < minY) minY = p.y
-    if (p.y > maxY) maxY = p.y
-  }
-  return { minX, maxX, minY, maxY }
-}
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+import { useFakeTelemetryStore } from '../../store/fakeTelemetryStore'
+import { MELBOURNE_CIRCUIT_MAP } from '../../data/melbourneCircuitMap'
+import { makeNormalizer, bboxFromPoints } from '../../lib/trackNormalizer'
 
 export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -53,19 +36,26 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
 
   const f1Ref = useSessionStore((s) => s.activeFastF1Session)
   const activeSession = useSessionStore((s) => s.activeSession)
+  const fakeEnabled = useFakeTelemetryStore((s) => s.enabled)
   const { data: driverPositions, trackPoints } = useLocation()
-  const { data: circuitMap } = useCircuitMap(f1Ref)
+  const { data: circuitMap } = useCircuitMap(fakeEnabled ? f1Ref : null)
 
-  // Resolve year/round/circuit from whichever session source is active
-  const assetYear = f1Ref?.year ?? activeSession?.year ?? null
-  const assetRound = f1Ref?.round ?? null
+  const fakeNoSession = fakeEnabled && !f1Ref && !activeSession
+  const assetYear = activeSession?.year ?? (fakeNoSession ? 2026 : (f1Ref?.year ?? null))
+  const assetRound = activeSession != null ? null : (fakeNoSession ? 1 : (f1Ref?.round ?? null))
   const assetCircuit = assetRound == null ? (activeSession?.circuit_short_name ?? null) : null
-  const { data: staticSvgUrl } = useTrackDisplayAsset(assetYear, assetRound, assetCircuit)
+  const { data: displayAsset } = useTrackDisplayAsset(assetYear, assetRound, assetCircuit)
+
+  const staticSvgUrl = displayAsset?.url ?? null
+  const displayRotation = displayAsset?.displayRotation ?? 0
+
+  const effectiveCircuitMap = fakeEnabled
+    ? (circuitMap ?? MELBOURNE_CIRCUIT_MAP)
+    : null
   const getDriver = useDriverStore((s) => s.getDriver)
   const getTeamColor = useDriverStore((s) => s.getTeamColor)
   const refreshFade = useRefreshFade([driverPositions])
 
-  // Observe container size changes
   useEffect(() => {
     if (!containerRef.current) return
     const ro = new ResizeObserver((entries) => {
@@ -76,31 +66,26 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
     return () => ro.disconnect()
   }, [])
 
-  // Separate thresholds: low for bbox (dots appear quickly), higher for outline
-  // (avoids replacing the static SVG with a partial 3-point scribble)
   const bbox = useMemo(() => {
-    if (circuitMap) return circuitMap.bbox
+    if (effectiveCircuitMap) return effectiveCircuitMap.bbox
     if (trackPoints.length > 3) return bboxFromPoints(trackPoints)
     return null
-  }, [circuitMap, trackPoints])
+  }, [effectiveCircuitMap, trackPoints])
 
   const normalizer = useMemo(
     () => (bbox ? makeNormalizer(bbox, size.width, size.height) : null),
     [bbox, size],
   )
 
-  // Only draw the live outline once we have enough points for a coherent shape,
-  // or when circuitMap provides the full path.
   const trackPolyline = useMemo(() => {
     if (!normalizer) return ''
-    if (!circuitMap && trackPoints.length < 50) return ''
-    const pts = circuitMap
-      ? circuitMap.x.map((x, i) => normalizer.toSVG(x, circuitMap.y[i]))
+    if (!effectiveCircuitMap && trackPoints.length < 50) return ''
+    const pts = effectiveCircuitMap
+      ? effectiveCircuitMap.x.map((x, i) => normalizer.toSVG(x, effectiveCircuitMap.y[i]))
       : trackPoints.map((p) => normalizer.toSVG(p.x, p.y))
     return pts.map((p) => `${p.svgX.toFixed(1)},${p.svgY.toFixed(1)}`).join(' ')
-  }, [circuitMap, trackPoints, normalizer])
+  }, [effectiveCircuitMap, trackPoints, normalizer])
 
-  // Project driver dots into SVG space
   const dots = useMemo(() => {
     if (!normalizer || !driverPositions) return []
     return driverPositions.map((dp) => {
@@ -118,7 +103,6 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
     })
   }, [driverPositions, normalizer, getDriver, getTeamColor])
 
-  // Battle proximity — Euclidean distance in metric space < 30 m
   const battleSet = useMemo(() => {
     const set = new Set<number>()
     for (let i = 0; i < dots.length; i++) {
@@ -138,8 +122,11 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
 
   const hasData = dots.length > 0
   const hasOutline = trackPolyline.length > 0
-  const buildingTrack = !hasOutline && !circuitMap
+  const buildingTrack = !hasOutline && !effectiveCircuitMap
   const showStaticAsset = buildingTrack && !!staticSvgUrl
+
+  const cx = size.width / 2
+  const cy = size.height / 2
 
   return (
     <div
@@ -148,7 +135,7 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
       style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}
     >
       <svg width={size.width} height={size.height} style={{ display: 'block' }}>
-        {/* Static circuit asset — shown while FastF1/position data is unavailable */}
+        {/* Static circuit asset — rotated to align with circuit-coordinate orientation */}
         {showStaticAsset && (
           <image
             href={staticSvgUrl!}
@@ -158,10 +145,10 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
             height={size.height}
             preserveAspectRatio="xMidYMid meet"
             opacity={0.35}
+            transform={displayRotation !== 0 ? `rotate(${displayRotation}, ${cx}, ${cy})` : undefined}
           />
         )}
 
-        {/* Track outline — thick band for road surface feel */}
         {hasOutline && (
           <polyline
             points={trackPolyline}
@@ -172,7 +159,6 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
             strokeLinejoin="round"
           />
         )}
-        {/* Track outline — thin centre line for definition */}
         {hasOutline && (
           <polyline
             points={trackPolyline}
@@ -184,7 +170,6 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
           />
         )}
 
-        {/* Battle proximity rings */}
         {dots.filter((d) => battleSet.has(d.driverNumber)).map((d) => (
           <circle
             key={`battle-${d.driverNumber}`}
@@ -199,7 +184,6 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
           />
         ))}
 
-        {/* Driver dots + abbreviation labels */}
         {dots.map((d) => {
           const isHovered = hoveredDriver === d.driverNumber
           return (
@@ -217,7 +201,6 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
                 onMouseEnter={() => setHoveredDriver(d.driverNumber)}
                 onMouseLeave={() => setHoveredDriver(null)}
               />
-              {/* Labels always visible; full opacity on hover */}
               <text
                 x={d.svgX}
                 y={d.svgY - 9}
@@ -235,7 +218,6 @@ export function FullTrackMap({ widgetId: _ }: { widgetId: string }) {
         })}
       </svg>
 
-      {/* Overlay when no position data yet */}
       {!hasData && !showStaticAsset && (
         <div
           style={{

@@ -1,3 +1,16 @@
+export const HELP = `# Lap Delta Tower
+
+Full-grid timing tower showing every driver's current race position and lap time splits.
+
+- **POS**: Current race position.
+- **DRV**: Driver three-letter code, with a team-color accent bar.
+- **GAP**: Time gap to the race leader.
+- **INT**: Interval to the car directly ahead.
+- **LAST**: Last completed lap time.
+- **S1 / S2 / S3**: Sector times from the most recent lap.
+
+Notes: no driver selection needed — this widget always shows all drivers. Data updates as new lap and position data arrive from OpenF1.
+`
 import { usePositions } from '../../hooks/usePositions'
 import { useIntervals } from '../../hooks/useIntervals'
 import { useLaps } from '../../hooks/useLaps'

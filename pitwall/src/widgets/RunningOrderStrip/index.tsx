@@ -1,3 +1,12 @@
+export const HELP = `# Running Order Strip
+
+A compact horizontal bar showing all drivers in their current race order — useful as a persistent at-a-glance overview.
+
+- **Driver chips**: Each chip shows the team logo and driver code, ordered left-to-right from P1 to P20.
+- **Position**: Race position is implied by horizontal order; the strip updates live as positions change.
+
+Notes: this widget is designed to span the full dashboard width (24 columns) and is best placed at the top or bottom of a layout. No driver selection is needed.
+`
 import { usePositions } from '../../hooks/usePositions'
 import { useDriverStore } from '../../store/driverStore'
 import { useRefreshFade } from '../../hooks/useRefreshFade'

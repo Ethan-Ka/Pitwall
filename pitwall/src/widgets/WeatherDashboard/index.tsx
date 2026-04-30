@@ -1,3 +1,17 @@
+export const HELP = `# Weather Dashboard
+
+Six live weather metric cards for the circuit, with trend arrows showing recent direction of change.
+
+- **Track temp** (°C): Temperature of the asphalt surface — directly affects tyre behaviour and grip level.
+- **Air temp** (°C): Ambient air temperature.
+- **Humidity** (%): Relative humidity — high humidity can indicate rain risk.
+- **Pressure** (mbar): Atmospheric pressure — significant drops may signal approaching weather.
+- **Wind speed** (km/h): Current wind at the circuit.
+- **Wind direction** (°): Meteorological bearing — the direction the wind is coming *from*.
+- **Trend arrow**: ↑ increasing, ↓ decreasing, — stable since the last reading.
+
+Notes: weather data is polled from OpenF1 at a fixed interval and reflects official circuit weather station readings. Track temperature can be significantly higher than air temperature, especially in direct sunlight.
+`
 import { useWeather } from '../../hooks/useWeather'
 import type { OpenF1Weather } from '../../api/openf1'
 import { useRefreshFade } from '../../hooks/useRefreshFade'

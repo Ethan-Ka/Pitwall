@@ -1,3 +1,18 @@
+export const HELP = `# Weather Radar
+
+Embedded Windy.com weather map automatically centred on the active circuit location.
+
+- **Radar overlay**: Shows precipitation (rain/snow), wind, cloud cover, or temperature — switch layers using the Windy controls inside the widget.
+- **Auto-centre**: The map repositions when the active circuit changes.
+- **Zoom**: Use the Windy controls inside the embedded map to zoom in or out.
+
+Unfamiliar terms:
+
+- *Windy*: A web-based weather visualisation tool that renders live forecast data from multiple meteorological models (ECMWF, GFS, etc.).
+- *ECMWF*: European Centre for Medium-Range Weather Forecasts — one of the most accurate global forecast models, used by many F1 weather teams.
+
+Notes: this widget requires an active internet connection to load the Windy embed. If the circuit location is not found, the map may default to a generic centre point. Weather shown is forecast data, not circuit-specific sensors — use the Weather Dashboard for official circuit readings.
+`
 import { useSessionStore } from '../../store/sessionStore'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
 

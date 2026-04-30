@@ -1,3 +1,19 @@
+export const HELP = `# Last Lap Card
+
+Shows the most recently completed lap time for the selected driver, with personal best comparison.
+
+- **Lap time**: Last completed lap duration.
+- **PB**: Personal best lap time for this session.
+- **Delta to PB**: Difference between last lap and personal best (green = matched PB, red = slower).
+- **S1 / S2 / S3**: Per-sector times with personal best sector highlights.
+
+Unfamiliar terms:
+
+- *PB*: Personal Best — the fastest lap a driver has set in the current session.
+- *Delta*: Difference in seconds between two times (positive = slower, negative = faster).
+
+Notes: only completed laps with a recorded duration are shown. The timer does not count up during the active lap — use the Lap Time Card widget for a live running timer.
+`
 import { useMemo } from 'react'
 import { useLaps } from '../../hooks/useLaps'
 import { useRefreshFade } from '../../hooks/useRefreshFade'

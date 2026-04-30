@@ -1,3 +1,19 @@
+export const HELP = `# Sector Mini-Cards
+
+Three compact cards — one per sector — showing the latest sector times and personal bests for the selected driver.
+
+- **S1 / S2 / S3**: The three track sectors used for timing splits.
+- **Sector time**: The time taken to complete each sector on the most recent lap.
+- **Best**: Personal best sector time across all laps this session.
+- **Delta**: Difference between the latest sector time and personal best (highlighted purple when a new sector PB is set).
+
+Unfamiliar terms:
+
+- *Sector*: A timing split of the track — circuits are divided into three sectors (S1, S2, S3) with split timing at fixed points.
+- *PB*: Personal Best for that sector this session.
+
+Notes: only laps with all three sector times recorded are considered. A sector PB badge appears when the latest sector time matches the session best within 0.5 ms.
+`
 import { useLaps } from '../../hooks/useLaps'
 import { useWidgetDriver } from '../../hooks/useWidgetDriver'
 import { useWidgetConfig } from '../../hooks/useWidgetConfig'

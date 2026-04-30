@@ -1,3 +1,19 @@
+export const HELP = `# Standings Board
+
+Projected race points board based on current live positions — shows what the championship points table would look like if the race ended now.
+
+- **Drivers tab**: Each driver's current race position, three-letter code, team, and projected points for that position.
+- **Constructors tab**: Team-level aggregated projected points, best current position, average position, and number of cars still running.
+- **Projected points**: Calculated using the standard F1 points table (P1=25, P2=18 … P10=1).
+
+Unfamiliar terms:
+
+- *Projected points*: Points a driver/team would earn if they finish in their current race position. These change as positions change on track.
+- *Constructors*: The team (car manufacturer) championship — points from both drivers of a team are added together each race.
+- *Cars running*: Number of a team's cars currently classified (not retired or DSQ).
+
+Notes: this board shows *current race* projected points only — it does not include championship points accumulated from earlier rounds. For the season championship standings, use the Standings Table widget.
+`
 import { useMemo } from 'react'
 import { usePositions } from '../../hooks/usePositions'
 import { useDriverStore } from '../../store/driverStore'

@@ -1,3 +1,20 @@
+export const HELP = `# Radio Scanner
+
+Activity monitor for team radio — shows which drivers have been on the radio recently and how active they are.
+
+- **Driver row**: Driver code and team colour bar.
+- **Radio count**: Total number of radio messages from this driver in the session.
+- **Last activity**: Timestamp of the most recent transmission.
+- **Relative time**: How long ago the last radio was received (e.g., "now", "30 s ago").
+- **Pulse highlight**: Drivers with recent activity pulse briefly to draw attention.
+
+Unfamiliar terms:
+
+- *Team radio*: Voice communications between a driver and their race engineer, officially broadcast via the FIA data feed. Includes strategy calls, car feedback, and driver queries.
+- *Race engineer (RE)*: The team member who communicates with the driver during a session, relaying strategy, competitor information, and car status.
+
+Notes: radio transcripts are text-decoded from the OpenF1 audio feed where available. Not all transmissions are captured — some may be missing or delayed. Audio playback is not available in this widget; use the Radio Feed (Text) widget to read transcripts.
+`
 import { useMemo } from 'react'
 import { useTeamRadio } from '../../hooks/useTeamRadio'
 import { useDriverStore } from '../../store/driverStore'

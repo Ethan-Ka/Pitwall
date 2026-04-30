@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { useWorkspaceStore } from '../../store/workspaceStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useWidgetDriver } from '../../hooks/useWidgetDriver'
+import { WIDGET_MANIFEST } from '../../widgets/manifest'
+import Markdown from '../Markdown/Markdown'
 import { WidgetSettingsPanel } from '../WidgetSettings/WidgetSettingsPanel'
 import { useDriverStore } from '../../store/driverStore'
 import { WidgetErrorBoundary } from '../ErrorBoundary/WidgetErrorBoundary'
@@ -32,9 +34,45 @@ interface WidgetHostProps {
 }
 
 export function WidgetHost({ widgetId, children }: WidgetHostProps) {
+    function handleContextMenu(e: React.MouseEvent) {
+      e.preventDefault()
+      setContextMenuPos({ x: e.clientX, y: e.clientY })
+    }
+
+    function handleRemove() {
+      if (isPoppedOut) {
+        void dockWidgetBackToWorkspace()
+        setContextMenuPos(null)
+        return
+      }
+      if (tabId && config) {
+        removeWidget(tabId, widgetId)
+      }
+      setContextMenuPos(null)
+    }
+
+    function buildTransferPayload() {
+      if (!tabId || !config) return null
+      return {
+        version: 1 as const,
+        sourceClientId: WINDOW_CLIENT_ID,
+        sourceTabId: tabId,
+        widget: config,
+        layout: {
+          w: layoutItem?.w ?? 6,
+          h: layoutItem?.h ?? 6,
+          minW: layoutItem?.minW,
+          minH: layoutItem?.minH,
+        },
+      }
+    }
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const helpBtnRef = useRef<HTMLButtonElement>(null)
+  const helpPopoverRef = useRef<HTMLDivElement>(null)
+  const [helpContent, setHelpContent] = useState<string | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const editingWidgetId = useFocusEditorStore((s) => s.editingWidgetId)
   const setEditingWidgetId = useFocusEditorStore((s) => s.setEditingWidgetId)
@@ -93,37 +131,45 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
     return () => document.removeEventListener('mousedown', handler)
   }, [contextMenuPos])
 
-  function handleContextMenu(e: React.MouseEvent) {
-    e.preventDefault()
-    setContextMenuPos({ x: e.clientX, y: e.clientY })
-  }
+  // Close help popover on outside click
+  useEffect(() => {
+    if (!helpOpen) return
+    function handler(e: MouseEvent) {
+      const target = e.target as Node
+      if (
+        helpPopoverRef.current && helpPopoverRef.current.contains(target)
+      ) return
+      if (helpBtnRef.current && helpBtnRef.current.contains(target)) return
+      setHelpOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [helpOpen])
 
-  function handleRemove() {
-    if (isPoppedOut) {
-      void dockWidgetBackToWorkspace()
-      setContextMenuPos(null)
-      return
+  useEffect(() => {
+    if (!helpOpen) {
+      setHelpContent(null)
     }
-    if (tabId && config) {
-      removeWidget(tabId, widgetId)
-    }
-    setContextMenuPos(null)
-  }
+  }, [helpOpen])
 
-  function buildTransferPayload() {
-    if (!tabId || !config) return null
-    return {
-      version: 1 as const,
-      sourceClientId: WINDOW_CLIENT_ID,
-      sourceTabId: tabId,
-      widget: config,
-      layout: {
-        w: layoutItem?.w ?? 6,
-        h: layoutItem?.h ?? 6,
-        minW: layoutItem?.minW,
-        minH: layoutItem?.minH,
-      },
+  // Helper to load help content dynamically from widget's index.tsx HELP export
+  async function loadHelpContent() {
+    const entry = WIDGET_MANIFEST.find((e) => e.type === config?.type)
+    if (!entry) return setHelpContent(null)
+    try {
+      // Try to import HELP from the widget's index.tsx
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const mod = await import(/* @vite-ignore */ `../../widgets/${config.type}/index.tsx`)
+      const exported = mod?.HELP
+      if (exported && typeof exported === 'string') {
+        setHelpContent(exported)
+        return
+      }
+    } catch {
+      // ignore
     }
+    setHelpContent(entry.description ?? null)
   }
 
   function buildPopoutBounds() {
@@ -283,6 +329,39 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
             {widgetTypeLabel(config.type)}
           </span>
 
+          {/* Help icon — placed immediately to the right of the name */}
+          {(() => {
+            const entry = WIDGET_MANIFEST.find((e) => e.type === config.type)
+            const desc = entry?.description
+            return (
+              <button
+                ref={helpBtnRef}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (!helpOpen) await loadHelpContent();
+                  setHelpOpen((v) => !v)
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="interactive-button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--muted2)',
+                  cursor: 'pointer',
+                  padding: '0 6px',
+                  fontSize: 12,
+                  lineHeight: 1,
+                  transition: 'color 0.12s',
+                  WebkitAppRegion: 'no-drag',
+                }}
+                aria-label={desc ? `Help: ${desc}` : 'Widget help'}
+                title={desc}
+              >
+                ℹ
+              </button>
+            )
+          })()}
+
           {/* Gear icon → settings */}
           <button
             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true) }}
@@ -362,6 +441,89 @@ export function WidgetHost({ widgetId, children }: WidgetHostProps) {
       </div>
 
       {/* Context menu — portalled to body to escape transform stacking context */}
+      {helpOpen && (() => {
+        const entry = WIDGET_MANIFEST.find((e) => e.type === config.type)
+        const rect = helpBtnRef.current?.getBoundingClientRect()
+        const desc = helpContent ?? entry?.description
+        if (!rect || !desc) return null
+
+        // Popup dimensions (should match style below)
+        const POPUP_MIN_WIDTH = 220
+        const POPUP_PADDING_X = 20 // 10px left/right
+        const POPUP_PADDING_Y = 16 // 8px top/bottom
+        const POPUP_HEIGHT_ESTIMATE = 260 // estimate, could be improved
+        const popupWidth = POPUP_MIN_WIDTH + POPUP_PADDING_X
+        const popupHeight = POPUP_HEIGHT_ESTIMATE
+
+        // Viewport dimensions (popout or main window)
+        // This ensures the popup is always visible within the current window, even when popped out
+        const vw = window.innerWidth
+        const vh = window.innerHeight
+
+        // Default position: below button
+        let left = Math.round(rect.left)
+        let top = Math.round(rect.bottom + 8)
+
+        // Adjust horizontally if offscreen (clamp to window bounds)
+        if (left + popupWidth > vw - 8) {
+          left = Math.max(8, vw - popupWidth)
+        }
+        if (left < 8) left = 8
+
+        // Adjust vertically if offscreen (try above button as last resort)
+        if (top + popupHeight > vh - 8) {
+          // Try to show above the button
+          const aboveTop = Math.round(rect.top - popupHeight - 8)
+          if (aboveTop > 8) {
+            top = aboveTop
+          } else {
+            // Clamp to bottom edge
+            top = Math.max(8, vh - popupHeight)
+          }
+        }
+
+        // If the popup would still be clipped (e.g. window is too small), clamp to top
+        if (top < 8) top = 8
+        // If the popup would still be clipped horizontally, clamp to left
+        if (left < 8) left = 8
+
+        // NOTE: This logic ensures the help popup is always visible and not clipped by widget or window bounds, including in popout mode.
+
+        return createPortal(
+          <div
+            ref={helpPopoverRef}
+            className="animated-scale-in"
+            role="dialog"
+            aria-label="Widget help"
+            style={{
+              position: 'fixed',
+              left,
+              top,
+              background: 'var(--bg4)',
+              border: '0.5px solid var(--border2)',
+              borderRadius: 6,
+              padding: '8px 10px',
+              zIndex: 650,
+              minWidth: 220,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              color: 'var(--white)',
+              fontFamily: 'var(--mono)',
+              fontSize: 11,
+              letterSpacing: '0.02em',
+              maxWidth: 'calc(100vw - 16px)',
+              maxHeight: 'calc(100vh - 16px)',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--muted2)', fontSize: 10 }}>{entry?.label}</div>
+            <div style={{ whiteSpace: 'normal', color: 'var(--white)', fontSize: 11 }}>
+              <Markdown source={desc} />
+            </div>
+          </div>,
+          document.body
+        )
+      })()}
+
       {contextMenuPos && createPortal(
         <div
           ref={menuRef}

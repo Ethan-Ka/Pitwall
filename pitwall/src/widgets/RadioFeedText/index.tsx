@@ -1,3 +1,18 @@
+export const HELP = `# Radio Feed (Text)
+
+Scrolling transcript of team radio messages for all drivers, in chronological order.
+
+- **Timestamp**: UTC time the radio message was received.
+- **Driver chip**: Team-colour badge showing the driver's three-letter code.
+- **Message text**: Decoded text of the radio transmission.
+
+Unfamiliar terms:
+
+- *Team radio*: Voice communication between driver and race engineer during a session. The FIA releases selected recordings via the official timing feed.
+- *Race engineer (RE)*: The team member who talks to the driver — strategy updates, competitor gaps, and technical feedback all come through the RE.
+
+Notes: radio text is transcribed from audio by OpenF1 — transcription accuracy varies and some messages may be incomplete or missing. The feed is read-only and does not support audio playback. Messages are shown for all drivers; use the Radio Scanner widget to see activity levels at a glance.
+`
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTeamRadio } from '../../hooks/useTeamRadio'
 import { useDriverStore } from '../../store/driverStore'

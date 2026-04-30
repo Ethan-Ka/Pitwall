@@ -1,4 +1,5 @@
 // Shared formatters and UI primitives used across widgets
+import { useRef, useState, useEffect } from 'react'
 
 export type UnitMode = 's' | 'ms'
 
@@ -43,6 +44,36 @@ export function formatDelta(deltaSeconds: number | null, units: UnitMode = 's'):
   const abs = Math.abs(deltaSeconds)
   if (units === 'ms') return `${sign}${Math.round(abs * 1000)} ms`
   return `${sign}${abs.toFixed(3)}`
+}
+
+/**
+ * Accumulates live telemetry samples into a bounded rolling buffer.
+ * Deduplicates by `key` (defaults to object reference) to avoid stacking
+ * identical samples from repeated polls that return the same data point.
+ */
+export function useRollingHistory<T>(
+  sample: T | null | undefined,
+  max: number,
+  key?: (s: T) => string | number,
+): T[] {
+  const bufRef = useRef<T[]>([])
+  const [buf, setBuf] = useState<T[]>([])
+
+  useEffect(() => {
+    if (!sample) return
+    const prev = bufRef.current.at(-1)
+    // Skip duplicate samples (same poll result repeated before next data arrives)
+    if (prev !== undefined && key) {
+      if (key(sample) === key(prev)) return
+    } else if (prev === sample) {
+      return
+    }
+    const next = [...bufRef.current.slice(-(max - 1)), sample]
+    bufRef.current = next
+    setBuf(next)
+  }, [sample]) // eslint-disable-line react-hooks/exhaustive-deps — max and key are stable
+
+  return buf
 }
 
 export function EmptyState({ message, subMessage }: { message: string; subMessage?: string }) {

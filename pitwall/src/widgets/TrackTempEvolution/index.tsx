@@ -1,3 +1,19 @@
+export const HELP = `# Track Temp Evolution
+
+Area chart of track and air temperature over the session, useful for identifying when conditions are improving or degrading.
+
+- **Track temp** (orange/amber area): Temperature of the asphalt surface at each weather poll.
+- **Air temp** (blue line): Ambient air temperature — toggled on/off via the toggle button.
+- **X axis**: Time through the session (session-relative minutes or UTC time, depending on data).
+- **Hover tooltip**: Shows exact temperatures at each sampled point.
+
+Unfamiliar terms:
+
+- *Track temperature*: How hot the track surface is. A hotter track provides more grip up to a point, but can also degrade tyres faster. Teams use track temperature when modelling tyre behaviour.
+- *Rubber*: As more laps are completed, tyre rubber builds up on the racing line, increasing grip — this effect is often seen when track temp stabilises but lap times improve.
+
+Notes: temperature data is sampled at the same rate as the weather polling interval. The evolution chart is only meaningful once several data points have accumulated — early in a session it may show only one or two readings.
+`
 import { useMemo, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useWeather } from '../../hooks/useWeather'

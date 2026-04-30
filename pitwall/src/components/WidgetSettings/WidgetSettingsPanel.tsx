@@ -233,6 +233,64 @@ export function WidgetSettingsPanel({ widgetId, onClose }: WidgetSettingsPanelPr
               />
             </div>
 
+            {widgetConfig.type === 'ThrottleHeatmap' && (
+              <div>
+                <div style={{
+                  fontFamily: 'var(--mono)',
+                  fontSize: 8,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: 'var(--muted2)',
+                  marginBottom: 6,
+                }}>
+                  Throttle heatmap
+                </div>
+
+                <label style={{ display: 'block', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted2)', marginBottom: 6 }}>Micro-sector count</label>
+                <input
+                  type="number"
+                  min={4}
+                  max={64}
+                  step={1}
+                  value={(widgetConfig.settings?.bucketCount as number) ?? 16}
+                  onChange={(e) => update({ bucketCount: Math.max(1, parseInt(e.target.value, 10) || 16) })}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg4)',
+                    border: '0.5px solid var(--border2)',
+                    borderRadius: 3,
+                    padding: '7px 10px',
+                    fontFamily: 'var(--mono)',
+                    fontSize: 10,
+                    color: 'var(--white)',
+                    outline: 'none',
+                    marginBottom: 8,
+                  }}
+                />
+
+                <label style={{ display: 'block', fontFamily: 'var(--mono)', fontSize: 8, color: 'var(--muted2)', marginBottom: 6 }}>Max samples (rolling)</label>
+                <input
+                  type="number"
+                  min={16}
+                  max={1024}
+                  step={8}
+                  value={(widgetConfig.settings?.maxSamples as number) ?? 80}
+                  onChange={(e) => update({ maxSamples: Math.max(1, parseInt(e.target.value, 10) || 80) })}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg4)',
+                    border: '0.5px solid var(--border2)',
+                    borderRadius: 3,
+                    padding: '7px 10px',
+                    fontFamily: 'var(--mono)',
+                    fontSize: 10,
+                    color: 'var(--white)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            )}
+
             <div>
               <div style={{
                 fontFamily: 'var(--mono)',

@@ -1,3 +1,22 @@
+export const HELP = `# Stint Pace Comparison
+
+Plots lap time vs. tyre age for two drivers to compare degradation and raw pace on matching tyre windows.
+
+- **Driver A / Driver B**: Select two drivers to compare using the driver chip pickers.
+- **Stint selector**: Choose *Current* (latest stint), *All* (all stints overlaid), or a specific stint number.
+- **X axis**: Tyre age in laps (1 = first lap of that tyre set).
+- **Y axis**: Lap duration in seconds.
+- **Lines**: Each driver's pace profile plotted in their team color.
+- **Avg delta**: The mean lap time difference between the two drivers across matched tyre ages.
+
+Unfamiliar terms:
+
+- *Tyre age*: How many laps have been completed on the current set of tyres. Higher age = more worn.
+- *Stint*: A continuous run on one set of tyres between pit stops (or from race start to first stop).
+- *Tyre window*: The range of tyre ages where both drivers have data — used to compute a fair delta.
+
+Notes: only laps with a recorded duration are plotted. Very short stints (1–2 laps) may not produce a meaningful trend line.
+`
 import { useLaps } from '../../hooks/useLaps'
 import { useRefreshFade } from '../../hooks/useRefreshFade'
 import { useStints } from '../../hooks/useStints'
