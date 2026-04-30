@@ -159,7 +159,7 @@ export const WIDGET_MANIFEST: WidgetManifestEntry[] = [
     help: GearTrace_HELP,
     category: 'Telemetry',
     color: 'var(--purple)',
-    defaultSize: { w: 8, h: 4 },
+    defaultSize: { w: 8, h: 5 },
     minH: 3,
     component: GearTrace,
   },

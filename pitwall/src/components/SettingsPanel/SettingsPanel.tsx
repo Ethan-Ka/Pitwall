@@ -1177,7 +1177,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 color: 'var(--white)',
                 letterSpacing: '0.06em',
               }}>
-                Data: OpenF1 API
+                Data: OpenF1 API/FastF1 Bridge
               </span>
             </div>
           </Section>

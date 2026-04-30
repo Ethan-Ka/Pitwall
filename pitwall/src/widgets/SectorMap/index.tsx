@@ -1,15 +1,15 @@
 export const HELP = `# Sector Map
 
-Detailed circuit diagram overlaid with sector boundaries and live driver position dots.
+Detailed circuit diagram with a live track outline and driver position dots overlaid. Sector timing cards for the focused driver are shown at the bottom.
 
-- **Track outline**: SVG path of the circuit, scaled to the widget.
-- **Sector boundaries**: Dividers showing where S1 ends / S2 begins / S3 begins on the lap.
+- **Track outline**: SVG polyline of the circuit derived from FastF1 coordinate data, aligned with the circuit image.
 - **Driver dots**: Coloured dots representing each driver's current on-track position, labelled with their three-letter code.
+- **Sector cards**: S1 / S2 / S3 split times for the most recent lap of the focused driver. Personal bests are highlighted in green.
 
 Unfamiliar terms:
 
-- *Sector*: One of three official timing segments the lap is divided into for split time measurement (S1, S2, S3). Sector boundaries are fixed on the track and do not change mid-race.
-- *Track position*: Normalised distance around the lap (0–1), used to place driver dots on the map.
+- *Sector*: One of three official timing segments the lap is divided into for split time measurement (S1, S2, S3).
+- *Track position*: Mapped from raw x/y metric coordinates (OpenF1) through a shared normaliser that keeps positions consistent across all track map widgets.
 
 Notes: circuit map data is loaded from static circuit assets bundled with the app. If a circuit is not yet in the asset library, the widget will fall back to an empty state. Live driver positions require an active OpenF1 session.
 `
@@ -130,7 +130,7 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
     if (!bbox) return null
     const w = imageBounds?.renderedW ?? size.width
     const h = imageBounds?.renderedH ?? size.height
-    return makeNormalizer(bbox, w, h)
+    return makeNormalizer(bbox, w, h, 5)
   }, [bbox, imageBounds, size])
 
   const dots = useMemo(() => {
@@ -175,10 +175,17 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
 
   const hasSectorData = s1 != null || s2 != null || s3 != null
 
-  // Rotation transform string — applied to a wrapper that holds both image and dot overlay
-  // so they rotate as a unit around the container center, keeping dots on track.
-  const rotateStyle = detailRotation !== 0
-    ? { transform: `rotate(${detailRotation}deg)`, transformOrigin: '50% 50%' }
+  // SVG-space rotation to align the FastF1 coordinate data with the circuit image.
+  // Applied as an SVG transform="rotate(angle, cx, cy)" inside each SVG so it operates
+  // in coordinate space — not CSS layout space. This correctly repositions both the
+  // track polyline and driver dots relative to the image without disturbing the letterbox
+  // geometry that objectFit:contain computes from the image's natural dimensions.
+  const svgW = imageBounds?.renderedW ?? size.width
+  const svgH = imageBounds?.renderedH ?? size.height
+  const svgCx = (svgW / 2).toFixed(1)
+  const svgCy = (svgH / 2).toFixed(1)
+  const svgRotate = detailRotation !== 0
+    ? `rotate(${detailRotation}, ${svgCx}, ${svgCy})`
     : undefined
 
   return (
@@ -193,9 +200,7 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
         background: 'var(--bg)',
       }}
     >
-      {/* Rotation wrapper: image + dot overlay rotate together so dots stay on track */}
-
-      <div style={{ position: 'absolute', inset: 0,  }}>
+      <div style={{ position: 'absolute', inset: 0 }}>
         {detailedImageUrl ? (
           <img
             src={detailedImageUrl}
@@ -213,7 +218,6 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
               height: '100%',
               objectFit: 'contain',
               display: 'block',
-              ...rotateStyle,
             }}
           />
         ) : (
@@ -232,11 +236,12 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
             No circuit image
           </div>
         )}
-        {/* Track polyline SVG — under driver dots, matches FullTrackMap style */}
+
+        {/* Track polyline SVG — rotated in coordinate space to align with circuit image */}
         {trackPolyline.length > 0 && (
           <svg
-            width={imageBounds?.renderedW ?? size.width}
-            height={imageBounds?.renderedH ?? size.height}
+            width={svgW}
+            height={svgH}
             style={{
               position: 'absolute',
               top: imageBounds?.offsetY ?? 0,
@@ -245,31 +250,32 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
               zIndex: 0,
             }}
           >
-            <polyline
-              points={trackPolyline}
-              fill="none"
-              stroke="var(--border2)"
-              strokeWidth={14}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <polyline
-              points={trackPolyline}
-              fill="none"
-              stroke="var(--border3)"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <g transform={svgRotate}>
+              <polyline
+                points={trackPolyline}
+                fill="none"
+                stroke="var(--border2)"
+                strokeWidth={14}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <polyline
+                points={trackPolyline}
+                fill="none"
+                stroke="var(--border3)"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </g>
           </svg>
         )}
-        
 
-        {/* Driver dots SVG — positioned over the letterboxed image area */}
+        {/* Driver dots SVG — same coordinate-space rotation keeps dots on track */}
         {dots.length > 0 && (
           <svg
-            width={imageBounds?.renderedW ?? size.width}
-            height={imageBounds?.renderedH ?? size.height}
+            width={svgW}
+            height={svgH}
             style={{
               position: 'absolute',
               top: imageBounds?.offsetY ?? 0,
@@ -278,6 +284,7 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
               zIndex: 1,
             }}
           >
+            <g transform={svgRotate}>
             {dots.map((d) => (
               <g key={d.driverNumber}>
                 <circle
@@ -300,11 +307,12 @@ export function SectorMap({ widgetId }: { widgetId: string }) {
                 </text>
               </g>
             ))}
+            </g>
           </svg>
         )}
       </div>
 
-      {/* Driver acronym badge — outside the rotation wrapper so it stays fixed */}
+      {/* Driver acronym badge — stays fixed outside the SVG layers */}
       {driverNumber != null && acronym != null && (
         <div
           style={{
