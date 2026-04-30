@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Fan-built F1 race intelligence platform powered by OpenF1</strong><br/>
+  <strong>Fan-built F1 race intelligence platform</strong><br/>
   Real-time telemetry, inferred strategy metrics, ambient race state UI, and shareable multi-canvas layouts.
 </p>
 
