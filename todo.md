@@ -3,11 +3,15 @@
 
 Also fix the multiple window system
 
-FIX THE SSECTOR MAP
+FIX THE SECTOR MAP AND TRACK MAP
+
+Refactor codebase to make logic not strange
+
+Test all items in a live setting
 
 # To Do
 
-
+- [ ] add a widget for individual driver radio?
 - [x] Implement data from [f1db](https://github.com/f1db/f1db/) (give credit)
 - [x] Implement widgets
 - [ ] Radio system
@@ -45,7 +49,7 @@ Up to 6 requests per second and 60 requests per minute
 - [ ] Better inference engine
 - [ ] RGB Bridge
 - [ ] Back end
-- [ ] Replay stuff?
+- [ ] Replay races with time etc
 - [ ] System tray and overlay layout editor
 - [x] Update readme
 - [ ] Features for people watching on their tv with pitwall on oanother device?
