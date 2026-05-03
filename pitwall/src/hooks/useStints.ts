@@ -27,6 +27,9 @@ export function useStints(driverNumber?: number, options?: { preload?: boolean }
   const mode = useSessionStore((s) => s.mode)
   const dataSource = useSessionStore((s) => s.dataSource)
   const fastf1Ref = useSessionStore((s) => s.activeFastF1Session)
+  const fastf1Available = useSessionStore((s) => s.fastf1ServerAvailable)
+
+  const usingFastF1 = dataSource === 'fastf1' && fastf1Available && !!fastf1Ref
 
   const liveRefetchInterval = options?.preload ? false : 10_000
   const sessionEnabled = driverNumber !== undefined || options?.preload === true
@@ -47,7 +50,7 @@ export function useStints(driverNumber?: number, options?: { preload?: boolean }
     // Only enable when a session is selected AND either a driverNumber is provided
     // or the caller explicitly requested preloading. Prevents accidental full-session
     // fetches when driverNumber is undefined (widget not configured yet).
-    enabled: dataSource === 'openf1' && !!sessionKey && sessionEnabled,
+    enabled: !usingFastF1 && !!sessionKey && sessionEnabled,
     ...queryModePolicy(mode, {
       staleTime: 10_000,
       refetchInterval: liveRefetchInterval,
@@ -61,7 +64,7 @@ export function useStints(driverNumber?: number, options?: { preload?: boolean }
       const data = await fetchFastF1Stints(fastf1Ref!)
       return data.map(normalizeFastF1Stint)
     },
-    enabled: dataSource === 'fastf1' && !!fastf1Ref && sessionEnabled,
+    enabled: usingFastF1 && sessionEnabled,
     select: driverNumber !== undefined
       ? (stints) => stints.filter((s) => s.driver_number === driverNumber)
       : undefined,
@@ -69,5 +72,5 @@ export function useStints(driverNumber?: number, options?: { preload?: boolean }
     gcTime: GC_24H,
   })
 
-  return dataSource === 'fastf1' ? fastf1Query : openf1Query
+  return usingFastF1 ? fastf1Query : openf1Query
 }

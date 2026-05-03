@@ -25,6 +25,9 @@ export function usePositions() {
   const mode = useSessionStore((s) => s.mode)
   const dataSource = useSessionStore((s) => s.dataSource)
   const fastf1Ref = useSessionStore((s) => s.activeFastF1Session)
+  const fastf1Available = useSessionStore((s) => s.fastf1ServerAvailable)
+
+  const usingFastF1 = dataSource === 'fastf1' && fastf1Available && !!fastf1Ref
 
   const openf1Query = useQuery({
     queryKey: ['positions', sessionKey],
@@ -51,7 +54,7 @@ export function usePositions() {
 
       return deduplicated
     },
-    enabled: dataSource === 'openf1' && !!sessionKey,
+    enabled: !usingFastF1 && !!sessionKey,
     ...queryModePolicy(mode, {
       staleTime: 3_000,
       refetchInterval: 5_000,
@@ -70,12 +73,12 @@ export function usePositions() {
         .map(normalizeFastF1Result)
         .sort((a, b) => a.position - b.position)
     },
-    enabled: dataSource === 'fastf1' && !!fastf1Ref,
+    enabled: usingFastF1,
     staleTime: Infinity,
     gcTime: GC_24H,
   })
 
-  return dataSource === 'fastf1' ? fastf1Query : openf1Query
+  return usingFastF1 ? fastf1Query : openf1Query
 }
 
 // Returns position for a specific driver

@@ -29,6 +29,9 @@ export function useWeather(options?: { preload?: boolean }) {
   const mode = useSessionStore((s) => s.mode)
   const dataSource = useSessionStore((s) => s.dataSource)
   const fastf1Ref = useSessionStore((s) => s.activeFastF1Session)
+  const fastf1Available = useSessionStore((s) => s.fastf1ServerAvailable)
+
+  const usingFastF1 = dataSource === 'fastf1' && fastf1Available && !!fastf1Ref
 
   const liveRefetchInterval = options?.preload ? false : 30_000
 
@@ -45,7 +48,7 @@ export function useWeather(options?: { preload?: boolean }) {
       void writeSessionData('weather', key, data, mode === 'historical')
       return data
     },
-    enabled: dataSource === 'openf1' && !!sessionKey,
+    enabled: !usingFastF1 && !!sessionKey,
     ...queryModePolicy(mode, {
       staleTime: 30_000,
       refetchInterval: liveRefetchInterval,
@@ -58,10 +61,10 @@ export function useWeather(options?: { preload?: boolean }) {
       const data = await fetchFastF1Weather(fastf1Ref!)
       return data.map(normalizeFastF1Weather)
     },
-    enabled: dataSource === 'fastf1' && !!fastf1Ref,
+    enabled: usingFastF1,
     staleTime: Infinity,
     gcTime: GC_24H,
   })
 
-  return dataSource === 'fastf1' ? fastf1Query : openf1Query
+  return usingFastF1 ? fastf1Query : openf1Query
 }

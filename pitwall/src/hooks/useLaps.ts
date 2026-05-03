@@ -32,6 +32,9 @@ export function useLaps(
   const mode = useSessionStore((s) => s.mode)
   const dataSource = useSessionStore((s) => s.dataSource)
   const fastf1Ref = useSessionStore((s) => s.activeFastF1Session)
+  const fastf1Available = useSessionStore((s) => s.fastf1ServerAvailable)
+
+  const usingFastF1 = dataSource === 'fastf1' && fastf1Available && !!fastf1Ref
 
   const liveRefetchInterval =
     options?.refetchIntervalMs !== undefined
@@ -56,7 +59,7 @@ export function useLaps(
       void writeSessionData('laps', key, data, mode === 'historical', driverNumber)
       return data
     },
-    enabled: dataSource === 'openf1' && !!sessionKey && sessionEnabled,
+    enabled: !usingFastF1 && !!sessionKey && sessionEnabled,
     ...queryModePolicy(mode, {
       staleTime: 15_000,
       refetchInterval: liveRefetchInterval,
@@ -71,7 +74,7 @@ export function useLaps(
       const data = await fetchFastF1Laps(fastf1Ref!)
       return data.map(normalizeFastF1Lap)
     },
-    enabled: dataSource === 'fastf1' && !!fastf1Ref && sessionEnabled,
+    enabled: usingFastF1 && sessionEnabled,
     select: driverNumber !== undefined
       ? (laps) => laps.filter((l) => l.driver_number === driverNumber)
       : undefined,
@@ -79,5 +82,5 @@ export function useLaps(
     gcTime: GC_24H,
   })
 
-  return dataSource === 'fastf1' ? fastf1Query : openf1Query
+  return usingFastF1 ? fastf1Query : openf1Query
 }

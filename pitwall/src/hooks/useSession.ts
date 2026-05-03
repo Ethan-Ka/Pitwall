@@ -20,11 +20,11 @@ export function useSessions(year?: number) {
   const apiKey = useSessionStore((s) => s.apiKey) ?? undefined
   const mode = useSessionStore((s) => s.mode)
   const apiRequestsEnabled = useSessionStore((s) => s.apiRequestsEnabled)
-  const dataSource = useSessionStore((s) => s.dataSource)
   return useQuery({
     queryKey: ['sessions', year, apiKey ? 'auth' : 'anon'],
     queryFn: () => fetchSessions({ year }, apiKey),
-    enabled: dataSource === 'openf1' && mode !== 'onboarding' && apiRequestsEnabled,
+    // Session schedule is calendar metadata — needed regardless of telemetry data source
+    enabled: mode !== 'onboarding' && apiRequestsEnabled,
     ...queryModePolicy(mode, {
       staleTime: 60_000,
       refetchInterval: false,
@@ -37,11 +37,11 @@ export function useLatestSession() {
   const apiKey = useSessionStore((s) => s.apiKey) ?? undefined
   const mode = useSessionStore((s) => s.mode)
   const apiRequestsEnabled = useSessionStore((s) => s.apiRequestsEnabled)
-  const dataSource = useSessionStore((s) => s.dataSource)
   return useQuery({
     queryKey: ['sessions', 'latest', apiKey ? 'auth' : 'anon'],
     queryFn: () => fetchLatestSession(apiKey),
-    enabled: dataSource === 'openf1' && mode !== 'onboarding' && apiRequestsEnabled,
+    // Latest session metadata is needed for session_key in all data source modes
+    enabled: mode !== 'onboarding' && apiRequestsEnabled,
     ...queryModePolicy(mode, {
       staleTime: 30_000,
       refetchInterval: 60_000,

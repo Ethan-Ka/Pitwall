@@ -20,6 +20,8 @@ import { TopChromeWaveLayer } from './components/AmbientBar/TopChromeWaveLayer'
 import { FLAG_COLORS } from './components/AmbientBar/flagStateMachine'
 import { useDrivers } from './hooks/useDrivers'
 import { useLatestSession } from './hooks/useSession'
+import { useAutoFastF1Session } from './hooks/useAutoFastF1Session'
+import { useFastF1ServerStatus } from './hooks/useFastF1'
 import { useNextRace } from './hooks/useNextRace'
 import { useRaceControl } from './hooks/useRaceControl'
 import { usePositions } from './hooks/usePositions'
@@ -323,6 +325,8 @@ interface DataLayerProps {
 
 function DataLayer({ onStartupProgressChange }: DataLayerProps) {
   const driversQuery = useDrivers()
+  useFastF1ServerStatus()
+  useAutoFastF1Session()
   useRaceControl()
   const positionsQuery = usePositions()
   // Prime data for widgets that may not be mounted yet.

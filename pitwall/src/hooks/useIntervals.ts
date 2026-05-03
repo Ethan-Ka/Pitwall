@@ -10,7 +10,6 @@ export function useIntervalHistory(options?: { preload?: boolean }) {
   const apiKey = useSessionStore((s) => s.apiKey) ?? undefined
   const sessionKey = useSessionStore((s) => s.activeSession?.session_key)
   const mode = useSessionStore((s) => s.mode)
-  const dataSource = useSessionStore((s) => s.dataSource)
   const liveRefetchInterval = options?.preload ? false : 8_000
 
   return useQuery({
@@ -40,8 +39,8 @@ export function useIntervalHistory(options?: { preload?: boolean }) {
         throw error
       }
     },
-    // Intervals are an OpenF1-only live stream — no FastF1 equivalent exists.
-    enabled: dataSource === 'openf1' && !!sessionKey,
+    // Intervals are OpenF1-only — always fall back regardless of dataSource.
+    enabled: !!sessionKey,
     ...queryModePolicy(mode, {
       staleTime: 5_000,
       refetchInterval: liveRefetchInterval,

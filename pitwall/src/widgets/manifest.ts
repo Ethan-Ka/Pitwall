@@ -214,7 +214,7 @@ export const WIDGET_MANIFEST: WidgetManifestEntry[] = [
     help: CarVisualization_HELP,
     category: 'Telemetry',
     color: 'var(--purple)',
-    defaultSize: { w: 10, h: 8 },
+    defaultSize: { w: 10, h: 7 },
     minH: 3,
     minW: 10,
     component: CarVisualization,
